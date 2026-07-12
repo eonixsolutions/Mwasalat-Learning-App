@@ -1,0 +1,17 @@
+{
+  "name": "react-page-generator",
+  "description": "Generate React pages using Eonix design system.",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "pageName": {
+        "type": "string"
+      },
+      "description": {
+        "type": "string"
+      }
+    },
+    "required": ["pageName", "description"]
+  },
+  "prompt": "Generate a React page called {{pageName}}.\n\nFollow ALL Eonix design rules from the .claude/rules folder.\n\nPage description:\n{{description}}"
+}

@@ -1,0 +1,39 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run *)",
+      "Bash(node -e \"const l = require\\('lucide-react'\\); ['Rocket','Brain','MonitorSmartphone','UserRound'].forEach\\(n => console.log\\(n+':', !!l[n]\\)\\)\")",
+      "Bash(node -e \"const l = require\\('lucide-react'\\); ['PhoneCall','Mail','MessageCircle','PhoneIncoming'].forEach\\(n => console.log\\(n+':', !!l[n]\\)\\)\")",
+      "Bash(node -e \"const l = require\\('lucide-react'\\); ['Linkedin','Instagram','Youtube'].forEach\\(n => console.log\\(n+':', !!l[n]\\)\\)\")",
+      "Bash(python3 -c \"from PIL import Image; img = Image.open\\('logo-icon.png'\\); print\\(img.size, img.mode\\)\")",
+      "Bash(powershell -command 'Add-Type -AssemblyName System.Drawing; $img = [System.Drawing.Image]::FromFile\\('\\\\''d:/musP/Eonix/Eonix App/frontend/public/logo-icon.png'\\\\''\\); Write-Host $img.Width '\\\\''x'\\\\'' $img.Height; $img.Dispose\\(\\)')",
+      "Bash(powershell -command 'Add-Type -AssemblyName System.Drawing; $img = [System.Drawing.Image]::FromFile\\('\\\\''d:/musP/Eonix/Eonix App/frontend/public/eonix-logo.png'\\\\''\\); Write-Host $img.Width '\\\\''x'\\\\'' $img.Height; $img.Dispose\\(\\)')",
+      "Bash(node --input-type=module --eval \"import\\('./src/routes.js'\\).then\\(\\(\\) => console.log\\('OK'\\)\\).catch\\(e => console.error\\(e.message, e.stack\\)\\)\")",
+      "Bash(node --input-type=module --eval \"import\\('./src/routes.js'\\).then\\(\\(\\) => console.log\\('OK'\\)\\).catch\\(e => console.error\\(e.message\\)\\)\")",
+      "Bash(node -e \"const l = require\\('d:/musP/Eonix/Eonix App/frontend/node_modules/lucide-react'\\); ['Trophy','BookMarked','RotateCcw','Star','Send','Lock','Play','Loader2'].forEach\\(n => console.log\\(n, !!l[n]\\)\\)\")",
+      "Bash(node src/scripts/seedLeetcode.js)",
+      "Bash(node src/scripts/seedDummyStudent.js)",
+      "Bash(node --input-type=module)",
+      "Bash(node src/scripts/seedJsLeetcode.js)",
+      "Bash(node -e \"require\\('axios'\\); console.log\\('ok'\\)\")",
+      "Bash(npm install *)",
+      "PowerShell(Get-ChildItem -Path \"d:\\\\musP\\\\Eonix\\\\Eonix App\\\\backend\\\\src\\\\modules\\\\\" -Directory | ForEach-Object { $_.Name } | Sort-Object)",
+      "Bash(findstr -i \"student\\\\|modal\")",
+      "Bash(dir \"d:\\\\musP\\\\Eonix\\\\Eonix App\\\\frontend\\\\src\\\\pages\\\\dashboard\\\\students\")",
+      "Bash(node -e \"const p = require\\('./backend/package.json'\\); const keys = Object.keys\\({...p.dependencies,...p.devDependencies}\\); ['multer','multer-storage-cloudinary','cloudinary'].forEach\\(k => console.log\\(k, keys.includes\\(k\\)\\)\\)\")",
+      "Bash(npx vite *)",
+      "Skill(run)",
+      "Skill(run:*)",
+      "Bash(node -e \"require\\('dotenv'\\).config\\(\\); console.log\\(process.env.MONGO_URI ? process.env.MONGO_URI.replace\\(/\\\\/\\\\/.*@/, '//<creds>@'\\) : 'MISSING'\\)\")",
+      "Bash(powershell -Command \"Get-Process mongod -ErrorAction SilentlyContinue\")",
+      "Bash(powershell -Command \"\\(Get-Service -Name MongoDB -ErrorAction SilentlyContinue\\).Status\")",
+      "Bash(chromium-cli --help)",
+      "Bash(npx --no-install playwright --version)",
+      "Read(//d//**)",
+      "Bash(npm ls *)",
+      "Bash(node src/scripts/seedSampleProgress.js)",
+      "Bash(curl -s \"http://localhost:5173/src/pages/dashboard/StudentDashboard.jsx\")",
+      "Bash(node -e ' *)"
+    ]
+  }
+}

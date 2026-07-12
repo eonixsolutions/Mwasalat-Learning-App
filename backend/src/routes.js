@@ -1,0 +1,50 @@
+import { Router } from 'express';
+import authRoutes from './modules/auth/auth.routes.js';
+import configRoutes from './modules/config/config.routes.js';
+import courseRoutes from './modules/course/course.routes.js';
+import paymentRoutes from './modules/payment/payment.routes.js';
+import courseRequestRoutes from './modules/courseRequest/courseRequest.routes.js';
+import attendanceRoutes from './modules/attendance/attendance.routes.js';
+import appUsageRoutes from './modules/attendance/app-usage.routes.js';
+import studentRoutes from './modules/student/student.routes.js';
+import staffRoutes from './modules/staff/staff.routes.js';
+import notificationRoutes from './modules/notification/notification.routes.js';
+import branchRoutes from './modules/branch/branch.routes.js';
+import batchRoutes from './modules/batch/batch.routes.js';
+import reviewRoutes from './modules/review/review.routes.js';
+import leetcodeRoutes from './modules/leetcode/leetcode.routes.js';
+import holidayRoutes from './modules/holiday/holiday.routes.js';
+import leaveRoutes from './modules/leave/leave.routes.js';
+import weekReviewRoutes from './modules/weekreview/weekreview.routes.js';
+import videoRoutes from './modules/video/video.routes.js';
+import contactRoutes from './modules/contact/contact.routes.js';
+import feesRoutes from './modules/fees/fees.routes.js';
+import taskSheetContentRoutes from './modules/task-sheet-content/task-sheet-content.routes.js';
+
+const router = Router();
+
+router.use('/auth', authRoutes);
+router.use('/config', configRoutes);
+router.use('/courses', courseRoutes);       // includes /courses/:courseId/lessons
+router.use('/payments', paymentRoutes);
+router.use('/course-requests', courseRequestRoutes);
+router.use('/attendance', attendanceRoutes);
+router.use('/app-usage', appUsageRoutes);
+router.use('/students', studentRoutes);
+router.use('/staff', staffRoutes);
+router.use('/notifications', notificationRoutes);
+router.use('/branches', branchRoutes);
+router.use('/batches', batchRoutes);
+router.use('/reviews', reviewRoutes);
+router.use('/leetcode', leetcodeRoutes);
+router.use('/holidays', holidayRoutes);
+router.use('/leaves', leaveRoutes);
+router.use('/week-reviews', weekReviewRoutes);
+router.use('/videos', videoRoutes);
+router.use('/contact', contactRoutes);
+router.use('/fees', feesRoutes);
+router.use('/task-sheet-content', taskSheetContentRoutes);
+// router.use('/applications', applicationRoutes);
+// router.use('/mentors', mentorRoutes);
+
+export default router;
