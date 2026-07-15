@@ -81,8 +81,23 @@ const remindMentorsForUpcomingScreenings = async () => {
   }
 };
 
+// Runs hourly — archives Mwasalat courses whose expiry date has passed
+const archiveExpiredMwasalatPrograms = async () => {
+  try {
+    const { mwasalatProgramService } = await import('../modules/mwasalatProgram/mwasalatProgram.service.js');
+    const count = await mwasalatProgramService.archiveExpired();
+    if (count > 0) logger.info(`[scheduler] Archived ${count} expired Mwasalat program(s)`);
+  } catch (err) {
+    logger.error('[scheduler] archiveExpiredMwasalatPrograms failed:', err);
+  }
+};
+
 export const startScheduler = () => {
   // Every day at 09:00
   cron.schedule('0 9 * * *', remindMentorsForUpcomingScreenings, { timezone: 'Asia/Kolkata' });
   logger.info('[scheduler] Started — slot reminder cron active (09:00 IST daily)');
+
+  // Every hour
+  cron.schedule('0 * * * *', archiveExpiredMwasalatPrograms, { timezone: 'Asia/Kolkata' });
+  logger.info('[scheduler] Mwasalat program expiry check active (hourly)');
 };

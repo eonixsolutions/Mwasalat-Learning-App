@@ -33,6 +33,23 @@ export const initSocket = (httpServer) => {
     });
   });
 
+  // Mwasalat lives on its own namespace — fully separate from Eonix's default
+  // namespace above, so broadcasting to Mwasalat users can never leak events
+  // to Eonix sockets (or vice versa) and neither side has to touch the other's
+  // connection/room logic.
+  io.of('/mwasalat').on('connection', (socket) => {
+    logger.debug(`Mwasalat socket connected: ${socket.id}`);
+
+    socket.on('join-room', (userId) => {
+      socket.join(`mwasalat-user:${userId}`);
+      logger.debug(`Mwasalat socket ${socket.id} joined room mwasalat-user:${userId}`);
+    });
+
+    socket.on('disconnect', () => {
+      logger.debug(`Mwasalat socket disconnected: ${socket.id}`);
+    });
+  });
+
   return io;
 };
 
@@ -47,4 +64,12 @@ export const emitToUser = (userId, event, data) => {
 
 export const broadcastTaskSheetUpdate = (courseId, week) => {
   getIO().emit('task_sheet_published', { courseId: courseId.toString(), week });
+};
+
+export const broadcastMwasalatNotification = (notification) => {
+  getIO().of('/mwasalat').emit('mwasalat:notification', notification);
+};
+
+export const emitToMwasalatUser = (userId, event, data) => {
+  getIO().of('/mwasalat').to(`mwasalat-user:${userId}`).emit(event, data);
 };

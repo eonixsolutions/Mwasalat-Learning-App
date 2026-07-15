@@ -8,6 +8,7 @@ import cookieParser from 'cookie-parser';
 import routes from './routes.js';
 import { errorHandler } from './middlewares/errorHandler.js';
 import { notFound } from './middlewares/notFound.js';
+import { mwasalatPaymentController } from './modules/mwasalatPayment/mwasalatPayment.controller.js';
 
 const app = express();
 
@@ -15,11 +16,15 @@ app.use(helmet());
 app.use(cors({ origin: process.env.CLIENT_URL, credentials: true }));
 app.use(cookieParser());
 
+// Stripe webhook needs the raw, unparsed body for signature verification —
+// must be registered before the global express.json() parser below
+app.post('/api/mwasalat-payments/webhook', express.raw({ type: 'application/json' }), mwasalatPaymentController.webhook);
+
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
 
-const limiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 200 });
+const limiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 1000 });
 app.use('/api', limiter);
 
 app.use('/api', routes);

@@ -41,6 +41,26 @@ export default {
           orange: '#F59E0B',
           green:  '#22C55E',
         },
+
+        // ── Mwasalat brand (matches the real Mwasalat Oman identity —
+        // deep red road-network mark + near-black wordmark). Scoped to
+        // Mwasalat-prefixed files only; `tealBrand`/`coral` above remain
+        // the untouched Eonix theme. ──────────────────────────────────
+        mwasalatRed: {
+          700: '#8C1622',
+          600: '#B31E2E',
+          500: '#D6293C',
+          400: '#E24A5A',
+          300: '#EFA0AA',
+          100: '#FDEBED',
+        },
+        mwasalatInk: {
+          500: '#23181A',
+          400: '#4A3336',
+          300: '#8C6B6E',
+          200: '#D9C9CA',
+          100: '#F6EFEF',
+        },
       },
 
       // ── Gradients ─────────────────────────────────────────────
@@ -51,6 +71,7 @@ export default {
 
       fontFamily: {
         sans: ['Inter', 'sans-serif'],
+        display: ['"Space Grotesk"', 'sans-serif'],
       },
     },
   },
