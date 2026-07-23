@@ -1,33 +1,29 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import { Mail, Loader2, X, Search, Star } from 'lucide-react';
 import MwasalatAdminLayout from '../../layouts/MwasalatAdminLayout.jsx';
 import { mwasalatUserService } from '../../services/mwasalatUser.service.js';
 import { mwasalatProgramService } from '../../services/mwasalatProgram.service.js';
 import MwasalatUserTable from '../../components/mwasalat/MwasalatUserTable.jsx';
+import { localizeNumber } from '../../utils/mwasalatLocalize.js';
 
 const inputClass = 'w-full px-3.5 py-2.5 rounded-xl border border-[#E2E8F0] text-sm bg-white text-[#1E293B] placeholder:text-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-mwasalatInk-500/20 hover:border-mwasalatInk-300 transition-colors';
-
-const STATUS_FILTERS = [
-  { value: 'all', label: 'All' },
-  { value: 'active', label: 'Active' },
-  { value: 'blocked', label: 'Blocked' },
-  { value: 'invited', label: 'Invited' },
-];
 
 const statusOf = (u) => (!u.passwordSet ? 'invited' : u.isActive ? 'active' : 'blocked');
 
 function InviteInstructorModal({ onClose, onInvited }) {
+  const { t } = useTranslation('mwasalatApp');
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm();
 
   const onSubmit = async (data) => {
     try {
       await mwasalatUserService.inviteInstructor(data);
-      toast.success('Invitation sent');
+      toast.success(t('instructorsPage.inviteModal.sentToast'));
       onInvited();
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to send invitation');
+      toast.error(err.response?.data?.message || t('instructorsPage.inviteModal.sendFailed'));
     }
   };
 
@@ -35,23 +31,23 @@ function InviteInstructorModal({ onClose, onInvited }) {
     <div className="fixed inset-0 bg-black/30 flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-2xl w-full max-w-md p-6">
         <div className="flex items-center justify-between mb-5">
-          <h3 className="text-lg font-semibold text-[#1E293B]">Invite Instructor</h3>
+          <h3 className="text-lg font-semibold text-[#1E293B]">{t('instructorsPage.inviteModal.title')}</h3>
           <button onClick={onClose} className="w-8 h-8 rounded-lg flex items-center justify-center text-[#94A3B8] hover:bg-[#F1F5F9]">
             <X className="w-4 h-4" />
           </button>
         </div>
         <p className="text-sm text-[#475569] mb-5">
-          They'll receive an email with a link to set their own password and activate the account.
+          {t('instructorsPage.inviteModal.body')}
         </p>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-[#1E293B] mb-1.5">Name</label>
-            <input className={inputClass} {...register('name', { required: 'Name is required' })} />
+            <label className="block text-sm font-medium text-[#1E293B] mb-1.5">{t('common.name')}</label>
+            <input className={inputClass} {...register('name', { required: t('auth.errors.nameRequired') })} />
             {errors.name && <p className="text-xs text-[#C22033] mt-1">{errors.name.message}</p>}
           </div>
           <div>
-            <label className="block text-sm font-medium text-[#1E293B] mb-1.5">Email</label>
-            <input type="email" className={inputClass} placeholder="instructor@mwasalat.om" {...register('email', { required: 'Email is required' })} />
+            <label className="block text-sm font-medium text-[#1E293B] mb-1.5">{t('common.email')}</label>
+            <input type="email" dir="ltr" className={`${inputClass} text-start`} placeholder={t('instructorsPage.inviteModal.emailPlaceholder')} {...register('email', { required: t('auth.errors.emailRequired') })} />
             {errors.email && <p className="text-xs text-[#C22033] mt-1">{errors.email.message}</p>}
           </div>
           <button
@@ -60,7 +56,7 @@ function InviteInstructorModal({ onClose, onInvited }) {
             className="w-full flex items-center justify-center gap-2 bg-mwasalatInk-500 hover:bg-mwasalatInk-400 disabled:opacity-60 text-white font-semibold px-6 py-2.5 rounded-xl transition-colors text-sm"
           >
             {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Mail className="w-4 h-4" />}
-            Send Invitation
+            {t('instructorsPage.inviteModal.submitButton')}
           </button>
         </form>
       </div>
@@ -69,6 +65,13 @@ function InviteInstructorModal({ onClose, onInvited }) {
 }
 
 export default function MwasalatInstructorsPage() {
+  const { t, i18n } = useTranslation('mwasalatApp');
+  const STATUS_FILTERS = [
+    { value: 'all', label: t('userFilters.all') },
+    { value: 'active', label: t('userFilters.active') },
+    { value: 'blocked', label: t('userFilters.blocked') },
+    { value: 'invited', label: t('userFilters.invited') },
+  ];
   const [instructors, setInstructors] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [pendingId, setPendingId] = useState(null);
@@ -94,10 +97,10 @@ export default function MwasalatInstructorsPage() {
     setPendingId(instructor._id);
     try {
       await mwasalatUserService.setActive(instructor._id, !instructor.isActive, reason);
-      toast.success(instructor.isActive ? 'Instructor blocked' : 'Instructor unblocked');
+      toast.success(instructor.isActive ? t('instructorsPage.blockedToast') : t('instructorsPage.unblockedToast'));
       load();
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to update instructor');
+      toast.error(err.response?.data?.message || t('instructorsPage.updateFailed'));
     } finally {
       setPendingId(null);
     }
@@ -115,36 +118,36 @@ export default function MwasalatInstructorsPage() {
   const instructorColumns = [
     {
       key: 'rating',
-      label: 'Rating',
+      label: t('instructorsPage.columns.rating'),
       sortValue: (u) => u.avgRating ?? -1,
       render: (u) => (
         u.avgRating != null ? (
           <span className="inline-flex items-center gap-1 font-medium text-[#1E293B]">
-            <Star className="w-3.5 h-3.5 text-[#F59E0B] fill-[#F59E0B]" /> {u.avgRating}
+            <Star className="w-3.5 h-3.5 text-[#F59E0B] fill-[#F59E0B]" /> {localizeNumber(u.avgRating, i18n.language)}
           </span>
         ) : (
-          <span className="text-[#94A3B8]">No ratings yet</span>
+          <span className="text-[#94A3B8]">{t('instructorsPage.columns.noRatingsYet')}</span>
         )
       ),
     },
     {
       key: 'programs',
-      label: 'Programs',
+      label: t('instructorsPage.columns.programs'),
       sortValue: (u) => u.totalPrograms ?? 0,
-      render: (u) => u.totalPrograms ?? 0,
+      render: (u) => localizeNumber(u.totalPrograms ?? 0, i18n.language),
     },
   ];
 
   return (
     <MwasalatAdminLayout
-      title="Instructors"
-      subtitle="Manage instructor accounts"
+      title={t('admin.nav.instructors')}
+      subtitle={t('instructorsPage.subtitle')}
       actions={(
         <button
           onClick={() => setShowInviteModal(true)}
           className="inline-flex items-center gap-2 bg-mwasalatInk-500 hover:bg-mwasalatInk-400 text-white font-semibold px-3.5 py-2 rounded-xl transition-colors text-xs"
         >
-          <Mail className="w-3.5 h-3.5" /> Invite Instructor
+          <Mail className="w-3.5 h-3.5" /> {t('instructorsPage.inviteButton')}
         </button>
       )}
     >
@@ -164,12 +167,12 @@ export default function MwasalatInstructorsPage() {
             ))}
           </div>
           <div className="relative flex-1 min-w-[220px]">
-            <Search className="w-4 h-4 text-[#94A3B8] absolute left-3.5 top-1/2 -translate-y-1/2" />
+            <Search className="w-4 h-4 text-[#94A3B8] absolute start-3.5 top-1/2 -translate-y-1/2" />
             <input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search by name or email…"
-              className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-[#E2E8F0] text-sm bg-white text-[#1E293B] placeholder:text-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-mwasalatInk-500/20 hover:border-mwasalatInk-300 transition-colors"
+              placeholder={t('instructorsPage.searchPlaceholder')}
+              className="w-full ps-10 pe-4 py-2.5 rounded-xl border border-[#E2E8F0] text-sm bg-white text-[#1E293B] placeholder:text-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-mwasalatInk-500/20 hover:border-mwasalatInk-300 transition-colors"
             />
           </div>
         </div>
@@ -180,7 +183,7 @@ export default function MwasalatInstructorsPage() {
             isLoading={isLoading}
             pendingId={pendingId}
             onToggle={handleToggle}
-            emptyLabel={instructors.length === 0 ? 'No instructors yet — send an invite to get started.' : 'No instructors match this filter.'}
+            emptyLabel={instructors.length === 0 ? t('instructorsPage.emptyNoInstructors') : t('instructorsPage.emptyNoMatch')}
             linkTo={(u) => `/mwasalat/admin/instructors/${u._id}`}
             columns={instructorColumns}
           />

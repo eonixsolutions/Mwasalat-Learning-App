@@ -1,7 +1,9 @@
 import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Ban, CheckCircle2, Loader2, ChevronUp, ChevronDown } from 'lucide-react';
 import MwasalatBlockUserModal from './MwasalatBlockUserModal.jsx';
+import { localizeNumber } from '../../utils/mwasalatLocalize.js';
 
 function SortableHeader({ label, active, direction, onClick, className = '' }) {
   return (
@@ -19,6 +21,8 @@ function SortableHeader({ label, active, direction, onClick, className = '' }) {
 }
 
 export default function MwasalatUserTable({ users, isLoading, pendingId, onToggle, emptyLabel, linkTo, columns }) {
+  const { t, i18n } = useTranslation('mwasalatApp');
+  const dateLocale = i18n.language.startsWith('ar') ? 'ar-OM' : 'en-GB';
   const [blockTarget, setBlockTarget] = useState(null);
   const [sortKey, setSortKey] = useState(null);
   const [sortDir, setSortDir] = useState('asc');
@@ -55,7 +59,7 @@ export default function MwasalatUserTable({ users, isLoading, pendingId, onToggl
   if (isLoading) {
     return (
       <div className="p-10 flex items-center justify-center text-[#94A3B8]">
-        <Loader2 className="w-5 h-5 animate-spin mr-2" /> Loading…
+        <Loader2 className="w-5 h-5 animate-spin me-2" /> {t('dataTable.loading')}
       </div>
     );
   }
@@ -68,18 +72,18 @@ export default function MwasalatUserTable({ users, isLoading, pendingId, onToggl
     <div className="overflow-x-auto">
       <table className="w-full text-sm">
         <thead>
-          <tr className="border-b border-[#E2E8F0] text-left text-xs text-[#94A3B8] uppercase tracking-wide">
-            <SortableHeader label="Name" active={sortKey === 'name'} direction={sortDir} onClick={() => toggleSort('name')} />
+          <tr className="border-b border-[#E2E8F0] text-start text-xs text-[#94A3B8] uppercase tracking-wide">
+            <SortableHeader label={t('common.name')} active={sortKey === 'name'} direction={sortDir} onClick={() => toggleSort('name')} />
             {columns ? (
               columns.map((col) => (
                 <SortableHeader key={col.key} label={col.label} active={sortKey === col.key} direction={sortDir} onClick={() => toggleSort(col.key)} />
               ))
             ) : (
-              <th className="px-5 py-3 font-medium">Email</th>
+              <th className="px-5 py-3 font-medium">{t('common.email')}</th>
             )}
-            <th className="px-5 py-3 font-medium">Status</th>
-            <SortableHeader label="Joined" active={sortKey === 'joined'} direction={sortDir} onClick={() => toggleSort('joined')} />
-            <th className="px-5 py-3 font-medium text-right">Action</th>
+            <th className="px-5 py-3 font-medium">{t('common.status')}</th>
+            <SortableHeader label={t('userTable.joined')} active={sortKey === 'joined'} direction={sortDir} onClick={() => toggleSort('joined')} />
+            <th className="px-5 py-3 font-medium text-end">{t('userTable.action')}</th>
           </tr>
         </thead>
         <tbody>
@@ -110,13 +114,13 @@ export default function MwasalatUserTable({ users, isLoading, pendingId, onToggl
                 <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium whitespace-nowrap ${
                   u.isActive ? 'bg-mwasalatInk-100 text-mwasalatInk-500' : 'bg-[#FBE7E9] text-mwasalatRed-600'
                 }`}>
-                  {!u.passwordSet ? 'Invited' : u.isActive ? 'Active' : 'Blocked'}
+                  {!u.passwordSet ? t('userTable.invited') : u.isActive ? t('userTable.active') : t('userTable.blocked')}
                 </span>
               </td>
               <td className="px-5 py-3.5 text-[#94A3B8] whitespace-nowrap">
-                {new Date(u.createdAt).toLocaleDateString()}
+                <span dir="ltr" className="text-start">{localizeNumber(new Date(u.createdAt).toLocaleDateString(dateLocale, { day: 'numeric', month: 'short', year: 'numeric' }), i18n.language)}</span>
               </td>
-              <td className="px-5 py-3.5 text-right">
+              <td className="px-5 py-3.5 text-end">
                 <button
                   onClick={() => (u.isActive ? setBlockTarget(u) : onToggle(u))}
                   disabled={pendingId === u._id}
@@ -133,7 +137,7 @@ export default function MwasalatUserTable({ users, isLoading, pendingId, onToggl
                   ) : (
                     <CheckCircle2 className="w-3.5 h-3.5" />
                   )}
-                  {u.isActive ? 'Block' : 'Unblock'}
+                  {u.isActive ? t('userTable.block') : t('userTable.unblock')}
                 </button>
               </td>
             </tr>

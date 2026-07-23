@@ -12,12 +12,17 @@ const login = asyncHandler(async (req, res) => {
   successResponse(res, 'Login successful', result);
 });
 
+const googleLogin = asyncHandler(async (req, res) => {
+  const result = await mwasalatAuthService.googleLogin(req.body);
+  successResponse(res, 'Login successful', result);
+});
+
 const getMe = asyncHandler(async (req, res) => {
   successResponse(res, 'User fetched', req.mwasalatUser);
 });
 
 const updateProfile = asyncHandler(async (req, res) => {
-  const user = await mwasalatAuthService.updateProfile(req.mwasalatUser._id, req.body);
+  const user = await mwasalatAuthService.updateProfile(req.mwasalatUser._id, req.body, req.file);
   successResponse(res, 'Profile updated', user);
 });
 
@@ -47,6 +52,6 @@ const resetPassword = asyncHandler(async (req, res) => {
 });
 
 export const mwasalatAuthController = {
-  register, login, getMe, updateProfile, changePassword, verifyInvitation, setPassword,
+  register, login, googleLogin, getMe, updateProfile, changePassword, verifyInvitation, setPassword,
   forgotPassword, resetPassword,
 };

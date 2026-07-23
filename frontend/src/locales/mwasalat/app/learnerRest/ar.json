@@ -1,0 +1,112 @@
+{
+  "learnerCourseDetail": {
+    "titleFallback": "الدورة",
+    "loading": "جارٍ تحميل الدورة…",
+    "notFound": "الدورة غير موجودة.",
+    "backToMyLearning": "العودة إلى تعلّمي",
+    "categoryFallback": "عام",
+    "progressLabel": "التقدّم",
+    "longestStreak": "الأطول: {{count}} يومًا",
+    "viewCertificate": "عرض الشهادة",
+    "takeAssessment": "بدء التقييم",
+    "lockedNote": "أكمل محتوى الدورة لفتح التقييم",
+    "assessmentPassed": "تم اجتياز التقييم",
+    "giveFeedback": "أضف ملاحظاتك للحصول على الشهادة",
+    "chatWithInstructor": "التحدث مع المدرب",
+    "chatStartFailed": "فشل بدء المحادثة",
+    "courseDiscussion": "نقاش الدورة"
+  },
+  "learnerChat": {
+    "titleFallback": "محادثة",
+    "loading": "جارٍ تحميل المحادثة…",
+    "unableToStart": "تعذّر بدء هذه المحادثة.",
+    "typeMessage": "اكتب رسالة…"
+  },
+  "learnerWatch": {
+    "loading": "جارٍ تحميل التسجيل…",
+    "cantPlayInline": "لا يمكن تشغيل رابط هذا التسجيل مباشرة.",
+    "openRecording": "فتح التسجيل"
+  },
+  "learnerQuiz": {
+    "loading": "جارٍ تحميل الاختبار…",
+    "lockedTitle": "التقييم مُقفل",
+    "lockedBody": "أنهِ مشاهدة محتوى الدورة قبل إجراء التقييم.",
+    "backToDashboardLink": "العودة إلى لوحة التحكم",
+    "noQuizYet": "لا يحتوي هذا المقرر على اختبار بعد.",
+    "submitFailed": "فشل إرسال التقييم",
+    "passedTitle": "لقد نجحت! 🎉",
+    "pointsEarned": "+{{points}} نقطة مكتسبة",
+    "notPassedTitle": "لم تنجح بعد",
+    "notPassedBody": "تحتاج إلى {{percent}}% للنجاح. راجع الإجابات أدناه وحاول مرة أخرى.",
+    "attemptLabel": "المحاولة رقم {{number}}",
+    "correctAnswerLabel": "الإجابة الصحيحة: {{answer}}",
+    "tryAgain": "حاول مرة أخرى",
+    "backToDashboardBtn": "العودة إلى لوحة التحكم",
+    "oneLastStepNote": "خطوة أخيرة — شارك ملاحظاتك لفتح شهادتك.",
+    "continueToFeedbackBtn": "المتابعة إلى الملاحظات",
+    "questionOf": "السؤال {{current}} من {{total}}",
+    "submitting": "جارٍ الإرسال…",
+    "submitQuiz": "إرسال الاختبار",
+    "nextQuestion": "السؤال التالي"
+  },
+  "learnerFeedback": {
+    "pageTitle": "ملاحظات الدورة",
+    "pageSubtitle": "مطلوبة للحصول على شهادتك",
+    "courseRatingLabel": "كيف كانت الدورة؟",
+    "instructorRatingLabel": "كيف كان المدرب؟",
+    "commentsLabel": "تعليقات (اختياري)",
+    "commentsPlaceholder": "ما الذي أعجبك؟ وما الذي يمكن تحسينه؟",
+    "submitting": "جارٍ الإرسال…",
+    "submitBtn": "إرسال الملاحظات",
+    "successToast": "شكرًا على ملاحظاتك!",
+    "errorToast": "فشل إرسال الملاحظات",
+    "ratingRequiredToast": "يرجى تقييم الدورة والمدرب معًا"
+  },
+  "learnerCertificate": {
+    "loading": "جارٍ تحميل الشهادة…",
+    "notFound": "الشهادة غير موجودة",
+    "goBack": "العودة",
+    "backToDashboard": "العودة إلى لوحة التحكم",
+    "printSavePdf": "طباعة / حفظ كملف PDF",
+    "certificateOfCompletion": "شهادة إتمام",
+    "certifyThat": "تشهد هذه الوثيقة بأن",
+    "completedCourse": "قد أكمل بنجاح دورة",
+    "dateIssuedLabel": "تاريخ الإصدار",
+    "validUntilLabel": "صالحة حتى",
+    "expiredStamp": "منتهية الصلاحية",
+    "noExpiryNote": "هذه الشهادة لا تنتهي صلاحيتها.",
+    "instructorLabel": "المدرب",
+    "instructorFallback": "أكاديمية مواصلات",
+    "certificateNoLabel": "رقم الشهادة",
+    "scanToVerify": "امسح للتحقق"
+  },
+  "contentAccess": {
+    "viewPdf": "عرض ملف PDF",
+    "markedFinished": "تم التعليم كمنتهٍ",
+    "markAsFinished": "تعليم كمنتهٍ",
+    "pdfDayProgress": "تمت قراءة اليوم {{done}} من {{total}}",
+    "markedToday": "تم تسجيل قراءة اليوم — عد غدًا",
+    "markTodayDone": "تعليم قراءة اليوم كمكتملة",
+    "watchRecording": "مشاهدة التسجيل",
+    "joinLiveClass": "الانضمام إلى الحصة المباشرة",
+    "scheduledCheckInNote": "{{date}} · امسح رمز QR في الحصة لتسجيل الحضور"
+  },
+  "controlledVideoPlayer": {
+    "loading": "جارٍ تحميل الفيديو…",
+    "loadFailed": "فشل تحميل الفيديو"
+  },
+  "chatBell": {
+    "messages": "الرسائل",
+    "noConversationsYet": "لا توجد محادثات بعد",
+    "unknownName": "غير معروف"
+  },
+  "chatPanel": {
+    "today": "اليوم",
+    "yesterday": "أمس",
+    "loading": "جارٍ تحميل المحادثة…",
+    "sayHello": "ألقِ التحية 👋",
+    "startConversationWith": "ابدأ المحادثة مع {{name}} — أسئلتك حول الدورة مرحّب بها هنا.",
+    "otherFallback": "هذا الشخص",
+    "sendFailed": "فشل إرسال الرسالة"
+  }
+}

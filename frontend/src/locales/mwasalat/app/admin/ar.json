@@ -1,0 +1,395 @@
+{
+  "adminDashboard": {
+    "welcomeTitle": "مرحبًا بعودتك، {{name}}",
+    "greetings": {
+      "goodMorning": "صباح الخير، {{name}} 👋",
+      "goodAfternoon": "مساء الخير، {{name}} 👋",
+      "goodEvening": "مساء الخير، {{name}} 👋"
+    },
+    "defaultAdminName": "المسؤول",
+    "subtitle": "إليك ما يحدث في منصتك التعليمية اليوم.",
+    "loadingOverview": "جارٍ تحميل النظرة العامة…",
+    "untitledProgram": "برنامج بلا عنوان",
+    "generateReport": "إنشاء تقرير",
+    "stats": {
+      "totalRevenue": "إجمالي الإيرادات",
+      "totalLearners": "إجمالي المتعلمين",
+      "instructors": "المدربون",
+      "activePrograms": "البرامج النشطة",
+      "certificatesIssued": "الشهادات الصادرة",
+      "avgQuizPassRate": "متوسط نسبة النجاح في الاختبارات",
+      "thisMonth": "هذا الشهر",
+      "thisWeek": "هذا الأسبوع",
+      "issuedToday": "صدرت اليوم",
+      "draftPrograms": "{{count}} برنامج مسودة"
+    },
+    "notifyModal": {
+      "title": "إرسال إشعار",
+      "body": "سيصل هذا الإشعار فورًا إلى كل متعلم ومدرب على المنصة حاليًا.",
+      "titleLabel": "العنوان",
+      "titlePlaceholder": "مثال: صيانة مجدولة الليلة",
+      "messageLabel": "الرسالة",
+      "messagePlaceholder": "ما الذي يحتاجون معرفته؟",
+      "sending": "جارٍ الإرسال…",
+      "sendButton": "إرسال إلى الجميع",
+      "validationError": "العنوان والرسالة مطلوبان",
+      "sentToast": "تم إرسال الإشعار إلى الجميع",
+      "sendFailed": "فشل إرسال الإشعار"
+    },
+    "charts": {
+      "monthlyRevenueTitle": "نظرة عامة على الإيرادات",
+      "monthlyRevenueSubtitle": "آخر 6 أشهر، بالريال العُماني",
+      "weeklyLearnersTitle": "المتعلمون الجدد",
+      "weeklyLearnersSubtitle": "التسجيلات خلال آخر 8 أسابيع",
+      "weekLabel": "أسبوع {{number}}",
+      "funnelTitle": "رحلة المتعلم",
+      "funnelSubtitle": "أين ينقطع المتعلمون بين التسجيل وإنهاء الدورة",
+      "noEnrollments": "لا توجد تسجيلات بعد.",
+      "deliveryTypeTitle": "البرامج حسب نوع التقديم",
+      "deliveryTypeSubtitle": "عبر جميع البرامج النشطة والمسودات",
+      "noPrograms": "لا توجد برامج بعد.",
+      "deliveryTypeAriaLabel": "البرامج حسب نوع التقديم",
+      "enrollmentFunnelAriaLabel": "قمع إتمام التسجيل",
+      "topProgramsTitle": "أفضل البرامج",
+      "topProgramsTabRevenue": "الإيرادات",
+      "topProgramsTabPassRate": "نسبة النجاح",
+      "topRevenueSubtitle": "الدورات الأعلى دخلاً، بالريال العُماني",
+      "noPaidEnrollments": "لا توجد تسجيلات مدفوعة بعد.",
+      "topPassRateSubtitle": "الدورات الأفضل أداءً في التقييمات",
+      "noQuizAttempts": "لا توجد محاولات اختبار بعد.",
+      "topPerformingCoursesTitle": "أفضل الدورات أداءً",
+      "topPerformingCoursesSubtitle": "حسب نسبة الإتمام"
+    },
+    "activity": {
+      "title": "أنشطة اليوم",
+      "subtitle": "أحدث الإجراءات عبر المنصة",
+      "viewAll": "عرض الكل",
+      "empty": "لم يحدث شيء بعد.",
+      "feedEnrolled": "التحق {{learner}} ببرنامج {{program}}",
+      "feedCompleted": "أكمل {{learner}} برنامج {{program}}",
+      "feedCertificate": "صدرت شهادة لـ {{learner}} عن {{program}}"
+    },
+    "upcomingClasses": {
+      "title": "الحصص القادمة",
+      "viewAll": "عرض الكل",
+      "empty": "لا توجد جلسات مباشرة أو حضورية مجدولة.",
+      "enrolled": "{{count}} مسجَّل"
+    },
+    "monthSummary": {
+      "title": "ملخص هذا الشهر"
+    },
+    "recentPayments": {
+      "title": "أحدث المدفوعات",
+      "subtitle": "أحدث المعاملات عبر المنصة",
+      "viewAll": "عرض الكل",
+      "empty": "لا توجد مدفوعات مسجلة بعد.",
+      "exportCsv": "تصدير كملف CSV"
+    }
+  },
+  "learnersPage": {
+    "subtitle": "المتعلمون الذين سجّلوا أنفسهم على المنصة",
+    "searchPlaceholder": "ابحث بالاسم أو البريد الإلكتروني…",
+    "emptyNoAccounts": "لا توجد حسابات متعلمين بعد.",
+    "emptyNoMatch": "لا يوجد متعلمون مطابقون لهذا الفلتر.",
+    "blockedToast": "تم حظر المتعلم",
+    "unblockedToast": "تم إلغاء حظر المتعلم",
+    "updateFailed": "فشل تحديث بيانات المتعلم",
+    "columns": {
+      "lastActive": "آخر نشاط",
+      "neverLoggedIn": "لم يسجّل الدخول قط"
+    }
+  },
+  "learnerDetail": {
+    "defaultTitle": "متعلم",
+    "defaultSubtitle": "الإنجازات والنشاط",
+    "loading": "جارٍ تحميل الإنجازات…",
+    "loadFailed": "فشل تحميل بيانات المتعلم",
+    "totalPointsLabel": "إجمالي نقاط {{name}}",
+    "stats": {
+      "courses": "الدورات",
+      "certificates": "الشهادات",
+      "quizAttempts": "محاولات الاختبار",
+      "points": "النقاط"
+    },
+    "certificatesHeading": "الشهادات",
+    "noCertificates": "لم يتم الحصول على أي شهادات بعد.",
+    "issuedOn": "صدرت في {{date}}",
+    "assessmentHistoryHeading": "سجل التقييمات",
+    "noAssessments": "لم يتم إجراء أي تقييمات بعد.",
+    "attemptLabel": "المحاولة رقم {{number}}",
+    "passed": "ناجح",
+    "failed": "راسب"
+  },
+  "instructorsPage": {
+    "subtitle": "إدارة حسابات المدربين",
+    "inviteButton": "دعوة مدرب",
+    "searchPlaceholder": "ابحث بالاسم أو البريد الإلكتروني…",
+    "emptyNoInstructors": "لا يوجد مدربون بعد — أرسل دعوة للبدء.",
+    "emptyNoMatch": "لا يوجد مدربون مطابقون لهذا الفلتر.",
+    "blockedToast": "تم حظر المدرب",
+    "unblockedToast": "تم إلغاء حظر المدرب",
+    "updateFailed": "فشل تحديث بيانات المدرب",
+    "columns": {
+      "rating": "التقييم",
+      "programs": "البرامج",
+      "noRatingsYet": "لا توجد تقييمات بعد"
+    },
+    "inviteModal": {
+      "title": "دعوة مدرب",
+      "body": "سيصلهم بريد إلكتروني يحتوي على رابط لتعيين كلمة المرور الخاصة بهم وتفعيل الحساب.",
+      "emailPlaceholder": "instructor@mwasalat.om",
+      "sentToast": "تم إرسال الدعوة",
+      "sendFailed": "فشل إرسال الدعوة",
+      "submitButton": "إرسال الدعوة"
+    }
+  },
+  "instructorDetail": {
+    "defaultTitle": "مدرب",
+    "defaultSubtitle": "البرامج والأداء",
+    "loading": "جارٍ تحميل بيانات المدرب…",
+    "loadFailed": "فشل تحميل بيانات المدرب",
+    "joined": "انضم في {{date}}",
+    "noPrograms": "لم ينشئ هذا المدرب أي برامج بعد.",
+    "stats": {
+      "programs": "البرامج",
+      "learnersTaught": "المتعلمون المُدرَّبون",
+      "avgRating": "متوسط التقييم",
+      "certificatesIssued": "الشهادات الصادرة"
+    }
+  },
+  "adminProfile": {
+    "title": "الملف الشخصي",
+    "subtitle": "إدارة تفاصيل حسابك"
+  },
+  "programsPage": {
+    "subtitle": "كل دورة عبر كل مدرب، بما في ذلك المنتهية والمؤرشفة",
+    "typeFilterLabel": "النوع:",
+    "clearFilter": "مسح الفلتر",
+    "loading": "جارٍ تحميل البرامج…",
+    "noPrograms": "لا توجد برامج بعد.",
+    "topRated": "الأعلى تقييمًا",
+    "newSection": "جديد",
+    "newBadge": "جديد",
+    "searchPlaceholder": "ابحث بالعنوان أو اسم المدرب…",
+    "noMatch": "لا توجد برامج مطابقة لهذا الفلتر."
+  },
+  "certificatesPage": {
+    "title": "الشهادات الصادرة",
+    "subtitle": "كل شهادة حصل عليها متعلم عبر المنصة",
+    "empty": "لم تصدر أي شهادات بعد.",
+    "searchPlaceholder": "ابحث بالمتعلم أو الدورة…",
+    "noExpiry": "لا تنتهي صلاحيتها",
+    "expiredLabel": "منتهية الصلاحية",
+    "columns": {
+      "course": "الدورة",
+      "category": "الفئة",
+      "issued": "تاريخ الإصدار",
+      "certificateNo": "رقم الشهادة",
+      "expires": "تاريخ الانتهاء"
+    }
+  },
+  "paymentsPage": {
+    "subtitle": "الإيرادات وسجل المعاملات عبر المنصة",
+    "empty": "لم تُسجَّل أي مدفوعات بعد.",
+    "searchPlaceholder": "ابحث بالمتعلم أو البرنامج…",
+    "statusPaid": "مدفوع",
+    "statusRefunded": "مسترد",
+    "allStatus": "كل الحالات",
+    "allTime": "كل الأوقات",
+    "vsLastMonth": "مقارنة بالشهر الماضي",
+    "exportCsv": "تصدير كملف CSV",
+    "stats": {
+      "totalRevenue": "إجمالي الإيرادات",
+      "thisMonth": "هذا الشهر",
+      "totalTransactions": "إجمالي المعاملات"
+    },
+    "columns": {
+      "amount": "المبلغ",
+      "paid": "تاريخ الدفع"
+    }
+  },
+  "salesReportPage": {
+    "title": "تقرير المبيعات",
+    "subtitle": "تحليلات الإيرادات، مُصفّاة حسب نطاق التاريخ",
+    "exportExcel": "تصدير إلى Excel",
+    "printSaveAsPdf": "طباعة / حفظ كـ PDF",
+    "printHeading": "تقرير المبيعات — {{range}}",
+    "loadingReport": "جارٍ تحميل التقرير…",
+    "emptyRange": "لا توجد مبيعات في هذا النطاق.",
+    "searchPlaceholder": "ابحث بالمتعلم أو البرنامج أو المدرب…",
+    "rangeTo": "إلى",
+    "customRangeLabel": "نطاق مخصص",
+    "vsPreviousPeriod": "مقارنة بالفترة السابقة",
+    "presets": {
+      "today": "اليوم",
+      "week": "هذا الأسبوع",
+      "month": "هذا الشهر",
+      "lastMonth": "الشهر الماضي",
+      "all": "كل الفترات",
+      "custom": "مخصص"
+    },
+    "stats": {
+      "totalRevenue": "إجمالي الإيرادات",
+      "totalSales": "إجمالي المبيعات",
+      "averageSaleValue": "متوسط قيمة البيع"
+    },
+    "charts": {
+      "revenueTrend": "اتجاه الإيرادات",
+      "topProgramsByRevenue": "أفضل البرامج من حيث الإيرادات",
+      "noSales": "لا توجد مبيعات في هذا النطاق بعد."
+    },
+    "columns": {
+      "date": "التاريخ",
+      "category": "الفئة",
+      "instructor": "المدرب",
+      "currency": "العملة"
+    },
+    "workbook": {
+      "heading": "تقرير مبيعات مواصلات",
+      "periodLabel": "الفترة: {{range}}"
+    }
+  },
+  "quizResultsPage": {
+    "subtitle": "أداء التقييمات عبر كل برنامج",
+    "empty": "لا توجد محاولات اختبار مسجَّلة بعد.",
+    "searchPlaceholder": "ابحث بالمتعلم أو البرنامج…",
+    "passRate": "نسبة النجاح",
+    "avgScore": "متوسط الدرجة",
+    "attempts": "المحاولات",
+    "programPerformance": "أداء اختبارات البرامج",
+    "allPrograms": "كل البرامج",
+    "export": "تصدير",
+    "columns": {
+      "score": "الدرجة",
+      "result": "النتيجة",
+      "attempted": "تاريخ المحاولة"
+    },
+    "stats": {
+      "totalQuizzes": "إجمالي الاختبارات",
+      "activeInSystem": "نشط في النظام",
+      "totalAttempts": "إجمالي المحاولات",
+      "last30Days": "خلال آخر 30 يومًا",
+      "last30DaysNoData": "لا توجد محاولات في الـ 30 يومًا السابقة للمقارنة",
+      "avgPassRate": "متوسط نسبة النجاح",
+      "acrossPrograms": "عبر جميع البرامج",
+      "certificatesIssued": "الشهادات الصادرة",
+      "basedOnCompletion": "بناءً على إتمام الاختبار"
+    },
+    "tabs": {
+      "all": "كل النتائج",
+      "top": "الأعلى أداءً",
+      "risk": "المعرضون للخطر"
+    },
+    "tiers": {
+      "excellent": "ممتاز",
+      "good": "جيد",
+      "needsAttention": "يحتاج اهتمامًا"
+    }
+  },
+  "activityLogPage": {
+    "subtitle": "سجل تدقيق لإجراءات المسؤولين والحسابات",
+    "empty": "لا يوجد نشاط مسجَّل بعد.",
+    "searchPlaceholder": "ابحث بالمنفِّذ أو الإجراء…",
+    "unknownActor": "غير معروف",
+    "columns": {
+      "actor": "المنفِّذ",
+      "action": "الإجراء",
+      "detail": "التفاصيل",
+      "when": "الوقت"
+    },
+    "actions": {
+      "loggedIn": "تسجيل الدخول",
+      "invitedInstructor": "دعوة مدرب",
+      "blockedUser": "حظر مستخدم",
+      "unblockedUser": "إلغاء حظر مستخدم",
+      "createdProgram": "إنشاء برنامج",
+      "updatedProgram": "تحديث برنامج",
+      "deletedProgram": "حذف برنامج",
+      "sentNotification": "إرسال إشعار",
+      "updatedSettings": "تحديث الإعدادات"
+    }
+  },
+  "announcementsPage": {
+    "subtitle": "أرسل رسالة إلى جميع المتعلمين والمدربين",
+    "composeTitle": "إعلان جديد",
+    "composeSubtitle": "يُرسل فورًا إلى الجميع على المنصة، داخل التطبيق وعبر جرس الإشعارات.",
+    "titleLabel": "العنوان",
+    "titleRequired": "العنوان مطلوب",
+    "messageLabel": "الرسالة",
+    "messageRequired": "الرسالة مطلوبة",
+    "sendCta": "إرسال الإعلان",
+    "sending": "جارٍ الإرسال…",
+    "sentToast": "تم إرسال الإعلان",
+    "sendFailed": "فشل إرسال الإعلان",
+    "historyTitle": "الإعلانات المُرسلة",
+    "historyEmpty": "لم يتم إرسال أي إعلانات بعد.",
+    "searchPlaceholder": "ابحث بالعنوان أو الرسالة…",
+    "columns": {
+      "title": "العنوان",
+      "message": "الرسالة",
+      "readCount": "عدد من قرأها",
+      "sentAt": "تاريخ الإرسال"
+    }
+  },
+  "settingsPage": {
+    "subtitle": "إعدادات عامة للمنصة",
+    "loading": "جارٍ تحميل الإعدادات…",
+    "platformDetailsTitle": "تفاصيل المنصة",
+    "platformDetailsSubtitle": "تظهر للمتعلمين والمدربين عبر المنصة.",
+    "platformNameLabel": "اسم المنصة",
+    "supportEmailLabel": "البريد الإلكتروني للدعم",
+    "supportEmailPlaceholder": "support@mwasalat.om",
+    "savedToast": "تم حفظ الإعدادات",
+    "saveFailed": "فشل حفظ الإعدادات"
+  },
+  "dataTable": {
+    "loading": "جارٍ التحميل…",
+    "defaultEmpty": "لا يوجد شيء هنا بعد.",
+    "defaultSearchPlaceholder": "بحث…",
+    "pageInfo": "الصفحة {{current}} من {{pages}} · {{count}} نتيجة"
+  },
+  "userTable": {
+    "joined": "تاريخ الانضمام",
+    "action": "الإجراء",
+    "invited": "مدعو",
+    "active": "نشط",
+    "blocked": "محظور",
+    "block": "حظر",
+    "unblock": "إلغاء الحظر"
+  },
+  "userFilters": {
+    "all": "الكل",
+    "active": "نشط",
+    "blocked": "محظور",
+    "invited": "مدعو",
+    "dormant": "خامل"
+  },
+  "programCard": {
+    "status": {
+      "active": "نشط",
+      "expired": "منتهٍ",
+      "archived": "مؤرشف",
+      "draft": "مسودة"
+    },
+    "generalCategory": "عام",
+    "unassigned": "غير مُسند",
+    "free": "مجانًا",
+    "created": "تاريخ الإنشاء",
+    "expires": "تاريخ الانتهاء",
+    "reviewsCount": "{{count}} تقييم"
+  },
+  "charts": {
+    "trendAriaLabel": "الاتجاه",
+    "topProgramsAriaLabel": "أفضل البرامج",
+    "donutAriaLabel": "تفصيل الفئات"
+  },
+  "blockUserModal": {
+    "title": "حظر {{name}}؟",
+    "body": "سيفقد الوصول إلى المنصة فورًا، وسنرسل له سبب الحظر عبر البريد الإلكتروني.",
+    "reasonLabel": "سبب الحظر",
+    "reasonPlaceholder": "مثال: مخالفات متكررة للسياسات، تنظيف حساب غير نشط، تسجيل غير صحيح…",
+    "emailNotePrefix": "سيتم تضمين هذا في البريد الإلكتروني المرسل إلى",
+    "confirmButton": "حظر المستخدم",
+    "blocking": "جارٍ الحظر…"
+  }
+}

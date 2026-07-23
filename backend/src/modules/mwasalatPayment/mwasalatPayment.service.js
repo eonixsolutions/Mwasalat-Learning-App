@@ -23,6 +23,11 @@ const createCheckoutSession = async (learnerId, programId) => {
   const existing = await MwasalatEnrollment.findOne({ learner: learnerId, program: programId });
   if (existing) throw new AppError('You are already enrolled in this program', 409);
 
+  if (program.capacity) {
+    const seatsTaken = await MwasalatEnrollment.countDocuments({ program: programId });
+    if (seatsTaken >= program.capacity) throw new AppError('This session is full', 409);
+  }
+
   const stripe = getStripe();
   const session = await stripe.checkout.sessions.create({
     mode: 'payment',
@@ -133,7 +138,7 @@ const listTransactions = async ({ page = 1, limit = 20 } = {}) => {
   const [transactions, total] = await Promise.all([
     MwasalatTransaction.find({})
       .populate('learner', 'name email')
-      .populate('program', 'title category')
+      .populate('program', 'title category titleAr categoryAr')
       .sort({ paidAt: -1 })
       .skip(skip)
       .limit(limit),
@@ -165,12 +170,10 @@ const getRevenueSummary = async () => {
     const end = new Date(now.getFullYear(), now.getMonth() - i + 1, 1);
     months.push({ label: start.toLocaleDateString('en-GB', { month: 'short' }), start, end });
   }
-  const monthlyRevenue = months.map(({ label, start, end }) => ({
-    label,
-    value: allTransactions
-      .filter((t) => t.paidAt >= start && t.paidAt < end)
-      .reduce((sum, t) => sum + t.amount, 0),
-  }));
+  const monthlyRevenue = months.map(({ label, start, end }) => {
+    const monthTx = allTransactions.filter((t) => t.paidAt >= start && t.paidAt < end);
+    return { label, value: monthTx.reduce((sum, t) => sum + t.amount, 0), count: monthTx.length };
+  });
 
   // Top 5 programs by revenue — grouped from the same transaction fetch above,
   // then a single batch lookup for titles (no N+1).
@@ -184,10 +187,10 @@ const getRevenueSummary = async () => {
     .sort(([, a], [, b]) => b - a)
     .slice(0, 5)
     .map(([id]) => id);
-  const topPrograms = await MwasalatProgram.find({ _id: { $in: topProgramIds } }, { title: 1 });
-  const titleById = Object.fromEntries(topPrograms.map((p) => [p._id.toString(), p.title]));
+  const topPrograms = await MwasalatProgram.find({ _id: { $in: topProgramIds } }, { title: 1, titleAr: 1 });
+  const titleById = Object.fromEntries(topPrograms.map((p) => [p._id.toString(), { title: p.title, titleAr: p.titleAr }]));
   const topProgramsByRevenue = topProgramIds.map((id) => ({
-    program: { _id: id, title: titleById[id] ?? 'Untitled program' },
+    program: { _id: id, title: titleById[id]?.title ?? 'Untitled program', titleAr: titleById[id]?.titleAr },
     revenue: revenueByProgram[id],
   }));
 
@@ -259,12 +262,10 @@ const getSalesReport = async ({ from, to } = {}) => {
     ? new Date(`${from}T00:00:00.000Z`)
     : new Date(trendEnd.getFullYear(), trendEnd.getMonth() - 11, 1);
   const buckets = buildTrendBuckets(trendStart, trendEnd);
-  const trend = buckets.map(({ label, start, end }) => ({
-    label,
-    value: paid
-      .filter((t) => t.paidAt >= start && t.paidAt < end)
-      .reduce((sum, t) => sum + t.amount, 0),
-  }));
+  const trend = buckets.map(({ label, start, end }) => {
+    const bucketTx = paid.filter((t) => t.paidAt >= start && t.paidAt < end);
+    return { label, value: bucketTx.reduce((sum, t) => sum + t.amount, 0), count: bucketTx.length };
+  });
 
   // Top 5 programs by revenue in range — identical grouping to getRevenueSummary,
   // just fed from the range-filtered `paid` set instead of an all-time fetch.
@@ -278,14 +279,34 @@ const getSalesReport = async ({ from, to } = {}) => {
     .sort(([, a], [, b]) => b - a)
     .slice(0, 5)
     .map(([id]) => id);
-  const topPrograms = await MwasalatProgram.find({ _id: { $in: topProgramIds } }, { title: 1 });
-  const titleById = Object.fromEntries(topPrograms.map((p) => [p._id.toString(), p.title]));
+  const topPrograms = await MwasalatProgram.find({ _id: { $in: topProgramIds } }, { title: 1, titleAr: 1 });
+  const titleById = Object.fromEntries(topPrograms.map((p) => [p._id.toString(), { title: p.title, titleAr: p.titleAr }]));
   const topProgramsByRevenue = topProgramIds.map((id) => ({
-    program: { _id: id, title: titleById[id] ?? 'Untitled program' },
+    program: { _id: id, title: titleById[id]?.title ?? 'Untitled program', titleAr: titleById[id]?.titleAr },
     revenue: revenueByProgram[id],
   }));
 
-  return { totalRevenue, totalSales, averageSaleValue, trend, topProgramsByRevenue };
+  // "vs previous period" comparison — the immediately preceding window of the
+  // same length as the selected range, so "This Month" naturally compares
+  // against last month, "Today" against yesterday, and a custom 7-day range
+  // against the 7 days before it. Only skipped for "All Time" (no `from`
+  // boundary to shift back from — there's no meaningful predecessor).
+  let previousPeriod = null;
+  if (from) {
+    const rangeStart = new Date(`${from}T00:00:00.000Z`);
+    const rangeEnd = to ? new Date(`${to}T23:59:59.999Z`) : new Date();
+    const lengthMs = rangeEnd - rangeStart;
+    const prevEnd = new Date(rangeStart.getTime() - 1);
+    const prevStart = new Date(prevEnd.getTime() - lengthMs);
+    const prevTransactions = await MwasalatTransaction.find(
+      { paidAt: { $gte: prevStart, $lte: prevEnd }, status: 'paid' }, { amount: 1 }
+    );
+    const prevRevenue = prevTransactions.reduce((sum, t) => sum + t.amount, 0);
+    const prevSales = prevTransactions.length;
+    previousPeriod = { totalRevenue: prevRevenue, totalSales: prevSales, averageSaleValue: prevSales ? prevRevenue / prevSales : 0 };
+  }
+
+  return { totalRevenue, totalSales, averageSaleValue, trend, topProgramsByRevenue, previousPeriod };
 };
 
 // Full (unpaginated) transaction list for the Sales Report's detail table, print
@@ -295,7 +316,7 @@ const getSalesReport = async ({ from, to } = {}) => {
 const listTransactionsForReport = async ({ from, to } = {}) => {
   const transactions = await MwasalatTransaction.find(buildDateRangeFilter({ from, to }))
     .populate('learner', 'name email')
-    .populate({ path: 'program', select: 'title category instructor', populate: { path: 'instructor', select: 'name' } })
+    .populate({ path: 'program', select: 'title category titleAr categoryAr instructor', populate: { path: 'instructor', select: 'name' } })
     .sort({ paidAt: -1 });
   return { transactions, total: transactions.length };
 };

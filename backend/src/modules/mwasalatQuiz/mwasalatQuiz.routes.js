@@ -12,6 +12,11 @@ router.put(
   mwasalatAuthMiddleware.authorize(MWASALAT_ROLES.INSTRUCTOR, MWASALAT_ROLES.SUPER_ADMIN),
   mwasalatQuizController.upsertQuiz
 );
+router.post(
+  '/:programId/generate',
+  mwasalatAuthMiddleware.authorize(MWASALAT_ROLES.INSTRUCTOR),
+  mwasalatQuizController.generateQuestions
+);
 router.get(
   '/:programId/instructor-view',
   mwasalatAuthMiddleware.authorize(MWASALAT_ROLES.INSTRUCTOR, MWASALAT_ROLES.SUPER_ADMIN),

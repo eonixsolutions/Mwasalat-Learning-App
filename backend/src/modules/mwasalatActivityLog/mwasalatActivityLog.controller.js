@@ -9,4 +9,8 @@ const list = asyncHandler(async (req, res) => {
   successResponse(res, 'Activity log fetched', result);
 });
 
-export const mwasalatActivityLogController = { list };
+const onlineCount = asyncHandler(async (req, res) => {
+  successResponse(res, 'Online count fetched', mwasalatActivityLogService.getOnlineCount());
+});
+
+export const mwasalatActivityLogController = { list, onlineCount };

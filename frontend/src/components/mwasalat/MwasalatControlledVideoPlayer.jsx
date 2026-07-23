@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Play, Pause, Volume2, VolumeX, Maximize, Loader2 } from 'lucide-react';
 import { mwasalatProgramService } from '../../services/mwasalatProgram.service.js';
+import { localizeNumber } from '../../utils/mwasalatLocalize.js';
 
 const PROGRESS_PING_INTERVAL_S = 7;
 const TEAL = '#23181A';
@@ -18,9 +20,11 @@ const formatTime = (s) => {
 // checks below) — rewatching backward is always free. Progress is reported to the
 // backend on a throttle, not every frame, to stay light on the API.
 export default function MwasalatControlledVideoPlayer({ programId }) {
+  const { t, i18n } = useTranslation('mwasalatApp');
   const videoRef = useRef(null);
   const containerRef = useRef(null);
   const lastPingRef = useRef(0);
+  const hasResumedRef = useRef(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [videoUrl, setVideoUrl] = useState(null);
@@ -37,7 +41,7 @@ export default function MwasalatControlledVideoPlayer({ programId }) {
         setDuration(data.durationSeconds ?? 0);
         setFurthest(data.furthestSeconds ?? 0);
       })
-      .catch((err) => setError(err.response?.data?.message || 'Failed to load video'))
+      .catch((err) => setError(err.response?.data?.message || t('controlledVideoPlayer.loadFailed')))
       .finally(() => setIsLoading(false));
   }, [programId]);
 
@@ -107,7 +111,7 @@ export default function MwasalatControlledVideoPlayer({ programId }) {
   if (isLoading) {
     return (
       <div className="min-h-[280px] flex items-center justify-center text-white/70 bg-[#0D1117] rounded-2xl">
-        <Loader2 className="w-5 h-5 animate-spin mr-2" /> Loading video…
+        <Loader2 className="w-5 h-5 animate-spin me-2" /> {t('controlledVideoPlayer.loading')}
       </div>
     );
   }
@@ -120,7 +124,10 @@ export default function MwasalatControlledVideoPlayer({ programId }) {
   const playedPct = duration ? Math.min((currentTime / duration) * 100, 100) : 0;
 
   return (
-    <div ref={containerRef} className="relative bg-black rounded-2xl overflow-hidden">
+    // dir="ltr" is intentional: the seek bar's click math is physical-left based
+    // and time always reads left-to-right in video players, even in RTL apps —
+    // mirroring it would desync the visual scrubber from playback position.
+    <div ref={containerRef} dir="ltr" className="relative bg-black rounded-2xl overflow-hidden">
       <video
         ref={videoRef}
         src={videoUrl}
@@ -134,7 +141,17 @@ export default function MwasalatControlledVideoPlayer({ programId }) {
         onPlay={() => setIsPlaying(true)}
         onPause={handlePause}
         onClick={togglePlay}
-        onLoadedMetadata={(e) => { if (!duration) setDuration(e.target.duration); }}
+        onLoadedMetadata={(e) => {
+          if (!duration) setDuration(e.target.duration);
+          // Resume where they left off, once — a later src reload (e.g. the
+          // signed URL refreshing) shouldn't yank an actively-rewatching
+          // learner back to their furthest point.
+          if (!hasResumedRef.current && furthest > 0) {
+            e.target.currentTime = furthest;
+            setCurrentTime(furthest);
+            hasResumedRef.current = true;
+          }
+        }}
       />
 
       <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent px-3 sm:px-4 pt-8 pb-3">
@@ -157,7 +174,7 @@ export default function MwasalatControlledVideoPlayer({ programId }) {
           <button type="button" onClick={toggleMute} className="hover:text-mwasalatInk-300 transition-colors">
             {isMuted ? <VolumeX className="w-4.5 h-4.5" /> : <Volume2 className="w-4.5 h-4.5" />}
           </button>
-          <span className="text-xs text-white/80 font-mono">{formatTime(currentTime)} / {formatTime(duration)}</span>
+          <span className="text-xs text-white/80 font-mono">{localizeNumber(formatTime(currentTime), i18n.language)} / {localizeNumber(formatTime(duration), i18n.language)}</span>
           <div className="flex-1" />
           <button type="button" onClick={toggleFullscreen} className="hover:text-mwasalatInk-300 transition-colors">
             <Maximize className="w-4.5 h-4.5" />

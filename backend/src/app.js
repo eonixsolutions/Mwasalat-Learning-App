@@ -5,6 +5,7 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import rateLimit from 'express-rate-limit';
 import cookieParser from 'cookie-parser';
+import mongoose from 'mongoose';
 import routes from './routes.js';
 import { errorHandler } from './middlewares/errorHandler.js';
 import { notFound } from './middlewares/notFound.js';
@@ -15,6 +16,20 @@ const app = express();
 app.use(helmet());
 app.use(cors({ origin: process.env.CLIENT_URL, credentials: true }));
 app.use(cookieParser());
+
+// Unauthenticated liveness/readiness probe for uptime monitoring — kept outside
+// /api so it skips the rate limiter and body parsers entirely.
+const MONGOOSE_STATES = ['disconnected', 'connected', 'connecting', 'disconnecting'];
+app.get('/health', (req, res) => {
+  const dbState = MONGOOSE_STATES[mongoose.connection.readyState] || 'unknown';
+  const isUp = mongoose.connection.readyState === 1;
+  res.status(isUp ? 200 : 503).json({
+    status: isUp ? 'ok' : 'degraded',
+    uptimeSeconds: Math.floor(process.uptime()),
+    db: dbState,
+    timestamp: new Date().toISOString(),
+  });
+});
 
 // Stripe webhook needs the raw, unparsed body for signature verification —
 // must be registered before the global express.json() parser below

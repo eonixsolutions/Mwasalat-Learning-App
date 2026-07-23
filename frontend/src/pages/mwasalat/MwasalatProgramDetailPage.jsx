@@ -1,10 +1,15 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Link, useParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
-import { ArrowLeft, Star, Loader2, Users, FileText, Video, Radio, ExternalLink, MapPin, QrCode, HelpCircle, ChevronDown, ChevronUp, Search, MessageCircle, UserCheck } from 'lucide-react';
+import { ArrowLeft, Star, Loader2, Users, FileText, Video, Radio, ExternalLink, MapPin, QrCode, HelpCircle, ChevronDown, ChevronUp, Search, MessageCircle, MessagesSquare, UserCheck, AlertTriangle } from 'lucide-react';
 import { mwasalatProgramService } from '../../services/mwasalatProgram.service.js';
 import MwasalatQuizBuilder from '../../components/mwasalat/MwasalatQuizBuilder.jsx';
+import MwasalatRiskBadge from '../../components/mwasalat/MwasalatRiskBadge.jsx';
+import MwasalatStreakBadge from '../../components/mwasalat/MwasalatStreakBadge.jsx';
+import MwasalatNeedsAttentionRow from '../../components/mwasalat/MwasalatNeedsAttentionRow.jsx';
 import { useMwasalatChatStore } from '../../store/mwasalatChatStore.js';
+import { getLocalizedProgramField, localizeNumber } from '../../utils/mwasalatLocalize.js';
 
 const TEAL = '#23181A';
 const TEAL_TRACK = '#D9C9CA';
@@ -21,6 +26,7 @@ function SortableHeader({ label, active, direction, onClick }) {
 }
 
 function CompletionMeter({ rate }) {
+  const { t, i18n } = useTranslation('mwasalatApp');
   const size = 120, stroke = 10, r = (size - stroke) / 2, c = 2 * Math.PI * r;
   const offset = c - (rate / 100) * c;
   return (
@@ -35,8 +41,8 @@ function CompletionMeter({ rate }) {
         />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="text-xl font-semibold text-[#1E293B]">{rate}%</span>
-        <span className="text-[10px] text-[#94A3B8]">completed</span>
+        <span className="text-xl font-semibold text-[#1E293B]">{localizeNumber(rate, i18n.language)}%</span>
+        <span className="text-[10px] text-[#94A3B8]">{t('programDetail.completedLabel')}</span>
       </div>
     </div>
   );
@@ -53,9 +59,15 @@ function StarRow({ value }) {
 }
 
 export default function MwasalatProgramDetailPage() {
+  const { t, i18n } = useTranslation('mwasalatApp');
+  const dateLocale = i18n.language.startsWith('ar') ? 'ar-OM' : 'en-GB';
+  const fmtDate = (d) => localizeNumber(new Date(d).toLocaleDateString(dateLocale), i18n.language);
+  const fmtDateTime = (d) => localizeNumber(new Date(d).toLocaleString(dateLocale), i18n.language);
+  const fmtTime = (d) => localizeNumber(new Date(d).toLocaleTimeString(dateLocale), i18n.language);
   const { id } = useParams();
   const [program, setProgram] = useState(null);
   const [learners, setLearners] = useState([]);
+  const [needsAttention, setNeedsAttention] = useState([]);
   const [feedback, setFeedback] = useState([]);
   const [stats, setStats] = useState(null);
   const [attendance, setAttendance] = useState([]);
@@ -65,6 +77,7 @@ export default function MwasalatProgramDetailPage() {
   const [learnerSortKey, setLearnerSortKey] = useState(null);
   const [learnerSortDir, setLearnerSortDir] = useState('asc');
   const [pendingAttendanceId, setPendingAttendanceId] = useState(null);
+  const [encouragingId, setEncouragingId] = useState(null);
   const chatConversations = useMwasalatChatStore((s) => s.conversations);
 
   useEffect(() => {
@@ -75,7 +88,8 @@ export default function MwasalatProgramDetailPage() {
       mwasalatProgramService.getStats(id),
     ]).then(([p, l, f, s]) => {
       setProgram(p);
-      setLearners(l);
+      setLearners(l.allStudents);
+      setNeedsAttention(l.needsAttention);
       setFeedback(f);
       setStats(s);
       if (p.contentTypes?.includes('ilt')) {
@@ -83,6 +97,18 @@ export default function MwasalatProgramDetailPage() {
       }
     }).finally(() => setIsLoading(false));
   }, [id]);
+
+  const handleEncourage = async (programId, learnerId, templateKey) => {
+    setEncouragingId(learnerId);
+    try {
+      await mwasalatProgramService.sendEncouragement(programId, learnerId, templateKey);
+      toast.success(t('programDetail.toastEncouragementSent'));
+    } catch (err) {
+      toast.error(err.response?.data?.message || t('programDetail.toastEncouragementFailed'));
+    } finally {
+      setEncouragingId(null);
+    }
+  };
 
   const checkInUrl = `${window.location.origin}/mwasalat/learner/check-in/${id}`;
   const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(checkInUrl)}`;
@@ -95,9 +121,9 @@ export default function MwasalatProgramDetailPage() {
       await mwasalatProgramService.markAttendance(id, learnerId);
       const updated = await mwasalatProgramService.getAttendance(id);
       setAttendance(updated);
-      toast.success('Marked present');
+      toast.success(t('programDetail.toastMarkedPresent'));
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to mark attendance');
+      toast.error(err.response?.data?.message || t('programDetail.toastMarkAttendanceFailed'));
     } finally {
       setPendingAttendanceId(null);
     }
@@ -132,7 +158,7 @@ export default function MwasalatProgramDetailPage() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-[#F8F9FB] flex items-center justify-center text-[#94A3B8]">
-        <Loader2 className="w-5 h-5 animate-spin mr-2" /> Loading…
+        <Loader2 className="w-5 h-5 animate-spin me-2" /> {t('programDetail.loading')}
       </div>
     );
   }
@@ -142,19 +168,30 @@ export default function MwasalatProgramDetailPage() {
       <header className="h-16 bg-white border-b border-[#E2E8F0] flex items-center justify-between px-8">
         <div className="flex items-center gap-4">
           <Link to="/mwasalat/instructor/dashboard" className="w-9 h-9 rounded-xl border border-[#E2E8F0] flex items-center justify-center text-[#475569] hover:bg-[#F1F5F9] transition-colors">
-            <ArrowLeft className="w-4 h-4" />
+            <ArrowLeft className="w-4 h-4 rtl:rotate-180" />
           </Link>
           <div>
-            <p className="text-sm font-semibold text-[#1E293B]">{program?.title}</p>
-            <p className="text-xs text-[#94A3B8] capitalize">{program?.category}{program?.subCategory ? ` · ${program.subCategory}` : ''}</p>
+            <p className="text-sm font-semibold text-[#1E293B]">{getLocalizedProgramField(program, 'title', i18n.language)}</p>
+            <p className="text-xs text-[#94A3B8] capitalize">
+              {getLocalizedProgramField(program, 'category', i18n.language)}
+              {program?.subCategory ? ` · ${getLocalizedProgramField(program, 'subCategory', i18n.language)}` : ''}
+            </p>
           </div>
         </div>
-        <Link
-          to={`/mwasalat/instructor/programs/${id}/edit`}
-          className="inline-flex items-center gap-1.5 text-sm font-medium text-mwasalatInk-500 hover:text-mwasalatInk-400 transition-colors"
-        >
-          Edit Course
-        </Link>
+        <div className="flex items-center gap-4">
+          <Link
+            to={`/mwasalat/instructor/programs/${id}/discussion`}
+            className="inline-flex items-center gap-1.5 text-sm font-medium text-mwasalatInk-500 hover:text-mwasalatInk-400 transition-colors"
+          >
+            <MessagesSquare className="w-4 h-4" /> {t('programDetail.discussionLink')}
+          </Link>
+          <Link
+            to={`/mwasalat/instructor/programs/${id}/edit`}
+            className="inline-flex items-center gap-1.5 text-sm font-medium text-mwasalatInk-500 hover:text-mwasalatInk-400 transition-colors"
+          >
+            {t('programDetail.editCourseLink')}
+          </Link>
+        </div>
       </header>
 
       <main className="p-8 max-w-5xl mx-auto space-y-6">
@@ -163,38 +200,63 @@ export default function MwasalatProgramDetailPage() {
           <div className="card p-5 flex items-center gap-5">
             <CompletionMeter rate={stats?.completionRate ?? 0} />
             <div>
-              <p className="text-sm font-semibold text-[#1E293B]">Enrollment → Completion</p>
-              <p className="text-xs text-[#94A3B8] mt-1">{stats?.totalCompleted ?? 0} of {stats?.totalEnrolled ?? 0} learners finished</p>
+              <p className="text-sm font-semibold text-[#1E293B]">{t('programDetail.enrollmentToCompletion')}</p>
+              <p className="text-xs text-[#94A3B8] mt-1">{localizeNumber(t('programDetail.completionSummary', { completed: stats?.totalCompleted ?? 0, total: stats?.totalEnrolled ?? 0 }), i18n.language)}</p>
             </div>
           </div>
           <div className="card p-5">
-            <p className="text-sm font-semibold text-[#1E293B] mb-2">Course Rating</p>
+            <p className="text-sm font-semibold text-[#1E293B] mb-2">{t('programDetail.courseRating')}</p>
             {stats?.avgCourseRating != null ? (
               <>
-                <p className="text-2xl font-semibold text-[#1E293B]">{stats.avgCourseRating.toFixed(1)}</p>
+                <p className="text-2xl font-semibold text-[#1E293B]">{localizeNumber(stats.avgCourseRating.toFixed(1), i18n.language)}</p>
                 <StarRow value={stats.avgCourseRating} />
               </>
             ) : (
-              <p className="text-sm text-[#94A3B8]">No feedback yet</p>
+              <p className="text-sm text-[#94A3B8]">{t('programDetail.noFeedbackYet')}</p>
             )}
-            <p className="text-xs text-[#94A3B8] mt-2">{stats?.feedbackCount ?? 0} review{stats?.feedbackCount === 1 ? '' : 's'}</p>
+            <p className="text-xs text-[#94A3B8] mt-2">{localizeNumber(t('programDetail.reviewCount', { count: stats?.feedbackCount ?? 0 }), i18n.language)}</p>
           </div>
           <div className="card p-5">
-            <p className="text-sm font-semibold text-[#1E293B] mb-2">Instructor Rating</p>
+            <p className="text-sm font-semibold text-[#1E293B] mb-2">{t('programDetail.instructorRating')}</p>
             {stats?.avgInstructorRating != null ? (
               <>
-                <p className="text-2xl font-semibold text-[#1E293B]">{stats.avgInstructorRating.toFixed(1)}</p>
+                <p className="text-2xl font-semibold text-[#1E293B]">{localizeNumber(stats.avgInstructorRating.toFixed(1), i18n.language)}</p>
                 <StarRow value={stats.avgInstructorRating} />
               </>
             ) : (
-              <p className="text-sm text-[#94A3B8]">No feedback yet</p>
+              <p className="text-sm text-[#94A3B8]">{t('programDetail.noFeedbackYet')}</p>
             )}
           </div>
         </div>
 
         <div className="card overflow-hidden">
           <div className="px-5 py-4 border-b border-[#F1F5F9]">
-            <p className="text-sm font-semibold text-[#1E293B]">Course Content</p>
+            <div className="flex items-center gap-2">
+              <AlertTriangle className="w-4 h-4 text-mwasalatRed-500" />
+              <p className="text-sm font-semibold text-[#1E293B]">
+                {localizeNumber(t('programDetail.needsAttentionHeading', { count: needsAttention.length }), i18n.language)}
+              </p>
+            </div>
+            <p className="text-xs text-[#94A3B8] mt-1">
+              {localizeNumber(t('programDetail.needsAttentionSubtitle', {
+                atRisk: stats?.atRiskCount ?? 0, returned: stats?.returnedThisWeek ?? 0,
+              }), i18n.language)}
+            </p>
+          </div>
+          {needsAttention.length === 0 ? (
+            <div className="p-8 text-center text-sm text-[#94A3B8]">{t('programDetail.needsAttentionEmpty')}</div>
+          ) : (
+            <div>
+              {needsAttention.map((entry) => (
+                <MwasalatNeedsAttentionRow key={entry._id} entry={entry} programId={id} onEncourage={handleEncourage} sendingId={encouragingId} />
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="card overflow-hidden">
+          <div className="px-5 py-4 border-b border-[#F1F5F9]">
+            <p className="text-sm font-semibold text-[#1E293B]">{t('programDetail.courseContentHeading')}</p>
           </div>
           <div className="p-5 space-y-3">
             {program?.contentTypes?.includes('pdf') && program?.pdfUrl && (
@@ -203,8 +265,8 @@ export default function MwasalatProgramDetailPage() {
                   <FileText className="w-4 h-4 text-mwasalatInk-500" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-[#1E293B]">PDF Handout</p>
-                  <p className="text-xs text-[#94A3B8]">Click to view</p>
+                  <p className="text-sm font-medium text-[#1E293B]">{t('programDetail.pdfHandout')}</p>
+                  <p className="text-xs text-[#94A3B8]">{t('programDetail.clickToView')}</p>
                 </div>
                 <ExternalLink className="w-4 h-4 text-[#94A3B8]" />
               </a>
@@ -215,8 +277,8 @@ export default function MwasalatProgramDetailPage() {
                   <Video className="w-4 h-4 text-mwasalatInk-500" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-[#1E293B]">Recording</p>
-                  <p className="text-xs text-[#94A3B8]">Uploaded video · click to preview</p>
+                  <p className="text-sm font-medium text-[#1E293B]">{t('programDetail.recordingLabel')}</p>
+                  <p className="text-xs text-[#94A3B8]">{t('programDetail.uploadedVideoHint')}</p>
                 </div>
                 <ExternalLink className="w-4 h-4 text-[#94A3B8]" />
               </Link>
@@ -227,18 +289,18 @@ export default function MwasalatProgramDetailPage() {
                   <Video className="w-4 h-4 text-mwasalatInk-500" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-[#1E293B]">Recording</p>
-                  <p className="text-xs text-[#94A3B8] truncate">{program.recordingLink}</p>
+                  <p className="text-sm font-medium text-[#1E293B]">{t('programDetail.recordingLabel')}</p>
+                  <p className="text-xs text-[#94A3B8] truncate" dir="ltr">{program.recordingLink}</p>
                 </div>
                 <ExternalLink className="w-4 h-4 text-[#94A3B8]" />
               </a>
             )}
             {program?.contentTypes?.includes('live') && program?.liveMeetingLink && (
               <a
-                href={program.liveMeetingLink}
+                href={program.liveMeetingStartUrl || program.liveMeetingLink}
                 onClick={(e) => {
                   e.preventDefault();
-                  window.open(program.liveMeetingLink, 'mwasalat-live-class', 'noopener,noreferrer,width=1100,height=720');
+                  window.open(program.liveMeetingStartUrl || program.liveMeetingLink, 'mwasalat-live-class', 'noopener,noreferrer,width=1100,height=720');
                 }}
                 className="flex items-center gap-3 p-3 rounded-xl border border-[#E2E8F0] hover:border-mwasalatInk-300 transition-colors"
               >
@@ -246,9 +308,11 @@ export default function MwasalatProgramDetailPage() {
                   <Radio className="w-4 h-4 text-mwasalatInk-500" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-[#1E293B]">Live Class</p>
+                  <p className="text-sm font-medium text-[#1E293B]">
+                    {program.liveMeetingStartUrl ? t('programDetail.startLiveClassLabel') : t('programDetail.liveClassLabel')}
+                  </p>
                   <p className="text-xs text-[#94A3B8]">
-                    {program.liveScheduledAt ? new Date(program.liveScheduledAt).toLocaleString() : 'No time set'}
+                    {program.liveScheduledAt ? fmtDateTime(program.liveScheduledAt) : t('programDetail.noTimeSet')}
                   </p>
                 </div>
                 <ExternalLink className="w-4 h-4 text-[#94A3B8]" />
@@ -260,15 +324,15 @@ export default function MwasalatProgramDetailPage() {
                   <MapPin className="w-4 h-4 text-mwasalatInk-500" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-[#1E293B]">Instructor-Led Training</p>
+                  <p className="text-sm font-medium text-[#1E293B]">{t('programDetail.iltLabel')}</p>
                   <p className="text-xs text-[#94A3B8]">
-                    {program.iltVenue} · {program.iltScheduledAt ? new Date(program.iltScheduledAt).toLocaleString() : 'No time set'}
+                    {program.iltVenue} · {program.iltScheduledAt ? fmtDateTime(program.iltScheduledAt) : t('programDetail.noTimeSet')}
                   </p>
                 </div>
               </div>
             )}
             {!program?.contentTypes?.length && (
-              <p className="text-sm text-[#94A3B8]">No content added yet.</p>
+              <p className="text-sm text-[#94A3B8]">{t('programDetail.noContentYet')}</p>
             )}
           </div>
         </div>
@@ -277,23 +341,23 @@ export default function MwasalatProgramDetailPage() {
           <div className="card overflow-hidden">
             <div className="px-5 py-4 border-b border-[#F1F5F9] flex items-center gap-2">
               <QrCode className="w-4 h-4 text-mwasalatInk-500" />
-              <p className="text-sm font-semibold text-[#1E293B]">In-Person Check-In</p>
+              <p className="text-sm font-semibold text-[#1E293B]">{t('programDetail.checkInHeading')}</p>
             </div>
             <div className="p-5 grid sm:grid-cols-[auto_1fr] gap-6">
               <div className="flex flex-col items-center gap-2">
-                <img src={qrImageUrl} alt="Check-in QR code" className="w-[140px] h-[140px] rounded-xl border border-[#E2E8F0]" />
-                <p className="text-xs text-[#94A3B8]">Display this in class for learners to scan</p>
+                <img src={qrImageUrl} alt={t('programDetail.qrAlt')} className="w-[140px] h-[140px] rounded-xl border border-[#E2E8F0]" />
+                <p className="text-xs text-[#94A3B8]">{t('programDetail.qrHint')}</p>
               </div>
               <div>
-                <p className="text-sm font-semibold text-[#1E293B] mb-3">Checked In ({attendance.length})</p>
+                <p className="text-sm font-semibold text-[#1E293B] mb-3">{localizeNumber(t('programDetail.checkedInHeading', { count: attendance.length }), i18n.language)}</p>
                 {attendance.length === 0 ? (
-                  <p className="text-sm text-[#94A3B8] mb-5">No check-ins yet.</p>
+                  <p className="text-sm text-[#94A3B8] mb-5">{t('programDetail.noCheckIns')}</p>
                 ) : (
                   <div className="space-y-2 mb-5">
                     {attendance.map((a) => (
                       <div key={a._id} className="flex items-center justify-between text-sm">
                         <span className="text-[#1E293B]">{a.learner?.name}</span>
-                        <span className="text-xs text-[#94A3B8]">{new Date(a.checkedInAt).toLocaleTimeString()}</span>
+                        <span className="text-xs text-[#94A3B8]">{fmtTime(a.checkedInAt)}</span>
                       </div>
                     ))}
                   </div>
@@ -301,7 +365,7 @@ export default function MwasalatProgramDetailPage() {
 
                 {notCheckedIn.length > 0 && (
                   <>
-                    <p className="text-sm font-semibold text-[#1E293B] mb-3">Not Checked In ({notCheckedIn.length})</p>
+                    <p className="text-sm font-semibold text-[#1E293B] mb-3">{localizeNumber(t('programDetail.notCheckedInHeading', { count: notCheckedIn.length }), i18n.language)}</p>
                     <div className="space-y-2">
                       {notCheckedIn.map((e) => (
                         <div key={e._id} className="flex items-center justify-between text-sm">
@@ -316,7 +380,7 @@ export default function MwasalatProgramDetailPage() {
                             ) : (
                               <UserCheck className="w-3.5 h-3.5" />
                             )}
-                            Mark Present
+                            {t('programDetail.markPresentBtn')}
                           </button>
                         </div>
                       ))}
@@ -332,17 +396,17 @@ export default function MwasalatProgramDetailPage() {
           <button
             type="button"
             onClick={() => setIsQuizOpen((v) => !v)}
-            className="w-full px-5 py-4 border-b border-[#F1F5F9] flex items-center justify-between gap-2 hover:bg-[#F8F9FB] transition-colors text-left"
+            className="w-full px-5 py-4 border-b border-[#F1F5F9] flex items-center justify-between gap-2 hover:bg-[#F8F9FB] transition-colors text-start"
           >
             <div className="flex items-center gap-2">
               <HelpCircle className="w-4 h-4 text-mwasalatInk-500 flex-shrink-0" />
               <div>
-                <p className="text-sm font-semibold text-[#1E293B]">Assessment Quiz</p>
-                <p className="text-xs text-[#94A3B8]">Learners must pass this to earn a certificate</p>
+                <p className="text-sm font-semibold text-[#1E293B]">{t('programDetail.assessmentQuizHeading')}</p>
+                <p className="text-xs text-[#94A3B8]">{t('programDetail.assessmentQuizSubtitle')}</p>
               </div>
             </div>
             <span className="inline-flex items-center gap-1.5 text-sm font-medium text-mwasalatInk-500 flex-shrink-0">
-              {isQuizOpen ? 'Close' : 'Open'}
+              {isQuizOpen ? t('programDetail.closeBtn') : t('programDetail.openBtn')}
               {isQuizOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
             </span>
           </button>
@@ -353,56 +417,68 @@ export default function MwasalatProgramDetailPage() {
           <div className="px-5 py-4 border-b border-[#F1F5F9] flex items-center justify-between gap-3 flex-wrap">
             <div className="flex items-center gap-2">
               <Users className="w-4 h-4 text-mwasalatInk-500" />
-              <p className="text-sm font-semibold text-[#1E293B]">Enrolled Learners</p>
+              <p className="text-sm font-semibold text-[#1E293B]">{t('programDetail.enrolledLearnersHeading')}</p>
             </div>
             {learners.length > 0 && (
               <div className="relative w-full sm:w-64">
-                <Search className="w-4 h-4 text-[#94A3B8] absolute left-3 top-1/2 -translate-y-1/2" />
+                <Search className="w-4 h-4 text-[#94A3B8] absolute start-3 top-1/2 -translate-y-1/2" />
                 <input
                   value={learnerQuery}
                   onChange={(e) => setLearnerQuery(e.target.value)}
-                  placeholder="Search learners…"
-                  className="w-full pl-9 pr-3 py-2 rounded-lg border border-[#E2E8F0] text-sm bg-white text-[#1E293B] placeholder:text-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-mwasalatInk-500/20 hover:border-mwasalatInk-300 transition-colors"
+                  placeholder={t('programDetail.searchLearnersPlaceholder')}
+                  className="w-full ps-9 pe-3 py-2 rounded-lg border border-[#E2E8F0] text-sm bg-white text-[#1E293B] placeholder:text-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-mwasalatInk-500/20 hover:border-mwasalatInk-300 transition-colors"
                 />
               </div>
             )}
           </div>
           {learners.length === 0 ? (
-            <div className="p-8 text-center text-sm text-[#94A3B8]">No learners enrolled yet.</div>
+            <div className="p-8 text-center text-sm text-[#94A3B8]">{t('programDetail.noLearnersYet')}</div>
           ) : visibleLearners.length === 0 ? (
-            <div className="p-8 text-center text-sm text-[#94A3B8]">No learners match this search.</div>
+            <div className="p-8 text-center text-sm text-[#94A3B8]">{t('programDetail.noLearnersMatch')}</div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-[#F1F5F9] text-left text-xs text-[#94A3B8] uppercase tracking-wide">
-                    <SortableHeader label="Name" active={learnerSortKey === 'name'} direction={learnerSortDir} onClick={() => toggleLearnerSort('name')} />
-                    <th className="px-5 py-3 font-medium">Email</th>
-                    <th className="px-5 py-3 font-medium">Status</th>
-                    <SortableHeader label="Purchased" active={learnerSortKey === 'purchased'} direction={learnerSortDir} onClick={() => toggleLearnerSort('purchased')} />
-                    <th className="px-5 py-3 font-medium text-right">Chat</th>
+                  <tr className="border-b border-[#F1F5F9] text-start text-xs text-[#94A3B8] uppercase tracking-wide">
+                    <SortableHeader label={t('common.name')} active={learnerSortKey === 'name'} direction={learnerSortDir} onClick={() => toggleLearnerSort('name')} />
+                    <th className="px-5 py-3 font-medium">{t('common.email')}</th>
+                    <th className="px-5 py-3 font-medium">{t('common.status')}</th>
+                    <SortableHeader label={t('programDetail.purchasedColumn')} active={learnerSortKey === 'purchased'} direction={learnerSortDir} onClick={() => toggleLearnerSort('purchased')} />
+                    <th className="px-5 py-3 font-medium">{t('programDetail.progressColumn')}</th>
+                    <th className="px-5 py-3 font-medium">{t('programDetail.streakColumn')}</th>
+                    <th className="px-5 py-3 font-medium">{t('programDetail.lastActiveColumn')}</th>
+                    <th className="px-5 py-3 font-medium">{t('programDetail.riskColumn')}</th>
+                    <th className="px-5 py-3 font-medium text-end">{t('programDetail.chatColumn')}</th>
                   </tr>
                 </thead>
                 <tbody>
                   {visibleLearners.map((e) => (
                     <tr key={e._id} className="border-b border-[#F1F5F9] last:border-0">
                       <td className="px-5 py-3.5 font-medium text-[#1E293B] whitespace-nowrap">{e.learner?.name}</td>
-                      <td className="px-5 py-3.5 text-[#475569] whitespace-nowrap">{e.learner?.email}</td>
+                      <td className="px-5 py-3.5 text-[#475569] whitespace-nowrap" dir="ltr">{e.learner?.email}</td>
                       <td className="px-5 py-3.5">
                         <span className="inline-flex px-2.5 py-1 rounded-full text-xs font-medium bg-mwasalatInk-100 text-mwasalatInk-500 capitalize whitespace-nowrap">
                           {e.status.replace('_', ' ')}
                         </span>
                       </td>
-                      <td className="px-5 py-3.5 text-[#94A3B8] whitespace-nowrap">{new Date(e.purchasedAt).toLocaleDateString()}</td>
-                      <td className="px-5 py-3.5 text-right">
+                      <td className="px-5 py-3.5 text-[#94A3B8] whitespace-nowrap">{fmtDate(e.purchasedAt)}</td>
+                      <td className="px-5 py-3.5 text-[#475569] whitespace-nowrap">{localizeNumber(e.progress, i18n.language)}%</td>
+                      <td className="px-5 py-3.5 whitespace-nowrap"><MwasalatStreakBadge current={e.currentStreak} /></td>
+                      <td className="px-5 py-3.5 text-[#94A3B8] whitespace-nowrap">
+                        {e.daysSinceActivity != null
+                          ? localizeNumber(t('programDetail.lastActiveDaysAgo', { count: e.daysSinceActivity }), i18n.language)
+                          : t('programDetail.lastActiveNever')}
+                      </td>
+                      <td className="px-5 py-3.5 whitespace-nowrap"><MwasalatRiskBadge level={e.riskLevel} returned={e.returned} /></td>
+                      <td className="px-5 py-3.5 text-end">
                         <Link
                           to={`/mwasalat/instructor/programs/${id}/chat/${e.learner?._id}`}
                           className="relative inline-flex items-center justify-center w-8 h-8 rounded-lg text-mwasalatInk-500 border border-[#E2E8F0] hover:border-mwasalatInk-300 hover:bg-mwasalatInk-100 transition-colors"
-                          title={`Chat with ${e.learner?.name}`}
+                          title={t('programDetail.chatWithTooltip', { name: e.learner?.name })}
                         >
                           <MessageCircle className="w-3.5 h-3.5" />
                           {chatConversations.find((c) => c.program?._id === id && c.learner?._id === e.learner?._id)?.unreadCount > 0 && (
-                            <span className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-mwasalatRed-500 border-2 border-white" />
+                            <span className="absolute -top-1 -end-1 w-3 h-3 rounded-full bg-mwasalatRed-500 border-2 border-white" />
                           )}
                         </Link>
                       </td>
@@ -416,21 +492,21 @@ export default function MwasalatProgramDetailPage() {
 
         <div className="card overflow-hidden">
           <div className="px-5 py-4 border-b border-[#F1F5F9]">
-            <p className="text-sm font-semibold text-[#1E293B]">Learner Feedback</p>
+            <p className="text-sm font-semibold text-[#1E293B]">{t('programDetail.learnerFeedbackHeading')}</p>
           </div>
           {feedback.length === 0 ? (
-            <div className="p-8 text-center text-sm text-[#94A3B8]">No feedback submitted yet.</div>
+            <div className="p-8 text-center text-sm text-[#94A3B8]">{t('programDetail.noFeedbackSubmitted')}</div>
           ) : (
             <div className="divide-y divide-[#F1F5F9]">
               {feedback.map((f) => (
                 <div key={f._id} className="px-5 py-4">
                   <div className="flex items-center justify-between mb-1.5">
                     <p className="text-sm font-medium text-[#1E293B]">{f.learner?.name}</p>
-                    <p className="text-xs text-[#94A3B8]">{new Date(f.createdAt).toLocaleDateString()}</p>
+                    <p className="text-xs text-[#94A3B8]">{fmtDate(f.createdAt)}</p>
                   </div>
                   <div className="flex items-center gap-4 mb-2">
-                    <div className="flex items-center gap-1.5 text-xs text-[#94A3B8]">Course <StarRow value={f.courseRating} /></div>
-                    <div className="flex items-center gap-1.5 text-xs text-[#94A3B8]">Instructor <StarRow value={f.instructorRating} /></div>
+                    <div className="flex items-center gap-1.5 text-xs text-[#94A3B8]">{t('programDetail.courseRatingShort')} <StarRow value={f.courseRating} /></div>
+                    <div className="flex items-center gap-1.5 text-xs text-[#94A3B8]">{t('programDetail.instructorRatingShort')} <StarRow value={f.instructorRating} /></div>
                   </div>
                   {f.comment && <p className="text-sm text-[#475569]">{f.comment}</p>}
                 </div>

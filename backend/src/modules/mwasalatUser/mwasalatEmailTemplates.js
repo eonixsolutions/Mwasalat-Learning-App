@@ -102,6 +102,72 @@ export const certificateIssuedTemplate = ({ name, courseTitle, certificateNumber
     </p>
   `);
 
+export const certificateExpiringTemplate = ({ name, courseTitle, certificateNumber, expiresAt, certificateUrl }) =>
+  base(`
+    <h2 style="margin:0 0 8px;font-size:22px;font-weight:700;color:#1E293B;">Your certificate expires soon</h2>
+    <p style="margin:0 0 20px;font-size:15px;color:#475569;line-height:1.6;">
+      Hi ${name}, your certificate for <strong>${courseTitle}</strong> expires on
+      <strong>${new Date(expiresAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}</strong> —
+      about a month from now. Renew or retake the course beforehand to keep it valid.
+    </p>
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 20px;border:2px solid #A94E43;border-radius:14px;">
+      <tr>
+        <td style="padding:24px;text-align:center;">
+          <p style="margin:0 0 4px;font-size:10px;letter-spacing:2px;color:#94A3B8;text-transform:uppercase;font-weight:700;">Certificate Expiring</p>
+          <p style="margin:10px 0 2px;font-size:19px;font-weight:700;color:#1E293B;">${name}</p>
+          <p style="margin:0 0 10px;font-size:13px;color:#475569;">${courseTitle}</p>
+          <p style="margin:0;font-size:11px;color:#94A3B8;">Expires ${new Date(expiresAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })} · No. ${certificateNumber}</p>
+        </td>
+      </tr>
+    </table>
+    ${btn(certificateUrl, 'View Certificate')}
+    <p style="margin:20px 0 0;font-size:13px;color:#94A3B8;line-height:1.6;">
+      If this certification needs to stay current, plan your renewal ahead of the expiry date.
+    </p>
+  `);
+
+export const reengagementTemplate = ({ name, courseTitle, courseUrl }) =>
+  base(`
+    <h2 style="margin:0 0 8px;font-size:22px;font-weight:700;color:#1E293B;">We miss you, ${name}</h2>
+    <p style="margin:0 0 20px;font-size:15px;color:#475569;line-height:1.6;">
+      It's been two weeks since you last opened <strong>${courseTitle}</strong>. Your enrollment and progress
+      are still saved exactly where you left them — come back anytime.
+    </p>
+    ${btn(courseUrl, 'Resume Course')}
+    <p style="margin:20px 0 0;font-size:13px;color:#94A3B8;line-height:1.6;">
+      No rush — this course will be here whenever you're ready.
+    </p>
+  `);
+
+export const instructorWeeklyDigestTemplate = ({ name, courseTitle, newEnrollments, atRiskCount, returnedCount, completionRate }) =>
+  base(`
+    <h2 style="margin:0 0 8px;font-size:22px;font-weight:700;color:#1E293B;">Weekly digest — ${courseTitle}</h2>
+    <p style="margin:0 0 20px;font-size:15px;color:#475569;line-height:1.6;">
+      Hi ${name}, here's how ${courseTitle} did this past week.
+    </p>
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 20px;border-collapse:separate;border-spacing:0 8px;">
+      <tr>
+        <td style="padding:14px 16px;background-color:#F8F9FB;border-radius:10px;font-size:14px;color:#1E293B;">New enrollments</td>
+        <td style="padding:14px 16px;background-color:#F8F9FB;border-radius:10px;font-size:14px;color:#1E293B;text-align:right;font-weight:700;">${newEnrollments}</td>
+      </tr>
+      <tr>
+        <td style="padding:14px 16px;background-color:#FBE9E7;border-radius:10px;font-size:14px;color:#1E293B;">Learners at risk</td>
+        <td style="padding:14px 16px;background-color:#FBE9E7;border-radius:10px;font-size:14px;color:#1E293B;text-align:right;font-weight:700;">${atRiskCount}</td>
+      </tr>
+      <tr>
+        <td style="padding:14px 16px;background-color:#F8F9FB;border-radius:10px;font-size:14px;color:#1E293B;">Returned this week</td>
+        <td style="padding:14px 16px;background-color:#F8F9FB;border-radius:10px;font-size:14px;color:#1E293B;text-align:right;font-weight:700;">${returnedCount}</td>
+      </tr>
+      <tr>
+        <td style="padding:14px 16px;background-color:#F8F9FB;border-radius:10px;font-size:14px;color:#1E293B;">Completion rate</td>
+        <td style="padding:14px 16px;background-color:#F8F9FB;border-radius:10px;font-size:14px;color:#1E293B;text-align:right;font-weight:700;">${completionRate}%</td>
+      </tr>
+    </table>
+    <p style="margin:0;font-size:13px;color:#94A3B8;line-height:1.6;">
+      Open your course dashboard to see who needs attention and chat with them directly.
+    </p>
+  `);
+
 export const accountBlockedTemplate = ({ name, reason }) =>
   base(`
     <h2 style="margin:0 0 8px;font-size:22px;font-weight:700;color:#1E293B;">Your account has been blocked</h2>

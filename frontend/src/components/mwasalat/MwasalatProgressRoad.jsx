@@ -29,10 +29,10 @@ export default function MwasalatProgressRoad({ progress, color = '#23181A', size
 
       {/* Car marker */}
       <div
-        className={`absolute z-20 top-1/2 -translate-y-1/2 -translate-x-1/2 ${isSmall ? 'w-5 h-5' : 'w-6 h-6'} rounded-full flex items-center justify-center shadow-md ring-2 ring-white transition-all duration-700 ease-out`}
-        style={{ left: `${clamped}%`, backgroundColor: color }}
+        className={`absolute z-20 top-1/2 -translate-y-1/2 -translate-x-1/2 rtl:translate-x-1/2 ${isSmall ? 'w-5 h-5' : 'w-6 h-6'} rounded-full flex items-center justify-center shadow-md ring-2 ring-white transition-all duration-700 ease-out`}
+        style={{ insetInlineStart: `${clamped}%`, backgroundColor: color }}
       >
-        <Car className={isSmall ? 'w-2.5 h-2.5 text-white' : 'w-3 h-3 text-white'} />
+        <Car className={`${isSmall ? 'w-2.5 h-2.5' : 'w-3 h-3'} text-white rtl:scale-x-[-1]`} />
       </div>
     </div>
   );

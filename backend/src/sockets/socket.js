@@ -3,67 +3,62 @@ import logger from '../utils/logger.js';
 
 let io;
 
+// Every authenticated page load joins its per-user room (see useMwasalatSocket,
+// wired up globally via MwasalatNotificationBell), so this doubles as a live
+// "how many distinct users currently have the app open" count for the admin
+// dashboard — keyed by userId (not socket.id) so multiple tabs from the same
+// person count once, not per-tab. In-memory/single-process only, no Redis
+// adapter in play here.
+const onlineUserIdBySocket = new Map();
+const socketCountByUserId = new Map();
+
 export const initSocket = (httpServer) => {
   io = new Server(httpServer, {
     cors: { origin: process.env.CLIENT_URL, credentials: true },
   });
 
-  io.on('connection', (socket) => {
-    logger.debug(`Socket connected: ${socket.id}`);
-
-    socket.on('join-room', (userId) => {
-      socket.join(`user:${userId}`);
-      logger.debug(`Socket ${socket.id} joined room user:${userId}`);
-    });
-
-    // Student active-usage heartbeat — emitted every 5 min when app is in use
-    socket.on('heartbeat', async (userId) => {
-      try {
-        const Student = (await import('../modules/student/student.model.js')).default;
-        const { appUsageRepository } = await import('../modules/attendance/app-usage.repository.js');
-        const student = await Student.findOne({ user: userId }, '_id');
-        if (student) await appUsageRepository.recordHeartbeat(student._id);
-      } catch (err) {
-        logger.error('[socket] heartbeat error:', err.message);
-      }
-    });
-
-    socket.on('disconnect', () => {
-      logger.debug(`Socket disconnected: ${socket.id}`);
-    });
-  });
-
-  // Mwasalat lives on its own namespace — fully separate from Eonix's default
-  // namespace above, so broadcasting to Mwasalat users can never leak events
-  // to Eonix sockets (or vice versa) and neither side has to touch the other's
-  // connection/room logic.
   io.of('/mwasalat').on('connection', (socket) => {
     logger.debug(`Mwasalat socket connected: ${socket.id}`);
 
     socket.on('join-room', (userId) => {
       socket.join(`mwasalat-user:${userId}`);
       logger.debug(`Mwasalat socket ${socket.id} joined room mwasalat-user:${userId}`);
+
+      onlineUserIdBySocket.set(socket.id, userId);
+      socketCountByUserId.set(userId, (socketCountByUserId.get(userId) ?? 0) + 1);
+    });
+
+    // Course discussion boards are group rooms (everyone enrolled), unlike
+    // the per-user room above which backs 1:1 chat/notifications.
+    socket.on('join-program-room', (programId) => {
+      socket.join(`mwasalat-program:${programId}`);
+    });
+
+    socket.on('leave-program-room', (programId) => {
+      socket.leave(`mwasalat-program:${programId}`);
     });
 
     socket.on('disconnect', () => {
       logger.debug(`Mwasalat socket disconnected: ${socket.id}`);
+
+      const userId = onlineUserIdBySocket.get(socket.id);
+      if (userId) {
+        onlineUserIdBySocket.delete(socket.id);
+        const remaining = (socketCountByUserId.get(userId) ?? 1) - 1;
+        if (remaining <= 0) socketCountByUserId.delete(userId);
+        else socketCountByUserId.set(userId, remaining);
+      }
     });
   });
 
   return io;
 };
 
+export const getOnlineUserCount = () => socketCountByUserId.size;
+
 export const getIO = () => {
   if (!io) throw new Error('Socket.io not initialized');
   return io;
-};
-
-export const emitToUser = (userId, event, data) => {
-  getIO().to(`user:${userId}`).emit(event, data);
-};
-
-export const broadcastTaskSheetUpdate = (courseId, week) => {
-  getIO().emit('task_sheet_published', { courseId: courseId.toString(), week });
 };
 
 export const broadcastMwasalatNotification = (notification) => {
@@ -72,4 +67,8 @@ export const broadcastMwasalatNotification = (notification) => {
 
 export const emitToMwasalatUser = (userId, event, data) => {
   getIO().of('/mwasalat').to(`mwasalat-user:${userId}`).emit(event, data);
+};
+
+export const emitToMwasalatProgramRoom = (programId, event, data) => {
+  getIO().of('/mwasalat').to(`mwasalat-program:${programId}`).emit(event, data);
 };

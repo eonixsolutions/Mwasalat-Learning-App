@@ -7,6 +7,13 @@ const upsertQuiz = asyncHandler(async (req, res) => {
   successResponse(res, 'Quiz saved', quiz);
 });
 
+const generateQuestions = asyncHandler(async (req, res) => {
+  const draft = await mwasalatQuizService.aiGenerateQuestions(
+    req.mwasalatUser._id, req.mwasalatUser.role, req.params.programId, req.body.numQuestions
+  );
+  successResponse(res, 'Quiz questions generated', draft);
+});
+
 const getQuizForInstructor = asyncHandler(async (req, res) => {
   const quiz = await mwasalatQuizService.getQuizForInstructor(req.mwasalatUser._id, req.mwasalatUser.role, req.params.programId);
   successResponse(res, 'Quiz fetched', quiz);
@@ -33,5 +40,5 @@ const getAdminResults = asyncHandler(async (req, res) => {
 });
 
 export const mwasalatQuizController = {
-  upsertQuiz, getQuizForInstructor, getQuizForLearner, submitAttempt, getMyBestAttempt, getAdminResults,
+  upsertQuiz, generateQuestions, getQuizForInstructor, getQuizForLearner, submitAttempt, getMyBestAttempt, getAdminResults,
 };

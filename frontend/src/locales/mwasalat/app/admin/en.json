@@ -1,0 +1,395 @@
+{
+  "adminDashboard": {
+    "welcomeTitle": "Welcome back, {{name}}",
+    "greetings": {
+      "goodMorning": "Good Morning, {{name}} 👋",
+      "goodAfternoon": "Good Afternoon, {{name}} 👋",
+      "goodEvening": "Good Evening, {{name}} 👋"
+    },
+    "defaultAdminName": "Admin",
+    "subtitle": "Here's what's happening with your learning platform today.",
+    "loadingOverview": "Loading overview…",
+    "untitledProgram": "Untitled program",
+    "generateReport": "Generate Report",
+    "stats": {
+      "totalRevenue": "Total Revenue",
+      "totalLearners": "Total Learners",
+      "instructors": "Instructors",
+      "activePrograms": "Active Programs",
+      "certificatesIssued": "Certificates Issued",
+      "avgQuizPassRate": "Avg Quiz Pass Rate",
+      "thisMonth": "this month",
+      "thisWeek": "this week",
+      "issuedToday": "issued today",
+      "draftPrograms": "{{count}} Draft Programs"
+    },
+    "notifyModal": {
+      "title": "Send Notification",
+      "body": "Every learner and instructor currently on the platform gets this instantly.",
+      "titleLabel": "Title",
+      "titlePlaceholder": "e.g. Scheduled maintenance tonight",
+      "messageLabel": "Message",
+      "messagePlaceholder": "What do they need to know?",
+      "sending": "Sending…",
+      "sendButton": "Send to Everyone",
+      "validationError": "Title and message are required",
+      "sentToast": "Notification sent to everyone",
+      "sendFailed": "Failed to send notification"
+    },
+    "charts": {
+      "monthlyRevenueTitle": "Revenue Overview",
+      "monthlyRevenueSubtitle": "Last 6 months, OMR",
+      "weeklyLearnersTitle": "New Learners",
+      "weeklyLearnersSubtitle": "Signups over the last 8 weeks",
+      "weekLabel": "Wk {{number}}",
+      "funnelTitle": "Learner Journey",
+      "funnelSubtitle": "Where learners drop off between enrolling and finishing a course",
+      "noEnrollments": "No enrollments yet.",
+      "deliveryTypeTitle": "Programs by Delivery Type",
+      "deliveryTypeSubtitle": "Across all active and draft programs",
+      "noPrograms": "No programs yet.",
+      "deliveryTypeAriaLabel": "Programs by delivery type",
+      "enrollmentFunnelAriaLabel": "Enrollment completion funnel",
+      "topProgramsTitle": "Top Programs",
+      "topProgramsTabRevenue": "Revenue",
+      "topProgramsTabPassRate": "Pass Rate",
+      "topRevenueSubtitle": "Highest-earning courses, OMR",
+      "noPaidEnrollments": "No paid enrollments yet.",
+      "topPassRateSubtitle": "Best-performing courses in assessments",
+      "noQuizAttempts": "No quiz attempts yet.",
+      "topPerformingCoursesTitle": "Top Performing Courses",
+      "topPerformingCoursesSubtitle": "By completion rate"
+    },
+    "activity": {
+      "title": "Today's Activities",
+      "subtitle": "Latest actions across the platform",
+      "viewAll": "View all",
+      "empty": "Nothing has happened yet.",
+      "feedEnrolled": "{{learner}} enrolled in {{program}}",
+      "feedCompleted": "{{learner}} completed {{program}}",
+      "feedCertificate": "Certificate issued to {{learner}} for {{program}}"
+    },
+    "upcomingClasses": {
+      "title": "Upcoming Classes",
+      "viewAll": "View all",
+      "empty": "No live or in-person sessions scheduled.",
+      "enrolled": "{{count}} Enrolled"
+    },
+    "monthSummary": {
+      "title": "This Month Summary"
+    },
+    "recentPayments": {
+      "title": "Recent Payments",
+      "subtitle": "Latest transactions across the platform",
+      "viewAll": "View all",
+      "empty": "No payments recorded yet.",
+      "exportCsv": "Export as CSV"
+    }
+  },
+  "learnersPage": {
+    "subtitle": "Learners who self-registered on the platform",
+    "searchPlaceholder": "Search by name or email…",
+    "emptyNoAccounts": "No learner accounts yet.",
+    "emptyNoMatch": "No learners match this filter.",
+    "blockedToast": "Learner blocked",
+    "unblockedToast": "Learner unblocked",
+    "updateFailed": "Failed to update learner",
+    "columns": {
+      "lastActive": "Last Active",
+      "neverLoggedIn": "Never logged in"
+    }
+  },
+  "learnerDetail": {
+    "defaultTitle": "Learner",
+    "defaultSubtitle": "Achievements & activity",
+    "loading": "Loading achievements…",
+    "loadFailed": "Failed to load learner",
+    "totalPointsLabel": "{{name}}'s Total Points",
+    "stats": {
+      "courses": "Courses",
+      "certificates": "Certificates",
+      "quizAttempts": "Quiz Attempts",
+      "points": "Points"
+    },
+    "certificatesHeading": "Certificates",
+    "noCertificates": "No certificates earned yet.",
+    "issuedOn": "Issued {{date}}",
+    "assessmentHistoryHeading": "Assessment History",
+    "noAssessments": "No assessments taken yet.",
+    "attemptLabel": "Attempt #{{number}}",
+    "passed": "Passed",
+    "failed": "Failed"
+  },
+  "instructorsPage": {
+    "subtitle": "Manage instructor accounts",
+    "inviteButton": "Invite Instructor",
+    "searchPlaceholder": "Search by name or email…",
+    "emptyNoInstructors": "No instructors yet — send an invite to get started.",
+    "emptyNoMatch": "No instructors match this filter.",
+    "blockedToast": "Instructor blocked",
+    "unblockedToast": "Instructor unblocked",
+    "updateFailed": "Failed to update instructor",
+    "columns": {
+      "rating": "Rating",
+      "programs": "Programs",
+      "noRatingsYet": "No ratings yet"
+    },
+    "inviteModal": {
+      "title": "Invite Instructor",
+      "body": "They'll receive an email with a link to set their own password and activate the account.",
+      "emailPlaceholder": "instructor@mwasalat.om",
+      "sentToast": "Invitation sent",
+      "sendFailed": "Failed to send invitation",
+      "submitButton": "Send Invitation"
+    }
+  },
+  "instructorDetail": {
+    "defaultTitle": "Instructor",
+    "defaultSubtitle": "Programs & performance",
+    "loading": "Loading instructor…",
+    "loadFailed": "Failed to load instructor",
+    "joined": "Joined {{date}}",
+    "noPrograms": "This instructor hasn't created any programs yet.",
+    "stats": {
+      "programs": "Programs",
+      "learnersTaught": "Learners Taught",
+      "avgRating": "Avg Rating",
+      "certificatesIssued": "Certificates Issued"
+    }
+  },
+  "adminProfile": {
+    "title": "Profile",
+    "subtitle": "Manage your account details"
+  },
+  "programsPage": {
+    "subtitle": "Every course across every instructor, including expired and archived",
+    "typeFilterLabel": "Type:",
+    "clearFilter": "Clear filter",
+    "loading": "Loading programs…",
+    "noPrograms": "No programs yet.",
+    "topRated": "Top Rated",
+    "newSection": "New",
+    "newBadge": "New",
+    "searchPlaceholder": "Search by title or instructor…",
+    "noMatch": "No programs match this filter."
+  },
+  "certificatesPage": {
+    "title": "Certificates Issued",
+    "subtitle": "Every certificate earned across the platform",
+    "empty": "No certificates issued yet.",
+    "searchPlaceholder": "Search by learner or course…",
+    "noExpiry": "No expiry",
+    "expiredLabel": "Expired",
+    "columns": {
+      "course": "Course",
+      "category": "Category",
+      "issued": "Issued",
+      "certificateNo": "Certificate No.",
+      "expires": "Expires"
+    }
+  },
+  "paymentsPage": {
+    "subtitle": "Revenue and transaction history across the platform",
+    "empty": "No payments recorded yet.",
+    "searchPlaceholder": "Search by learner or program…",
+    "statusPaid": "Paid",
+    "statusRefunded": "Refunded",
+    "allStatus": "All Status",
+    "allTime": "All time",
+    "vsLastMonth": "vs last month",
+    "exportCsv": "Export as CSV",
+    "stats": {
+      "totalRevenue": "Total Revenue",
+      "thisMonth": "This Month",
+      "totalTransactions": "Total Transactions"
+    },
+    "columns": {
+      "amount": "Amount",
+      "paid": "Paid"
+    }
+  },
+  "salesReportPage": {
+    "title": "Sales Report",
+    "subtitle": "Revenue analytics, filtered by date range",
+    "exportExcel": "Export Excel",
+    "printSaveAsPdf": "Print / Save as PDF",
+    "printHeading": "Sales Report — {{range}}",
+    "loadingReport": "Loading report…",
+    "emptyRange": "No sales in this range.",
+    "searchPlaceholder": "Search by learner, program, or instructor…",
+    "rangeTo": "to",
+    "customRangeLabel": "Custom range",
+    "vsPreviousPeriod": "vs previous period",
+    "presets": {
+      "today": "Today",
+      "week": "This Week",
+      "month": "This Month",
+      "lastMonth": "Last Month",
+      "all": "All Time",
+      "custom": "Custom"
+    },
+    "stats": {
+      "totalRevenue": "Total Revenue",
+      "totalSales": "Total Sales",
+      "averageSaleValue": "Average Sale Value"
+    },
+    "charts": {
+      "revenueTrend": "Revenue Trend",
+      "topProgramsByRevenue": "Top Programs by Revenue",
+      "noSales": "No sales in this range yet."
+    },
+    "columns": {
+      "date": "Date",
+      "category": "Category",
+      "instructor": "Instructor",
+      "currency": "Currency"
+    },
+    "workbook": {
+      "heading": "Mwasalat Sales Report",
+      "periodLabel": "Period: {{range}}"
+    }
+  },
+  "quizResultsPage": {
+    "subtitle": "Assessment performance across every program",
+    "empty": "No quiz attempts recorded yet.",
+    "searchPlaceholder": "Search by learner or program…",
+    "passRate": "Pass rate",
+    "avgScore": "Avg score",
+    "attempts": "Attempts",
+    "programPerformance": "Program Quiz Performance",
+    "allPrograms": "All Programs",
+    "export": "Export",
+    "columns": {
+      "score": "Score",
+      "result": "Result",
+      "attempted": "Attempted"
+    },
+    "stats": {
+      "totalQuizzes": "Total Quizzes",
+      "activeInSystem": "Active in system",
+      "totalAttempts": "Total Attempts",
+      "last30Days": "from last 30 days",
+      "last30DaysNoData": "No attempts in the prior 30 days to compare",
+      "avgPassRate": "Average Pass Rate",
+      "acrossPrograms": "Across all programs",
+      "certificatesIssued": "Certificates Issued",
+      "basedOnCompletion": "Based on quiz completion"
+    },
+    "tabs": {
+      "all": "All Results",
+      "top": "Top Performers",
+      "risk": "At Risk"
+    },
+    "tiers": {
+      "excellent": "Excellent",
+      "good": "Good",
+      "needsAttention": "Needs Attention"
+    }
+  },
+  "activityLogPage": {
+    "subtitle": "Audit trail of admin and account actions",
+    "empty": "No activity recorded yet.",
+    "searchPlaceholder": "Search by actor or action…",
+    "unknownActor": "Unknown",
+    "columns": {
+      "actor": "Actor",
+      "action": "Action",
+      "detail": "Detail",
+      "when": "When"
+    },
+    "actions": {
+      "loggedIn": "Logged in",
+      "invitedInstructor": "Invited instructor",
+      "blockedUser": "Blocked user",
+      "unblockedUser": "Unblocked user",
+      "createdProgram": "Created program",
+      "updatedProgram": "Updated program",
+      "deletedProgram": "Deleted program",
+      "sentNotification": "Sent notification",
+      "updatedSettings": "Updated settings"
+    }
+  },
+  "announcementsPage": {
+    "subtitle": "Broadcast a message to every learner and instructor",
+    "composeTitle": "New Announcement",
+    "composeSubtitle": "Sent instantly to everyone on the platform, in-app and via the notification bell.",
+    "titleLabel": "Title",
+    "titleRequired": "Title is required",
+    "messageLabel": "Message",
+    "messageRequired": "Message is required",
+    "sendCta": "Send Announcement",
+    "sending": "Sending…",
+    "sentToast": "Announcement sent",
+    "sendFailed": "Failed to send announcement",
+    "historyTitle": "Sent Announcements",
+    "historyEmpty": "No announcements sent yet.",
+    "searchPlaceholder": "Search by title or message…",
+    "columns": {
+      "title": "Title",
+      "message": "Message",
+      "readCount": "Read By",
+      "sentAt": "Sent"
+    }
+  },
+  "settingsPage": {
+    "subtitle": "Platform-wide configuration",
+    "loading": "Loading settings…",
+    "platformDetailsTitle": "Platform Details",
+    "platformDetailsSubtitle": "Shown to learners and instructors across the platform.",
+    "platformNameLabel": "Platform Name",
+    "supportEmailLabel": "Support Email",
+    "supportEmailPlaceholder": "support@mwasalat.om",
+    "savedToast": "Settings saved",
+    "saveFailed": "Failed to save settings"
+  },
+  "dataTable": {
+    "loading": "Loading…",
+    "defaultEmpty": "Nothing here yet.",
+    "defaultSearchPlaceholder": "Search…",
+    "pageInfo": "Page {{current}} of {{pages}} · {{count}} result(s)"
+  },
+  "userTable": {
+    "joined": "Joined",
+    "action": "Action",
+    "invited": "Invited",
+    "active": "Active",
+    "blocked": "Blocked",
+    "block": "Block",
+    "unblock": "Unblock"
+  },
+  "userFilters": {
+    "all": "All",
+    "active": "Active",
+    "blocked": "Blocked",
+    "invited": "Invited",
+    "dormant": "Dormant"
+  },
+  "programCard": {
+    "status": {
+      "active": "Active",
+      "expired": "Expired",
+      "archived": "Archived",
+      "draft": "Draft"
+    },
+    "generalCategory": "General",
+    "unassigned": "Unassigned",
+    "free": "Free",
+    "created": "Created",
+    "expires": "Expires",
+    "reviewsCount": "{{count}} review(s)"
+  },
+  "charts": {
+    "trendAriaLabel": "Trend",
+    "topProgramsAriaLabel": "Top programs",
+    "donutAriaLabel": "Category breakdown"
+  },
+  "blockUserModal": {
+    "title": "Block {{name}}?",
+    "body": "They'll immediately lose access to the platform, and we'll email them the reason below.",
+    "reasonLabel": "Reason for blocking",
+    "reasonPlaceholder": "e.g. Repeated policy violations, inactive account cleanup, incorrect registration…",
+    "emailNotePrefix": "This will be included in the email sent to",
+    "confirmButton": "Block User",
+    "blocking": "Blocking…"
+  }
+}

@@ -27,4 +27,9 @@ const listSent = asyncHandler(async (req, res) => {
   successResponse(res, 'Sent notifications fetched', notifications);
 });
 
-export const mwasalatNotificationController = { create, list, markRead, markAllRead, listSent };
+const sendFromInstructor = asyncHandler(async (req, res) => {
+  const result = await mwasalatNotificationService.sendFromInstructor(req.mwasalatUser, req.body, req.mwasalatUser);
+  successResponse(res, 'Notification sent', result, 201);
+});
+
+export const mwasalatNotificationController = { create, list, markRead, markAllRead, listSent, sendFromInstructor };

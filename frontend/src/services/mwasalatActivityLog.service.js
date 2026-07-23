@@ -7,4 +7,9 @@ const list = async (params) => {
   return res.data.data;
 };
 
-export const mwasalatActivityLogService = { list };
+const getOnlineCount = async () => {
+  const res = await activityApi.get('/online-count');
+  return res.data.data;
+};
+
+export const mwasalatActivityLogService = { list, getOnlineCount };

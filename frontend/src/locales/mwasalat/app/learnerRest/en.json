@@ -1,0 +1,112 @@
+{
+  "learnerCourseDetail": {
+    "titleFallback": "Course",
+    "loading": "Loading course…",
+    "notFound": "Course not found.",
+    "backToMyLearning": "Back to My Learning",
+    "categoryFallback": "General",
+    "progressLabel": "Progress",
+    "longestStreak": "Longest: {{count}} days",
+    "viewCertificate": "View Certificate",
+    "takeAssessment": "Take Assessment",
+    "lockedNote": "Finish the course content to unlock the assessment",
+    "assessmentPassed": "Assessment passed",
+    "giveFeedback": "Give Feedback to Get Certificate",
+    "chatWithInstructor": "Chat with Instructor",
+    "chatStartFailed": "Failed to start chat",
+    "courseDiscussion": "Course Discussion"
+  },
+  "learnerChat": {
+    "titleFallback": "Chat",
+    "loading": "Loading conversation…",
+    "unableToStart": "Unable to start this conversation.",
+    "typeMessage": "Type a message…"
+  },
+  "learnerWatch": {
+    "loading": "Loading recording…",
+    "cantPlayInline": "This recording link can't be played inline.",
+    "openRecording": "Open Recording"
+  },
+  "learnerQuiz": {
+    "loading": "Loading quiz…",
+    "lockedTitle": "Assessment locked",
+    "lockedBody": "Finish viewing the course content before taking the assessment.",
+    "backToDashboardLink": "Back to dashboard",
+    "noQuizYet": "This course doesn't have a quiz yet.",
+    "submitFailed": "Failed to submit the assessment",
+    "passedTitle": "You Passed! 🎉",
+    "pointsEarned": "+{{points}} points earned",
+    "notPassedTitle": "Not quite there",
+    "notPassedBody": "You need {{percent}}% to pass. Review below and try again.",
+    "attemptLabel": "Attempt #{{number}}",
+    "correctAnswerLabel": "Correct answer: {{answer}}",
+    "tryAgain": "Try Again",
+    "backToDashboardBtn": "Back to Dashboard",
+    "oneLastStepNote": "One last step — share your feedback to unlock your certificate.",
+    "continueToFeedbackBtn": "Continue to Feedback",
+    "questionOf": "Question {{current}} of {{total}}",
+    "submitting": "Submitting…",
+    "submitQuiz": "Submit Quiz",
+    "nextQuestion": "Next Question"
+  },
+  "learnerFeedback": {
+    "pageTitle": "Course Feedback",
+    "pageSubtitle": "Required to earn your certificate",
+    "courseRatingLabel": "How was the course?",
+    "instructorRatingLabel": "How was the instructor?",
+    "commentsLabel": "Comments (optional)",
+    "commentsPlaceholder": "What did you like? What could be better?",
+    "submitting": "Submitting…",
+    "submitBtn": "Submit Feedback",
+    "successToast": "Thanks for your feedback!",
+    "errorToast": "Failed to submit feedback",
+    "ratingRequiredToast": "Please rate both the course and the instructor"
+  },
+  "learnerCertificate": {
+    "loading": "Loading certificate…",
+    "notFound": "Certificate not found",
+    "goBack": "Go back",
+    "backToDashboard": "Back to Dashboard",
+    "printSavePdf": "Print / Save as PDF",
+    "certificateOfCompletion": "Certificate of Completion",
+    "certifyThat": "This is to certify that",
+    "completedCourse": "has successfully completed the course",
+    "dateIssuedLabel": "Date Issued",
+    "validUntilLabel": "Valid Until",
+    "expiredStamp": "Expired",
+    "noExpiryNote": "This certificate does not expire.",
+    "instructorLabel": "Instructor",
+    "instructorFallback": "Mwasalat Academy",
+    "certificateNoLabel": "Certificate No.",
+    "scanToVerify": "Scan to verify"
+  },
+  "contentAccess": {
+    "viewPdf": "View PDF",
+    "markedFinished": "Marked as finished",
+    "markAsFinished": "Mark as Finished",
+    "pdfDayProgress": "Day {{done}} of {{total}} read",
+    "markedToday": "Today's reading marked — come back tomorrow",
+    "markTodayDone": "Mark Today's Reading as Done",
+    "watchRecording": "Watch Recording",
+    "joinLiveClass": "Join Live Class",
+    "scheduledCheckInNote": "{{date}} · scan QR in class to check in"
+  },
+  "controlledVideoPlayer": {
+    "loading": "Loading video…",
+    "loadFailed": "Failed to load video"
+  },
+  "chatBell": {
+    "messages": "Messages",
+    "noConversationsYet": "No conversations yet",
+    "unknownName": "Unknown"
+  },
+  "chatPanel": {
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "loading": "Loading conversation…",
+    "sayHello": "Say hello 👋",
+    "startConversationWith": "Start the conversation with {{name}} — questions about the course are welcome here.",
+    "otherFallback": "them",
+    "sendFailed": "Failed to send message"
+  }
+}

@@ -8,10 +8,12 @@ const router = Router();
 
 // Public — no auth required
 router.get('/public', mwasalatProgramController.listPublic);
+router.get('/certificates/verify/:id', mwasalatProgramController.verifyCertificate);
 
 router.use(mwasalatAuthMiddleware.authenticate);
 
 router.post('/ai-autofill', mwasalatAuthMiddleware.authorize(MWASALAT_ROLES.INSTRUCTOR, MWASALAT_ROLES.SUPER_ADMIN), mwasalatProgramController.aiAutofill);
+router.post('/live-meeting', mwasalatAuthMiddleware.authorize(MWASALAT_ROLES.INSTRUCTOR, MWASALAT_ROLES.SUPER_ADMIN), mwasalatProgramController.createLiveMeeting);
 router.post(
   '/',
   mwasalatAuthMiddleware.authorize(MWASALAT_ROLES.INSTRUCTOR, MWASALAT_ROLES.SUPER_ADMIN),
@@ -22,7 +24,10 @@ router.patch('/:id', mwasalatAuthMiddleware.authorize(MWASALAT_ROLES.INSTRUCTOR,
 router.delete('/:id', mwasalatAuthMiddleware.authorize(MWASALAT_ROLES.INSTRUCTOR, MWASALAT_ROLES.SUPER_ADMIN), mwasalatProgramController.remove);
 router.get('/mine', mwasalatAuthMiddleware.authorize(MWASALAT_ROLES.INSTRUCTOR, MWASALAT_ROLES.SUPER_ADMIN), mwasalatProgramController.listMine);
 router.get('/me/summary', mwasalatAuthMiddleware.authorize(MWASALAT_ROLES.INSTRUCTOR, MWASALAT_ROLES.SUPER_ADMIN), mwasalatProgramController.getMySummary);
+router.get('/me/today-schedule', mwasalatAuthMiddleware.authorize(MWASALAT_ROLES.INSTRUCTOR, MWASALAT_ROLES.SUPER_ADMIN), mwasalatProgramController.getMyTodaySchedule);
+router.get('/me/roster', mwasalatAuthMiddleware.authorize(MWASALAT_ROLES.INSTRUCTOR, MWASALAT_ROLES.SUPER_ADMIN), mwasalatProgramController.getMyRoster);
 router.get('/enrolled', mwasalatAuthMiddleware.authorize(MWASALAT_ROLES.LEARNER), mwasalatProgramController.listMyEnrollments);
+router.patch('/:id/star', mwasalatAuthMiddleware.authorize(MWASALAT_ROLES.LEARNER), mwasalatProgramController.toggleStar);
 router.post('/:id/enroll', mwasalatAuthMiddleware.authorize(MWASALAT_ROLES.LEARNER), mwasalatProgramController.enroll);
 router.post('/:id/check-in', mwasalatAuthMiddleware.authorize(MWASALAT_ROLES.LEARNER), mwasalatProgramController.checkIn);
 router.post('/:id/feedback', mwasalatAuthMiddleware.authorize(MWASALAT_ROLES.LEARNER), mwasalatProgramController.submitFeedback);
@@ -38,8 +43,16 @@ router.get('/admin/certificates', mwasalatAuthMiddleware.authorize(MWASALAT_ROLE
 router.get('/admin/programs', mwasalatAuthMiddleware.authorize(MWASALAT_ROLES.SUPER_ADMIN), mwasalatProgramController.listAllForAdmin);
 router.get('/admin/instructor/:instructorId', mwasalatAuthMiddleware.authorize(MWASALAT_ROLES.SUPER_ADMIN), mwasalatProgramController.getInstructorDetail);
 router.get('/admin/instructors/summary', mwasalatAuthMiddleware.authorize(MWASALAT_ROLES.SUPER_ADMIN), mwasalatProgramController.listInstructorSummaries);
+router.get('/admin/top-courses', mwasalatAuthMiddleware.authorize(MWASALAT_ROLES.SUPER_ADMIN), mwasalatProgramController.getTopCoursesByCompletionRate);
+router.get('/admin/upcoming-classes', mwasalatAuthMiddleware.authorize(MWASALAT_ROLES.SUPER_ADMIN), mwasalatProgramController.getUpcomingClasses);
+router.get('/admin/activity-feed', mwasalatAuthMiddleware.authorize(MWASALAT_ROLES.SUPER_ADMIN), mwasalatProgramController.getRecentActivityFeed);
 router.get('/:id', mwasalatProgramController.getById);
 router.get('/:id/learners', mwasalatProgramController.getLearners);
+router.post(
+  '/:id/learners/:learnerId/encourage',
+  mwasalatAuthMiddleware.authorize(MWASALAT_ROLES.INSTRUCTOR, MWASALAT_ROLES.SUPER_ADMIN),
+  mwasalatProgramController.sendEncouragement
+);
 router.get('/:id/feedback', mwasalatProgramController.getFeedback);
 router.get('/:id/stats', mwasalatProgramController.getStats);
 router.get('/:id/attendance', mwasalatAuthMiddleware.authorize(MWASALAT_ROLES.INSTRUCTOR, MWASALAT_ROLES.SUPER_ADMIN), mwasalatProgramController.getAttendance);

@@ -7,6 +7,11 @@ const aiAutofill = asyncHandler(async (req, res) => {
   successResponse(res, 'Suggestion generated', suggestion);
 });
 
+const createLiveMeeting = asyncHandler(async (req, res) => {
+  const meeting = await mwasalatProgramService.createLiveMeeting(req.body);
+  successResponse(res, 'Zoom meeting created', meeting, 201);
+});
+
 const create = asyncHandler(async (req, res) => {
   const pdfFile = req.files?.pdfFile?.[0];
   const videoFile = req.files?.videoFile?.[0];
@@ -44,14 +49,24 @@ const listMyEnrollments = asyncHandler(async (req, res) => {
   successResponse(res, 'Enrollments fetched', enrollments);
 });
 
+const toggleStar = asyncHandler(async (req, res) => {
+  const result = await mwasalatProgramService.toggleStar(req.mwasalatUser._id, req.params.id);
+  successResponse(res, 'Star updated', result);
+});
+
 const getById = asyncHandler(async (req, res) => {
-  const program = await mwasalatProgramService.getById(req.params.id);
+  const program = await mwasalatProgramService.getById(req.params.id, req.mwasalatUser);
   successResponse(res, 'Program fetched', program);
 });
 
 const getLearners = asyncHandler(async (req, res) => {
   const learners = await mwasalatProgramService.getLearners(req.params.id);
   successResponse(res, 'Learners fetched', learners);
+});
+
+const getMyRoster = asyncHandler(async (req, res) => {
+  const roster = await mwasalatProgramService.getMyRoster(req.mwasalatUser._id);
+  successResponse(res, 'Roster fetched', roster);
 });
 
 const getFeedback = asyncHandler(async (req, res) => {
@@ -113,6 +128,11 @@ const getMyCertificate = asyncHandler(async (req, res) => {
   successResponse(res, 'Certificate fetched', certificate);
 });
 
+const verifyCertificate = asyncHandler(async (req, res) => {
+  const result = await mwasalatProgramService.verifyCertificate(req.params.id);
+  successResponse(res, 'Certificate verified', result);
+});
+
 const getMyAchievements = asyncHandler(async (req, res) => {
   const achievements = await mwasalatProgramService.getAchievements(req.mwasalatUser._id);
   successResponse(res, 'Achievements fetched', achievements);
@@ -148,16 +168,44 @@ const listInstructorSummaries = asyncHandler(async (req, res) => {
   successResponse(res, 'Instructor summaries fetched', summaries);
 });
 
+const getTopCoursesByCompletionRate = asyncHandler(async (req, res) => {
+  const courses = await mwasalatProgramService.getTopCoursesByCompletionRate();
+  successResponse(res, 'Top courses fetched', courses);
+});
+
+const getUpcomingClasses = asyncHandler(async (req, res) => {
+  const classes = await mwasalatProgramService.getUpcomingClasses();
+  successResponse(res, 'Upcoming classes fetched', classes);
+});
+
+const getRecentActivityFeed = asyncHandler(async (req, res) => {
+  const feed = await mwasalatProgramService.getRecentActivityFeed(Number(req.query.limit) || 8);
+  successResponse(res, 'Activity feed fetched', feed);
+});
+
 const getMySummary = asyncHandler(async (req, res) => {
   const detail = await mwasalatProgramService.getInstructorDetail(req.mwasalatUser._id);
   successResponse(res, 'Summary fetched', detail);
 });
 
+const getMyTodaySchedule = asyncHandler(async (req, res) => {
+  const schedule = await mwasalatProgramService.getMyTodaySchedule(req.mwasalatUser._id);
+  successResponse(res, 'Schedule fetched', schedule);
+});
+
+const sendEncouragement = asyncHandler(async (req, res) => {
+  const result = await mwasalatProgramService.sendEncouragement(
+    req.mwasalatUser._id, req.mwasalatUser.role, req.params.id, req.params.learnerId, req.body.templateKey
+  );
+  successResponse(res, 'Encouragement sent', result);
+});
+
 export const mwasalatProgramController = {
-  aiAutofill, create, update, remove, listMine, listPublic, enroll, listMyEnrollments,
-  getById, getLearners, getFeedback, getStats, checkIn, markAttendance, getAttendance,
-  submitFeedback, getCompletionStatus, markContentOpened, getMyCertificate,
-  getVideoUrl, updateVideoProgress,
+  aiAutofill, createLiveMeeting, create, update, remove, listMine, listPublic, enroll, listMyEnrollments, toggleStar,
+  getById, getLearners, getMyRoster, getFeedback, getStats, checkIn, markAttendance, getAttendance,
+  submitFeedback, getCompletionStatus, markContentOpened, getMyCertificate, verifyCertificate,
+  getVideoUrl, updateVideoProgress, sendEncouragement,
   getMyAchievements, getLearnerAchievements, getAdminOverview, listAllCertificates, listAllForAdmin,
-  getInstructorDetail, listInstructorSummaries, getMySummary,
+  getInstructorDetail, listInstructorSummaries, getMySummary, getMyTodaySchedule,
+  getTopCoursesByCompletionRate, getUpcomingClasses, getRecentActivityFeed,
 };

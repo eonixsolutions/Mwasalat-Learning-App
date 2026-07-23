@@ -8,5 +8,6 @@ const router = Router();
 router.use(mwasalatAuthMiddleware.authenticate, mwasalatAuthMiddleware.authorize(MWASALAT_ROLES.SUPER_ADMIN));
 
 router.get('/', mwasalatActivityLogController.list);
+router.get('/online-count', mwasalatActivityLogController.onlineCount);
 
 export default router;

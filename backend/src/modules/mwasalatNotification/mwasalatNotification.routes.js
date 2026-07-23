@@ -10,6 +10,11 @@ router.use(mwasalatAuthMiddleware.authenticate);
 router.get('/', mwasalatNotificationController.list);
 router.get('/admin/sent', mwasalatAuthMiddleware.authorize(MWASALAT_ROLES.SUPER_ADMIN), mwasalatNotificationController.listSent);
 router.post('/', mwasalatAuthMiddleware.authorize(MWASALAT_ROLES.SUPER_ADMIN), mwasalatNotificationController.create);
+router.post(
+  '/instructor',
+  mwasalatAuthMiddleware.authorize(MWASALAT_ROLES.INSTRUCTOR, MWASALAT_ROLES.SUPER_ADMIN),
+  mwasalatNotificationController.sendFromInstructor
+);
 router.patch('/read-all', mwasalatNotificationController.markAllRead);
 router.patch('/:id/read', mwasalatNotificationController.markRead);
 

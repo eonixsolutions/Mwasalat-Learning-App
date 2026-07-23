@@ -7,7 +7,7 @@ export const useMwasalatAuthStore = create(
       user: null,
       accessToken: null,
       isAuthenticated: false,
-      setAuth: (user, accessToken) => set({ user, accessToken, isAuthenticated: true }),
+      setAuth: (user, accessToken, isNewUser = false) => set({ user: { ...user, isNewUser }, accessToken, isAuthenticated: true }),
       updateUser: (patch) => set((state) => ({ user: state.user ? { ...state.user, ...patch } : state.user })),
       logout: () => set({ user: null, accessToken: null, isAuthenticated: false }),
     }),

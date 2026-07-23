@@ -1,12 +1,15 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Loader2 } from 'lucide-react';
 import MwasalatInstructorLayout from '../../layouts/MwasalatInstructorLayout.jsx';
 import { mwasalatChatService } from '../../services/mwasalatChat.service.js';
 import { useMwasalatAuthStore } from '../../store/mwasalatAuthStore.js';
 import MwasalatChatPanel from '../../components/mwasalat/MwasalatChatPanel.jsx';
+import { getLocalizedProgramField } from '../../utils/mwasalatLocalize.js';
 
 export default function MwasalatInstructorChatPage() {
+  const { t, i18n } = useTranslation('mwasalatApp');
   const { id, learnerId } = useParams();
   const { user } = useMwasalatAuthStore();
   const [conversation, setConversation] = useState(null);
@@ -19,21 +22,21 @@ export default function MwasalatInstructorChatPage() {
   }, [id, learnerId]);
 
   return (
-    <MwasalatInstructorLayout title={conversation?.learner?.name ?? 'Chat'} subtitle={conversation?.program?.title}>
+    <MwasalatInstructorLayout title={conversation?.learner?.name ?? t('instructorChat.titleFallback')} subtitle={getLocalizedProgramField(conversation?.program, 'title', i18n.language)}>
       {isLoading ? (
         <div className="p-10 flex items-center justify-center text-[#94A3B8]">
-          <Loader2 className="w-5 h-5 animate-spin mr-2" /> Loading conversation…
+          <Loader2 className="w-5 h-5 animate-spin me-2" /> {t('instructorChat.loadingConversation')}
         </div>
       ) : conversation ? (
         <MwasalatChatPanel
           conversationId={conversation._id}
           currentUserId={user?._id}
           otherName={conversation.learner?.name}
-          subtitle={conversation.program?.title}
+          subtitle={getLocalizedProgramField(conversation.program, 'title', i18n.language)}
           backTo={`/mwasalat/instructor/programs/${id}`}
         />
       ) : (
-        <div className="card p-10 text-center text-sm text-[#475569]">Unable to start this conversation.</div>
+        <div className="card p-10 text-center text-sm text-[#475569]">{t('instructorChat.unableToStart')}</div>
       )}
     </MwasalatInstructorLayout>
   );

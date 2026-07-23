@@ -7,6 +7,11 @@ const aiAutofill = async (title) => {
   return res.data.data;
 };
 
+const createLiveMeeting = async ({ title, liveScheduledAt }) => {
+  const res = await programsApi.post('/live-meeting', { title, liveScheduledAt });
+  return res.data.data;
+};
+
 const create = async (data) => {
   const res = await programsApi.post('/', data);
   return res.data.data;
@@ -39,6 +44,11 @@ const enroll = async (id) => {
 
 const listMyEnrollments = async () => {
   const res = await programsApi.get('/enrolled');
+  return res.data.data;
+};
+
+const toggleStar = async (id) => {
+  const res = await programsApi.patch(`/${id}/star`);
   return res.data.data;
 };
 
@@ -107,6 +117,11 @@ const getMyCertificate = async (id) => {
   return res.data.data;
 };
 
+const verifyCertificate = async (certificateId) => {
+  const res = await programsApi.get(`/certificates/verify/${certificateId}`);
+  return res.data.data;
+};
+
 const getMyAchievements = async () => {
   const res = await programsApi.get('/achievements/me');
   return res.data.data;
@@ -147,11 +162,42 @@ const getMySummary = async () => {
   return res.data.data;
 };
 
+const getMyRoster = async () => {
+  const res = await programsApi.get('/me/roster');
+  return res.data.data;
+};
+
+const getMyTodaySchedule = async () => {
+  const res = await programsApi.get('/me/today-schedule');
+  return res.data.data;
+};
+
+const getTopCoursesByCompletionRate = async () => {
+  const res = await programsApi.get('/admin/top-courses');
+  return res.data.data;
+};
+
+const getUpcomingClasses = async () => {
+  const res = await programsApi.get('/admin/upcoming-classes');
+  return res.data.data;
+};
+
+const getRecentActivityFeed = async (limit) => {
+  const res = await programsApi.get('/admin/activity-feed', { params: { limit } });
+  return res.data.data;
+};
+
+const sendEncouragement = async (id, learnerId, templateKey) => {
+  const res = await programsApi.post(`/${id}/learners/${learnerId}/encourage`, { templateKey });
+  return res.data.data;
+};
+
 export const mwasalatProgramService = {
-  aiAutofill, create, update, remove, listMine, listPublic, enroll, listMyEnrollments,
+  aiAutofill, createLiveMeeting, create, update, remove, listMine, listPublic, enroll, listMyEnrollments, toggleStar,
   getById, getLearners, getFeedback, getStats, checkIn, markAttendance, getAttendance,
-  submitFeedback, getCompletionStatus, markContentOpened, getMyCertificate,
-  getVideoUrl, updateVideoProgress,
+  submitFeedback, getCompletionStatus, markContentOpened, getMyCertificate, verifyCertificate,
+  getVideoUrl, updateVideoProgress, sendEncouragement,
   getMyAchievements, getLearnerAchievements, getAdminOverview, listAllCertificates, listAllForAdmin,
-  getInstructorDetail, listInstructorSummaries, getMySummary,
+  getInstructorDetail, listInstructorSummaries, getMySummary, getMyRoster, getMyTodaySchedule,
+  getTopCoursesByCompletionRate, getUpcomingClasses, getRecentActivityFeed,
 };

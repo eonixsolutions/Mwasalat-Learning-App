@@ -2,10 +2,12 @@ import MwasalatQuiz from './mwasalatQuiz.model.js';
 import MwasalatQuizAttempt from './mwasalatQuizAttempt.model.js';
 import MwasalatProgram from '../mwasalatProgram/mwasalatProgram.model.js';
 import MwasalatEnrollment from '../mwasalatProgram/mwasalatEnrollment.model.js';
+import MwasalatCertificate from '../mwasalatProgram/mwasalatCertificate.model.js';
 import MwasalatUser from '../mwasalatUser/mwasalatUser.model.js';
 import { MWASALAT_ROLES } from '../mwasalatUser/mwasalatUser.constants.js';
 import { AppError } from '../../utils/AppError.js';
 import { mwasalatProgramService } from '../mwasalatProgram/mwasalatProgram.service.js';
+import { DEFAULT_QUIZ_QUESTIONS, MAX_QUIZ_QUESTIONS } from '../mwasalatAi/mwasalatAi.constants.js';
 
 const POINTS_PER_PASS = 100;
 
@@ -38,6 +40,21 @@ const upsertQuiz = async (requesterId, requesterRole, programId, { questions, pa
     { program: programId, questions, passPercentage: passPercentage ?? 70 },
     { upsert: true, new: true, setDefaultsOnInsert: true }
   );
+};
+
+// Draft-only — returns generated questions for the instructor to review/edit
+// in the quiz builder, it does not save anything (saving still goes through
+// the existing upsertQuiz endpoint). Dynamically imported, same reason as
+// aiAutofill in mwasalatProgram.service.js: mwasalatAi's tool files import
+// this service, so a static import here would create a module cycle.
+const aiGenerateQuestions = async (requesterId, requesterRole, programId, numQuestions) => {
+  const program = await assertOwnership(programId, requesterId, requesterRole);
+  const count = Number.isInteger(numQuestions)
+    ? Math.min(Math.max(numQuestions, 1), MAX_QUIZ_QUESTIONS)
+    : DEFAULT_QUIZ_QUESTIONS;
+
+  const { mwasalatAiService } = await import('../mwasalatAi/mwasalatAi.service.js');
+  return mwasalatAiService.generateQuizQuestions(program.title, program.description, count);
 };
 
 const getQuizForInstructor = async (requesterId, requesterRole, programId) => {
@@ -80,6 +97,8 @@ const submitAttempt = async (learnerId, programId, answers) => {
   const score = Math.round((correctCount / quiz.questions.length) * 100);
   const passed = score >= quiz.passPercentage;
 
+  await mwasalatProgramService.registerActivity(programId, enrollment);
+
   const alreadyPassed = await MwasalatQuizAttempt.findOne({ learner: learnerId, program: programId, passed: true });
   const priorAttemptCount = await MwasalatQuizAttempt.countDocuments({ learner: learnerId, program: programId });
 
@@ -106,11 +125,26 @@ const getMyBestAttempt = async (learnerId, programId) => {
 // aggregates (avg score / pass rate / attempt count) plus a flat, most-recent-first
 // attempt list for the detail table.
 const getAdminResults = async () => {
-  const attempts = await MwasalatQuizAttempt.find({})
-    .populate('learner', 'name email')
-    .populate('program', 'title category')
-    .sort({ attemptedAt: -1 })
-    .limit(200);
+  const now = new Date();
+  const last30Start = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+  const prev30Start = new Date(now.getTime() - 60 * 24 * 60 * 60 * 1000);
+
+  const [
+    attempts, totalQuizzes, totalAttempts, passedAttempts,
+    attemptsLast30Days, attemptsPrevious30Days, totalCertificates,
+  ] = await Promise.all([
+    MwasalatQuizAttempt.find({})
+      .populate('learner', 'name email')
+      .populate('program', 'title category titleAr categoryAr')
+      .sort({ attemptedAt: -1 })
+      .limit(200),
+    MwasalatQuiz.countDocuments({}),
+    MwasalatQuizAttempt.countDocuments({}),
+    MwasalatQuizAttempt.countDocuments({ passed: true }),
+    MwasalatQuizAttempt.countDocuments({ attemptedAt: { $gte: last30Start } }),
+    MwasalatQuizAttempt.countDocuments({ attemptedAt: { $gte: prev30Start, $lt: last30Start } }),
+    MwasalatCertificate.countDocuments({}),
+  ]);
 
   const byProgram = {};
   attempts.forEach((a) => {
@@ -139,9 +173,17 @@ const getAdminResults = async () => {
       passed: a.passed,
       attemptedAt: a.attemptedAt,
     })),
+    // Real, unrestricted-by-the-200-row-cap counts — the Quiz Results page's
+    // summary banner needs true totals, not just what's in the displayed page.
+    totalQuizzes,
+    totalAttempts,
+    passedAttempts,
+    attemptsLast30Days,
+    attemptsPrevious30Days,
+    totalCertificates,
   };
 };
 
 export const mwasalatQuizService = {
-  upsertQuiz, getQuizForInstructor, getQuizForLearner, submitAttempt, getMyBestAttempt, getAdminResults,
+  upsertQuiz, aiGenerateQuestions, getQuizForInstructor, getQuizForLearner, submitAttempt, getMyBestAttempt, getAdminResults,
 };

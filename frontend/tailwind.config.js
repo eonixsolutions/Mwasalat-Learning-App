@@ -73,6 +73,18 @@ export default {
         sans: ['Inter', 'sans-serif'],
         display: ['"Space Grotesk"', 'sans-serif'],
       },
+
+      // Subtle idle bob + tilt for the AI assistant's bot icon — reads as
+      // "alive" without being a distracting constant bounce.
+      keyframes: {
+        aiBotFloat: {
+          '0%, 100%': { transform: 'translateY(0) rotate(0deg)' },
+          '50%': { transform: 'translateY(-2px) rotate(-6deg)' },
+        },
+      },
+      animation: {
+        'ai-bot-float': 'aiBotFloat 2.4s ease-in-out infinite',
+      },
     },
   },
   plugins: [],

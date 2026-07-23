@@ -5,6 +5,8 @@ import { MWASALAT_ROLES } from './mwasalatUser.constants.js';
 const mwasalatUserSchema = new mongoose.Schema(
   {
     name: { type: String, required: true, trim: true },
+    phone: { type: String, trim: true },
+    avatarUrl: { type: String },
     email: {
       type: String,
       required: true,
@@ -14,7 +16,7 @@ const mwasalatUserSchema = new mongoose.Schema(
     },
     password: {
       type: String,
-      required: true,
+      required: function () { return this.authProvider === 'local'; },
       minlength: 8,
       select: false,
     },
@@ -25,12 +27,15 @@ const mwasalatUserSchema = new mongoose.Schema(
     },
     isActive: { type: Boolean, default: true },
     passwordSet: { type: Boolean, default: true },
+    authProvider: { type: String, enum: ['local', 'google'], default: 'local' },
+    googleId: { type: String, select: false },
     points: { type: Number, default: 0 },
     invitationToken: { type: String, select: false },
     invitationExpiry: { type: Date, select: false },
     passwordResetToken: { type: String, select: false },
     passwordResetExpiry: { type: Date, select: false },
     lastLogin: { type: Date },
+    consentAcceptedAt: { type: Date },
   },
   { timestamps: true }
 );

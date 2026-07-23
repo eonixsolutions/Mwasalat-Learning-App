@@ -1,5 +1,8 @@
 import MwasalatNotification from './mwasalatNotification.model.js';
+import MwasalatProgram from '../mwasalatProgram/mwasalatProgram.model.js';
+import MwasalatEnrollment from '../mwasalatProgram/mwasalatEnrollment.model.js';
 import { AppError } from '../../utils/AppError.js';
+import { MWASALAT_ROLES } from '../mwasalatUser/mwasalatUser.constants.js';
 import { broadcastMwasalatNotification, emitToMwasalatUser } from '../../sockets/socket.js';
 import { mwasalatActivityLogService } from '../mwasalatActivityLog/mwasalatActivityLog.service.js';
 
@@ -92,6 +95,44 @@ const notifyUsers = async (actorId, userIds, { title, message }) => {
   return notification;
 };
 
+// Instructor-composed notification — unlike create() (admin-only, visible to
+// literally everyone), this reaches only the learners on one of the
+// instructor's own courses, or every learner across every course they teach
+// when no programId is given. Delivered through the same targeted path as
+// notifyUsers (personal socket room + recipients list), just with a
+// caller-supplied title/message instead of a canned template.
+const sendFromInstructor = async (instructor, { title, message, programId }, actor) => {
+  if (!title?.trim() || !message?.trim()) {
+    throw new AppError('Title and message are required', 400);
+  }
+
+  let programIds;
+  if (programId) {
+    const program = await MwasalatProgram.findById(programId);
+    if (!program) throw new AppError('Program not found', 404);
+    if (instructor.role !== MWASALAT_ROLES.SUPER_ADMIN && String(program.instructor) !== String(instructor._id)) {
+      throw new AppError('You do not have permission to notify learners on this course', 403);
+    }
+    programIds = [program._id];
+  } else {
+    programIds = await MwasalatProgram.find({ instructor: instructor._id }).distinct('_id');
+  }
+  if (!programIds.length) throw new AppError('You have no courses to notify learners on', 400);
+
+  const learnerIds = await MwasalatEnrollment.find({ program: { $in: programIds } }).distinct('learner');
+  if (!learnerIds.length) throw new AppError('No learners are enrolled yet', 400);
+
+  const notification = await notifyUsers(instructor._id, learnerIds, { title, message });
+
+  mwasalatActivityLogService.record({
+    actorId: actor?._id, actorName: actor?.name, actorRole: actor?.role,
+    action: 'send_notification', targetType: 'MwasalatNotification', targetId: notification._id,
+    metadata: { title, recipientCount: learnerIds.length },
+  });
+
+  return { notification, recipientCount: learnerIds.length };
+};
+
 // History of broadcasts the admin has sent — backs the admin Notifications history view.
 const listSent = async (adminId) => {
   const notifications = await MwasalatNotification.find({ createdBy: adminId }).sort({ createdAt: -1 }).limit(100);
@@ -104,4 +145,4 @@ const listSent = async (adminId) => {
   }));
 };
 
-export const mwasalatNotificationService = { create, list, markRead, markAllRead, listSent, notifyUsers };
+export const mwasalatNotificationService = { create, list, markRead, markAllRead, listSent, notifyUsers, sendFromInstructor };

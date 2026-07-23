@@ -24,7 +24,7 @@ const getOrCreateAsLearner = async (learnerId, programId) => {
   )
     .populate('instructor', 'name email')
     .populate('learner', 'name email')
-    .populate('program', 'title category');
+    .populate('program', 'title category titleAr categoryAr');
   return conversation;
 };
 
@@ -44,7 +44,7 @@ const getOrCreateAsInstructor = async (instructorId, programId, learnerId) => {
   )
     .populate('instructor', 'name email')
     .populate('learner', 'name email')
-    .populate('program', 'title category');
+    .populate('program', 'title category titleAr categoryAr');
   return conversation;
 };
 
@@ -60,7 +60,7 @@ const listMyConversations = async (userId) => {
   const conversations = await MwasalatConversation.find({ $or: [{ learner: userId }, { instructor: userId }] })
     .populate('learner', 'name email')
     .populate('instructor', 'name email')
-    .populate('program', 'title category')
+    .populate('program', 'title category titleAr categoryAr')
     .sort({ lastMessageAt: -1 });
 
   const unreadCounts = await MwasalatMessage.aggregate([
@@ -99,7 +99,7 @@ const sendMessage = async (conversationId, sender, text) => {
   if (!text?.trim()) throw new AppError('Message cannot be empty', 400);
   const userId = sender._id;
 
-  const conversation = await MwasalatConversation.findById(conversationId).populate('program', 'title');
+  const conversation = await MwasalatConversation.findById(conversationId).populate('program', 'title titleAr');
   if (!conversation) throw new AppError('Conversation not found', 404);
   assertParticipant(conversation, userId);
 

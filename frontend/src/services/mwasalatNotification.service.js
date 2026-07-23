@@ -12,6 +12,11 @@ const send = async (data) => {
   return res.data.data;
 };
 
+const sendFromInstructor = async (data) => {
+  const res = await notificationsApi.post('/instructor', data);
+  return res.data.data;
+};
+
 const markRead = async (id) => {
   const res = await notificationsApi.patch(`/${id}/read`);
   return res.data;
@@ -27,4 +32,4 @@ const listSent = async () => {
   return res.data.data;
 };
 
-export const mwasalatNotificationService = { list, send, markRead, markAllRead, listSent };
+export const mwasalatNotificationService = { list, send, sendFromInstructor, markRead, markAllRead, listSent };

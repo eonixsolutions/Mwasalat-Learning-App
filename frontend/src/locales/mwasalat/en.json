@@ -1,0 +1,144 @@
+{
+  "nav": {
+    "home": "Home",
+    "programs": "Programs",
+    "howItWorks": "How it works",
+    "about": "About",
+    "signIn": "Sign in"
+  },
+  "hero": {
+    "badge": "Open to everyone",
+    "titleLine1": "One standard.",
+    "titleLine2": "Every learner.",
+    "titleLine3": "Safer roads, better transport.",
+    "subtitle": "The Mwasalat Learning Platform brings standardised training to every department — and to anyone who wants to build these skills. Self-paced lessons, classroom sessions, and live virtual classes, all in one place.",
+    "browsePrograms": "Browse Programs",
+    "goToDashboard": "Go to Dashboard",
+    "signIn": "Sign in"
+  },
+  "stats": {
+    "waysToLearn": "Ways to learn",
+    "standardisedCurriculum": "Standardised curriculum",
+    "openToEveryone": "Open to everyone"
+  },
+  "journey": {
+    "route": "The learning route",
+    "steps": {
+      "enroll": { "label": "Enroll", "desc": "Pick a program built for your role and get instant access." },
+      "learn": { "label": "Learn", "desc": "Self-paced reading, on-demand video, classroom sessions, or live virtual classes." },
+      "assess": { "label": "Assess", "desc": "Prove what you know with role-specific assessments." },
+      "certify": { "label": "Certify", "desc": "Earn a certificate recognized across every department." }
+    },
+    "openTo": "Open to",
+    "everyone": "Everyone",
+    "compliance": "Compliance",
+    "omanStandard": "Oman standard",
+    "certification": "Certification",
+    "onCompletion": "On completion"
+  },
+  "mission": {
+    "quote": "“Delivering standardised training across every department — one goal, one standard, safer roads and better transport.”"
+  },
+  "howItWorks": {
+    "eyebrow": "How it works",
+    "title": "Four stops on the learning route"
+  },
+  "programs": {
+    "eyebrow": "Training Programs",
+    "title": "Build the skills that keep Oman moving",
+    "enrollNow": "Enroll Now",
+    "free": "Free",
+    "delivery": {
+      "pdf": "Self-paced",
+      "recording": "On-demand video",
+      "live": "Live virtual",
+      "ilt": "Classroom"
+    },
+    "dummy": {
+      "defensiveDriving": { "title": "Defensive Driving Fundamentals", "duration": "3 Days", "blurb": "Practical, instructor-led techniques for safe driving in real road conditions." },
+      "passengerSafety": { "title": "Passenger Safety & Emergency Response", "duration": "6 Hours", "blurb": "Live sessions covering evacuation procedures, first aid basics, and incident reporting." },
+      "fleetMaintenance": { "title": "Fleet Vehicle Maintenance Basics", "duration": "4 Hours", "blurb": "Learn routine inspection and upkeep procedures at your own pace." },
+      "customerService": { "title": "Customer Service Excellence", "duration": "2 Hours", "blurb": "Deliver consistent, professional service at every passenger touchpoint." },
+      "routePlanning": { "title": "Route Planning & Logistics", "duration": "2 Days", "blurb": "Plan efficient, compliant routes across Oman's transport network." },
+      "workplaceSafety": { "title": "Workplace Health & Safety Compliance", "duration": "3 Hours", "blurb": "Stay current with Oman's occupational safety standards." }
+    },
+    "fallbackBlurb": "Standardised training delivered by Mwasalat instructors."
+  },
+  "departments": {
+    "busOperations": "Bus Operations",
+    "passengerSafety": "Passenger Safety",
+    "fleetMaintenance": "Fleet Maintenance",
+    "customerService": "Customer Service",
+    "routePlanning": "Route Planning",
+    "complianceHse": "Compliance & HSE",
+    "ferryOperations": "Ferry Operations",
+    "driverTraining": "Driver Training"
+  },
+  "testimonials": {
+    "eyebrow": "From the field",
+    "title": "Trusted across every department",
+    "dotLabel": "Show testimonial {{n}}",
+    "ratingLabel": "Rated 5 out of 5",
+    "items": {
+      "busOperations": {
+        "name": "Saeed Al-Habsi",
+        "role": "Bus Operations, Muscat Depot",
+        "quote": "I could finish the defensive driving module between shifts. No more scheduling around a fixed classroom seat — the content was there when I was."
+      },
+      "passengerSafety": {
+        "name": "Fatma Al-Balushi",
+        "role": "Passenger Safety Officer",
+        "quote": "The live sessions on emergency response felt like real classroom training, just from my depot. I asked questions and got answers on the spot."
+      },
+      "fleetMaintenance": {
+        "name": "Yousuf Al-Rawahi",
+        "role": "Fleet Maintenance Technician",
+        "quote": "Every technician now works from the exact same maintenance checklist. No more picking up different habits depending on who trained you."
+      },
+      "customerService": {
+        "name": "Mariam Al-Hinai",
+        "role": "Customer Service Team",
+        "quote": "The certificate at the end actually means something — my supervisor could see I'd completed the same standard as everyone else in the department."
+      },
+      "routePlanning": {
+        "name": "Khalid Al-Farsi",
+        "role": "Route Planning & Logistics",
+        "quote": "Route planning used to be tribal knowledge passed around informally. Having it as a proper course made onboarding new planners so much faster."
+      }
+    }
+  },
+  "about": {
+    "eyebrow": "About",
+    "title": "Mwasalat Learning Platform",
+    "body": "Mwasalat Learning Platform delivers standardised, role-based training across every department of Mwasalat — from defensive driving and passenger safety to fleet maintenance and customer service. Every program follows a single quality standard, combining self-paced lessons, classroom sessions, and live virtual classes so anyone, staff or public, can build the skills that keep Oman moving safely.",
+    "certifiedBadge": "Certified on completion, recognized platform-wide",
+    "cards": {
+      "rolesCovered": { "label": "Roles covered", "value": "All departments" },
+      "compliance": { "label": "Compliance", "value": "Oman standard" },
+      "certification": { "label": "Certification", "value": "On completion" },
+      "access": { "label": "Access", "value": "Open to anyone" }
+    }
+  },
+  "closingCta": {
+    "title": "Ready to get moving?",
+    "subtitle": "Join the standard for training across Mwasalat — open to every department, and to you.",
+    "browsePrograms": "Browse Programs",
+    "signIn": "Sign in"
+  },
+  "footer": {
+    "tagline": "One goal, one standard, safer roads and better transport — training open to every department of Mwasalat, and to everyone who wants to learn.",
+    "programsHeading": "Programs",
+    "classroomTraining": "Classroom training",
+    "virtualSessions": "Virtual sessions",
+    "selfPacedCourses": "Self-paced courses",
+    "platformHeading": "Platform",
+    "howItWorks": "How it works",
+    "about": "About",
+    "signIn": "Sign in",
+    "getInTouch": "Get in touch",
+    "location": "Muscat, Sultanate of Oman",
+    "explorePrograms": "Explore programs",
+    "copyright": "Mwasalat Learning Platform. Built by Eonix Solutions.",
+    "disclaimer": "Training platform — not affiliated with live Mwasalat transport operations."
+  }
+}

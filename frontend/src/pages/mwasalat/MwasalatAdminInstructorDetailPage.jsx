@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Loader2, BookOpen, Users, Star, Award, Mail, Calendar } from 'lucide-react';
 import MwasalatAdminLayout from '../../layouts/MwasalatAdminLayout.jsx';
 import { mwasalatProgramService } from '../../services/mwasalatProgram.service.js';
 import { ProgramCard, ProgramDetailModal } from '../../components/mwasalat/MwasalatProgramCard.jsx';
+import { localizeNumber } from '../../utils/mwasalatLocalize.js';
 
 function StatTile({ icon: Icon, label, value, tone, delay }) {
   return (
@@ -20,6 +22,8 @@ function StatTile({ icon: Icon, label, value, tone, delay }) {
 }
 
 export default function MwasalatAdminInstructorDetailPage() {
+  const { t, i18n } = useTranslation('mwasalatApp');
+  const dateLocale = i18n.language.startsWith('ar') ? 'ar-OM' : 'en-GB';
   const { id } = useParams();
   const [data, setData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -29,19 +33,20 @@ export default function MwasalatAdminInstructorDetailPage() {
   useEffect(() => {
     mwasalatProgramService.getInstructorDetail(id)
       .then(setData)
-      .catch((err) => setError(err.response?.data?.message || 'Failed to load instructor'))
+      .catch((err) => setError(err.response?.data?.message || t('instructorDetail.loadFailed')))
       .finally(() => setIsLoading(false));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   return (
     <MwasalatAdminLayout
-      title={data?.instructor?.name ?? 'Instructor'}
-      subtitle={data?.instructor?.email ?? 'Programs & performance'}
+      title={data?.instructor?.name ?? t('instructorDetail.defaultTitle')}
+      subtitle={data?.instructor?.email ?? t('instructorDetail.defaultSubtitle')}
     >
       <div className="max-w-6xl mx-auto">
         {isLoading ? (
           <div className="p-10 flex items-center justify-center text-[#94A3B8]">
-            <Loader2 className="w-5 h-5 animate-spin mr-2" /> Loading instructor…
+            <Loader2 className="w-5 h-5 animate-spin me-2" /> {t('instructorDetail.loading')}
           </div>
         ) : error ? (
           <div className="card p-10 text-center text-sm text-[#475569]">{error}</div>
@@ -52,8 +57,8 @@ export default function MwasalatAdminInstructorDetailPage() {
               className="relative overflow-hidden rounded-2xl p-6 sm:p-7 mb-6"
               style={{ background: 'linear-gradient(120deg, #23181A 0%, #4A3336 55%, #8C6B6E 100%)' }}
             >
-              <div className="absolute -right-8 -top-10 w-44 h-44 rounded-full bg-white/10" />
-              <div className="absolute right-20 -bottom-14 w-36 h-36 rounded-full bg-white/10" />
+              <div className="absolute -end-8 -top-10 w-44 h-44 rounded-full bg-white/10" />
+              <div className="absolute end-20 -bottom-14 w-36 h-36 rounded-full bg-white/10" />
               <div className="relative flex items-center gap-4">
                 <div className="w-14 h-14 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0 text-white text-xl font-bold">
                   {data.instructor?.name?.[0]?.toUpperCase() ?? 'I'}
@@ -61,12 +66,13 @@ export default function MwasalatAdminInstructorDetailPage() {
                 <div className="min-w-0">
                   <p className="text-lg sm:text-xl font-bold text-white truncate">{data.instructor?.name}</p>
                   <p className="text-white/80 text-sm inline-flex items-center gap-1.5 flex-wrap">
-                    <Mail className="w-3.5 h-3.5" /> {data.instructor?.email}
+                    <Mail className="w-3.5 h-3.5" /> <span dir="ltr">{data.instructor?.email}</span>
                     <span className="mx-1">·</span>
-                    <Calendar className="w-3.5 h-3.5" /> Joined {new Date(data.instructor?.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                    <Calendar className="w-3.5 h-3.5" />
+                    {localizeNumber(t('instructorDetail.joined', { date: new Date(data.instructor?.createdAt).toLocaleDateString(dateLocale, { day: 'numeric', month: 'short', year: 'numeric' }) }), i18n.language)}
                     <span className="mx-1">·</span>
                     <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${data.instructor?.isActive ? 'bg-white/20 text-white' : 'bg-mwasalatRed-500/30 text-white'}`}>
-                      {data.instructor?.isActive ? 'Active' : 'Blocked'}
+                      {data.instructor?.isActive ? t('userTable.active') : t('userTable.blocked')}
                     </span>
                   </p>
                 </div>
@@ -75,18 +81,18 @@ export default function MwasalatAdminInstructorDetailPage() {
 
             {/* Stats strip */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
-              <StatTile icon={BookOpen} label="Programs" value={data.totalPrograms} tone={{ bg: 'bg-mwasalatInk-100', text: 'text-mwasalatInk-500' }} delay={0} />
-              <StatTile icon={Users} label="Learners Taught" value={data.totalLearners} tone={{ bg: 'bg-[#DCFCE7]', text: 'text-[#22C55E]' }} delay={60} />
-              <StatTile icon={Star} label="Avg Rating" value={data.avgRating ?? '—'} tone={{ bg: 'bg-[#FEF3C7]', text: 'text-[#F59E0B]' }} delay={120} />
-              <StatTile icon={Award} label="Certificates Issued" value={data.certificatesIssued} tone={{ bg: 'bg-mwasalatRed-100', text: 'text-mwasalatRed-600' }} delay={180} />
+              <StatTile icon={BookOpen} label={t('instructorDetail.stats.programs')} value={localizeNumber(data.totalPrograms, i18n.language)} tone={{ bg: 'bg-mwasalatInk-100', text: 'text-mwasalatInk-500' }} delay={0} />
+              <StatTile icon={Users} label={t('instructorDetail.stats.learnersTaught')} value={localizeNumber(data.totalLearners, i18n.language)} tone={{ bg: 'bg-[#DCFCE7]', text: 'text-[#22C55E]' }} delay={60} />
+              <StatTile icon={Star} label={t('instructorDetail.stats.avgRating')} value={data.avgRating != null ? localizeNumber(data.avgRating, i18n.language) : '—'} tone={{ bg: 'bg-[#FEF3C7]', text: 'text-[#F59E0B]' }} delay={120} />
+              <StatTile icon={Award} label={t('instructorDetail.stats.certificatesIssued')} value={localizeNumber(data.certificatesIssued, i18n.language)} tone={{ bg: 'bg-mwasalatRed-100', text: 'text-mwasalatRed-600' }} delay={180} />
             </div>
 
             {/* Programs */}
-            <h2 className="text-sm font-semibold text-[#1E293B] mb-3">Programs</h2>
+            <h2 className="text-sm font-semibold text-[#1E293B] mb-3">{t('admin.nav.programs')}</h2>
             {data.programs.length === 0 ? (
               <div className="card p-10 text-center">
                 <BookOpen className="w-8 h-8 text-mwasalatInk-400 mx-auto mb-3" />
-                <p className="text-sm text-[#475569]">This instructor hasn't created any programs yet.</p>
+                <p className="text-sm text-[#475569]">{t('instructorDetail.noPrograms')}</p>
               </div>
             ) : (
               <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">

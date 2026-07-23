@@ -3,15 +3,22 @@ import { useMwasalatAuthStore } from '../store/mwasalatAuthStore.js';
 
 const register = async (data) => {
   const res = await mwasalatApi.post('/register', data);
-  const { accessToken, user } = res.data.data;
-  useMwasalatAuthStore.getState().setAuth(user, accessToken);
+  const { accessToken, user, isNewUser } = res.data.data;
+  useMwasalatAuthStore.getState().setAuth(user, accessToken, isNewUser);
   return res.data;
 };
 
 const login = async (credentials) => {
   const res = await mwasalatApi.post('/login', credentials);
-  const { accessToken, user } = res.data.data;
-  useMwasalatAuthStore.getState().setAuth(user, accessToken);
+  const { accessToken, user, isNewUser } = res.data.data;
+  useMwasalatAuthStore.getState().setAuth(user, accessToken, isNewUser);
+  return res.data;
+};
+
+const googleLogin = async ({ idToken, expectedRole } = {}) => {
+  const res = await mwasalatApi.post('/oauth/google', { idToken, expectedRole });
+  const { accessToken, user, isNewUser } = res.data.data;
+  useMwasalatAuthStore.getState().setAuth(user, accessToken, isNewUser);
   return res.data;
 };
 
@@ -25,8 +32,17 @@ const refreshMe = async () => {
   return res.data.data;
 };
 
-const updateProfile = async (data) => {
-  const res = await mwasalatApi.patch('/me', data);
+const updateProfile = async ({ name, phone, avatarFile } = {}) => {
+  let payload;
+  if (avatarFile) {
+    payload = new FormData();
+    payload.append('name', name ?? '');
+    payload.append('phone', phone ?? '');
+    payload.append('avatar', avatarFile);
+  } else {
+    payload = { name, phone };
+  }
+  const res = await mwasalatApi.patch('/me', payload);
   useMwasalatAuthStore.getState().updateUser(res.data.data);
   return res.data.data;
 };
@@ -57,6 +73,6 @@ const resetPassword = async (token, password) => {
 };
 
 export const mwasalatAuthService = {
-  register, login, logout, refreshMe, updateProfile, changePassword,
+  register, login, googleLogin, logout, refreshMe, updateProfile, changePassword,
   verifyInvitation, setPassword, forgotPassword, resetPassword,
 };

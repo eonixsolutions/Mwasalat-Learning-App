@@ -32,6 +32,11 @@ const getAdminResults = async () => {
   return res.data.data;
 };
 
+const generateQuestions = async (programId, numQuestions) => {
+  const res = await quizApi.post(`/${programId}/generate`, { numQuestions });
+  return res.data.data;
+};
+
 export const mwasalatQuizService = {
-  upsertQuiz, getQuizForInstructor, getQuizForLearner, submitAttempt, getMyBestAttempt, getAdminResults,
+  upsertQuiz, getQuizForInstructor, getQuizForLearner, submitAttempt, getMyBestAttempt, getAdminResults, generateQuestions,
 };
