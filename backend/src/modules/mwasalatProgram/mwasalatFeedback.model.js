@@ -6,6 +6,9 @@ const mwasalatFeedbackSchema = new mongoose.Schema(
     program: { type: mongoose.Schema.Types.ObjectId, ref: 'MwasalatProgram', required: true },
     courseRating: { type: Number, min: 1, max: 5, required: true },
     instructorRating: { type: Number, min: 1, max: 5, required: true },
+    // "Was the trainer clear?" — optional so existing feedback docs (created
+    // before this field existed) don't fail validation on read.
+    trainerClear: { type: Boolean, default: null },
     comment: { type: String, trim: true },
   },
   { timestamps: true }

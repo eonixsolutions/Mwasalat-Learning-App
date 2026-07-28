@@ -37,7 +37,6 @@ export function ProgramCard({ program, badge, delay = 0, onClick }) {
       className="card card-hover overflow-hidden flex flex-col mwasalat-enter relative cursor-pointer"
       style={{ animationDelay: `${delay}ms` }}
     >
-      <div className="h-1" style={{ background: `linear-gradient(90deg, ${theme.solid}, ${theme.solid}99)` }} />
       {badge && (
         <div className="absolute top-2 end-2 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-white/95 shadow-sm text-[#1E293B]">
           {badge}
@@ -69,7 +68,7 @@ export function ProgramCard({ program, badge, delay = 0, onClick }) {
         <div className="mt-auto flex items-center justify-between text-[11px] text-[#94A3B8] pt-2 border-t border-[#F1F5F9]">
           {program.instructor?._id ? (
             <Link
-              to={`/mwasalat/admin/instructors/${program.instructor._id}`}
+              to={`/admin/instructors/${program.instructor._id}`}
               onClick={(e) => e.stopPropagation()}
               className="inline-flex items-center gap-1.5 truncate hover:text-mwasalatInk-500 hover:underline transition-colors"
             >
@@ -105,7 +104,6 @@ export function ProgramDetailModal({ program, onClose }) {
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="fixed inset-0 bg-black/40" onClick={onClose} />
       <div className="relative bg-white rounded-2xl w-full max-w-lg max-h-[85vh] overflow-y-auto" style={{ boxShadow: '0 8px 40px rgba(0,0,0,0.15)' }}>
-        <div className="h-2" style={{ background: `linear-gradient(90deg, ${theme.solid}, ${theme.solid}99)` }} />
         <div className="p-6">
           <div className="flex items-start justify-between gap-3 mb-3">
             <div className="flex flex-wrap items-center gap-1.5">
@@ -136,6 +134,16 @@ export function ProgramDetailModal({ program, onClose }) {
                 {t(`addCourse.contentTypes.${type}.label`)}
               </span>
             ))}
+            {program.audience && program.audience !== 'all' && (
+              <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-mwasalatInk-100 text-mwasalatInk-500">
+                {t(`addCourse.audience.${program.audience}.label`)}
+              </span>
+            )}
+            {(program.departments ?? []).map((d) => (
+              <span key={d._id ?? d} className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-[#F1F5F9] text-[#475569]">
+                {d.name ?? d}
+              </span>
+            ))}
           </div>
 
           <div className="grid grid-cols-2 gap-3 text-sm mb-4">
@@ -161,7 +169,7 @@ export function ProgramDetailModal({ program, onClose }) {
           <div className="pt-4 border-t border-[#F1F5F9] flex items-center justify-between text-sm">
             {program.instructor?._id ? (
               <Link
-                to={`/mwasalat/admin/instructors/${program.instructor._id}`}
+                to={`/admin/instructors/${program.instructor._id}`}
                 className="inline-flex items-center gap-2 text-[#1E293B] font-medium hover:text-mwasalatInk-500 hover:underline transition-colors"
               >
                 <User className="w-4 h-4 text-[#94A3B8]" /> {program.instructor?.name || t('programCard.unassigned')}

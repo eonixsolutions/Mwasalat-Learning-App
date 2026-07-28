@@ -63,7 +63,10 @@ export const buildLearnerToolExecutors = (actor) => {
   };
 
   const browseAvailablePrograms = async ({ category, limit } = {}) => {
-    const all = await mwasalatProgramService.listPublic();
+    // Calls the service directly (not through the HTTP route), so it must be
+    // handed the actor itself — otherwise this bypasses the audience/
+    // department filtering listPublic() applies for every other caller.
+    const all = await mwasalatProgramService.listPublic(actor);
     const filtered = category ? all.filter((p) => p.category?.toLowerCase() === category.toLowerCase()) : all;
     const cap = Math.min(Number(limit) || 20, MAX_LIST_RESULTS);
     const capped = filtered.slice(0, cap);

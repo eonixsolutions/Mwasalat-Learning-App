@@ -12,18 +12,51 @@
     "rateLimited": "Too many questions — please wait a few minutes.",
     "placeholders": {
       "super_admin": "Ask about revenue, learners, programs, attendance…",
+      "platform_admin": "Ask about learners, programs, attendance, quiz results…",
       "instructor": "Ask about your students, programs, or attendance…",
-      "learner": "Ask about your progress, courses, or certificates…"
+      "learner": "Ask about your progress, courses, or certificates…",
+      "external_learner": "Ask about your progress, courses, or certificates…"
     },
     "emptyStates": {
       "super_admin": "Ask a question about your platform's data — revenue, learners, programs, attendance, or quiz results.",
+      "platform_admin": "Ask a question about your platform's operational data — learners, programs, attendance, certificates, or quiz results.",
       "instructor": "Ask a question about your own courses and students — roster, at-risk learners, attendance, or feedback.",
-      "learner": "Ask a question about your own learning — progress, certificates, quiz results, or what to take next."
+      "learner": "Ask a question about your own learning — progress, certificates, quiz results, or what to take next.",
+      "external_learner": "Ask a question about your own learning — progress, certificates, quiz results, or what to take next."
     }
   },
   "streak": {
     "dayCount": "{{count}} day streak",
     "stripLabel": "Last 14 days"
+  },
+  "installPrompt": {
+    "title": "Install Mwasalat",
+    "body": "Add the app to your home screen for quick, full-screen access.",
+    "installCta": "Install",
+    "notNow": "Not now"
+  },
+  "offlineBanner": {
+    "message": "You're offline — showing previously loaded content."
+  },
+  "enrollmentStatus": {
+    "pending_approval": "Pending Approval",
+    "waitlisted": "Waitlisted",
+    "rejected": "Declined",
+    "enrolled": "Enrolled",
+    "in_progress": "In Progress",
+    "completed": "Completed",
+    "locked": "Locked"
+  },
+  "enrollmentActions": {
+    "approve": "Approve",
+    "reject": "Decline",
+    "approveSuccess": "Enrollment approved",
+    "rejectSuccess": "Enrollment declined",
+    "actionFailed": "Something went wrong — please try again",
+    "rejectPromptTitle": "Decline this enrollment?",
+    "rejectPromptBody": "The learner will be notified and can request to join again later.",
+    "rejectReasonLabel": "Reason (optional)",
+    "confirm": "Confirm"
   },
   "verifyCertificate": {
     "checking": "Verifying certificate…",
@@ -44,8 +77,11 @@
     "logOut": "Log out",
     "save": "Save",
     "cancel": "Cancel",
+    "close": "Close",
     "delete": "Delete",
     "edit": "Edit",
+    "remove": "Remove",
+    "undo": "Undo",
     "view": "View",
     "search": "Search",
     "loading": "Loading...",
@@ -63,6 +99,10 @@
     "viewProfile": "View profile",
     "markAllRead": "Mark all read",
     "noNotificationsYet": "No notifications yet",
+    "pushEnablePrompt": "Get notified even when you're away",
+    "enable": "Enable",
+    "pushEnabled": "Push notifications enabled",
+    "pushEnableFailed": "Couldn't enable push notifications",
     "justNow": "just now",
     "minutesAgo": "{{count}}m ago",
     "hoursAgo": "{{count}}h ago",
@@ -113,6 +153,7 @@
       "section": "Learn",
       "myLearning": "My Learning",
       "allCourses": "My Courses",
+      "calendar": "Calendar",
       "browseCourses": "Browse Courses",
       "completed": "Completed",
       "achievements": "Achievements"
@@ -140,6 +181,7 @@
       "paymentSuccess": "Payment successful — you're enrolled!",
       "paymentConfirmFailed": "Could not confirm payment",
       "checkoutCancelled": "Checkout cancelled",
+      "reactivationSuccess": "Payment received — your course is unlocked again!",
       "pointsToast": "+{{points}} points!",
       "enrolledOn": "Enrolled {{date}}",
       "completedOn": "Completed {{date}}",
@@ -189,8 +231,12 @@
       "subCategoriesCount": "{{count}} sub-categories",
       "coursesCount": "{{count}} course(s)",
       "purchase": "Purchase",
+      "viewCourse": "View Course",
       "enrollNow": "Enroll Now",
       "enrolledToast": "Enrolled in {{title}}",
+      "joinWaitlist": "Join Waitlist",
+      "waitlistedToast": "\"{{title}}\" is full — you've been added to the waitlist and will be notified when a seat opens up.",
+      "pendingApprovalToast": "Requested to join \"{{title}}\" — you'll get access once the instructor approves your enrollment.",
       "enrollFailed": "Failed to enroll",
       "checkoutFailed": "Failed to start checkout",
       "freeLabel": "Free",
@@ -237,6 +283,20 @@
       "keepGoingBodyInProgress": "{{count}} course(s) still in progress. Keep the momentum going!",
       "keepGoingCta": "Continue Learning"
     },
+    "calendar": {
+      "title": "Calendar",
+      "subtitle": "Live and in-person sessions for your enrolled courses",
+      "loading": "Loading your schedule…",
+      "today": "Today",
+      "liveLabel": "Live",
+      "iltLabel": "In-Person",
+      "noSessionsForDay": "No sessions on this day",
+      "upcomingHeading": "Upcoming Sessions",
+      "upcomingEmpty": "No upcoming live or in-person sessions",
+      "viewCourse": "View course",
+      "emptyStateTitle": "No scheduled sessions yet",
+      "emptyStateBody": "Live and in-person classes for your enrolled courses will appear here once they're scheduled."
+    },
     "achievements": {
       "title": "Achievements",
       "subtitle": "Your points, certificates, and assessment history",
@@ -259,7 +319,37 @@
       "bestStreakLabel": "Best Streak",
       "bestStreakValue_one": "{{count}} day",
       "bestStreakValue_other": "{{count}} days",
-      "quizLabel": "Quiz"
+      "quizLabel": "Quiz",
+      "viewTranscript": "View / Print Transcript"
+    },
+    "transcript": {
+      "loading": "Loading your transcript…",
+      "back": "Back to Achievements",
+      "printSavePdf": "Print / Save PDF",
+      "title": "Learning Transcript",
+      "generatedOn": "Generated {{date}}",
+      "learnerNameLabel": "Learner",
+      "enrollmentsHeading": "Enrollments",
+      "noEnrollments": "No enrollments yet.",
+      "assessmentsHeading": "Assessment History",
+      "noAssessments": "No assessments taken yet.",
+      "certificatesHeading": "Certificates",
+      "noCertificates": "No certificates earned yet.",
+      "noExpiry": "No expiry",
+      "footerNote": "This is a system-generated transcript of your learning activity on the Mwasalat Learning Platform.",
+      "columns": {
+        "course": "Course",
+        "status": "Status",
+        "purchased": "Purchased",
+        "completed": "Completed",
+        "attempt": "Attempt",
+        "score": "Score",
+        "result": "Result",
+        "date": "Date",
+        "certificateNo": "Certificate No.",
+        "issued": "Issued",
+        "expires": "Expires"
+      }
     },
     "checkIn": {
       "checkingIn": "Checking you in…",
@@ -291,7 +381,10 @@
   "instructor": {
     "nav": {
       "section": "Teach",
+      "dashboard": "Dashboard",
+      "adminChat": "Chat with Admin",
       "myPrograms": "My Programs",
+      "calendar": "Calendar",
       "addCourse": "Add Course",
       "myStudents": "My Students",
       "atRisk": "Needs Attention"
@@ -304,14 +397,21 @@
       "overview": "Overview",
       "learners": "Learners",
       "instructors": "Instructors",
+      "staff": "Staff",
+      "departments": "Departments",
+      "cohorts": "Cohorts",
       "programs": "Programs",
+      "categories": "Categories",
       "certificates": "Certificates",
       "payments": "Payments",
       "salesReport": "Sales Report",
       "quizResults": "Quiz Results",
       "activityLog": "Activity Log",
       "announcements": "Announcements",
+      "reminders": "Reminders",
       "settings": "Settings",
+      "platformAdmins": "Platform Admins",
+      "adminChat": "Admin Chat",
       "groups": {
         "main": "Main",
         "people": "People",
@@ -327,13 +427,16 @@
       "password": "Password",
       "newPassword": "New Password",
       "confirmPassword": "Confirm Password",
-      "fullName": "Full Name"
+      "fullName": "Full Name",
+      "mobile": "Mobile Number"
     },
     "errors": {
       "emailRequired": "Email is required",
       "passwordRequired": "Password is required",
       "passwordMinLength": "At least 8 characters",
       "nameRequired": "Name is required",
+      "mobileRequired": "Mobile number is required",
+      "mobileInvalid": "Enter a valid mobile number",
       "confirmPasswordRequired": "Please confirm your password",
       "passwordMismatch": "Passwords do not match",
       "loginFailed": "Login failed",
@@ -345,7 +448,22 @@
     },
     "placeholders": {
       "passwordMin": "At least 8 characters",
-      "reenterPassword": "Re-enter password"
+      "reenterPassword": "Re-enter password",
+      "mobile": "e.g. +968 9123 4567"
+    },
+    "captcha": {
+      "label": "Security check",
+      "placeholder": "Your answer",
+      "required": "Please answer the verification question",
+      "refresh": "Get a new question"
+    },
+    "completeProfile": {
+      "title": "Add your mobile number",
+      "body": "We need a mobile number on file for your account before you continue — it's used for important updates about your courses.",
+      "submit": "Save & Continue",
+      "saving": "Saving…",
+      "saveFailed": "Couldn't save your mobile number",
+      "logoutInstead": "Log out instead"
     },
     "forgotPasswordLink": "Forgot password?",
     "copyright": "Mwasalat Learning Platform. All rights reserved.",
@@ -371,55 +489,50 @@
       "mwasalatHome": "Mwasalat home"
     },
     "register": {
-      "title": "Create Account",
-      "subtitle": "Join the Mwasalat Learning Platform",
+      "badge": "Public Registration",
+      "title": "Create Your Account",
+      "subtitle": "Sign up for pay-per-course access to Mwasalat's public training catalogue — pricing is shown on each course.",
       "submitIdle": "Create Account",
       "submitPending": "Creating account…",
       "alreadyHaveAccount": "Already have an account?",
       "signIn": "Sign in",
-      "welcomeToast": "Welcome to Mwasalat Learning Platform!",
-      "consentLabel": "I agree to the Terms of Service and Privacy Policy",
+      "welcomeToast": "Welcome — your account is ready!",
+      "consentPrefix": "I agree to the",
+      "consentAnd": "and",
       "consentRequiredForGoogle": "Please agree to the Terms of Service and Privacy Policy first"
     },
     "forgotPassword": {
       "title": "Forgot Password",
-      "subtitle": "Enter your email and we'll send you a reset link.",
-      "submitIdle": "Send Reset Link",
+      "subtitle": "Enter your email and we'll send you a verification code.",
+      "submitIdle": "Send Code",
       "submitPending": "Sending…",
-      "sentTitle": "Check your email",
-      "sentBody": "If an account exists with that email, a reset link is on its way.",
+      "otpSentToast": "If an account exists with that email, a verification code is on its way.",
       "backToLogin": "Back to login"
     },
     "resetPassword": {
       "title": "Reset Password",
       "subtitle": "Choose a new password for your account.",
+      "otpSubtitle": "Enter the 6-digit code sent to {{email}} and choose a new password.",
+      "otpLabel": "Verification Code",
+      "otpPlaceholder": "6-digit code",
+      "otpRequired": "Please enter the verification code",
+      "otpInvalid": "Enter the 6-digit code from your email",
+      "startOver": "Wrong email? Start over",
       "submitIdle": "Reset Password",
       "submitPending": "Resetting…",
       "successToast": "Password reset — you can now sign in"
     },
-    "adminLogin": {
-      "badge": "Admin Portal",
-      "heroTitleLine1": "Platform",
-      "heroTitleLine2": "Control Centre",
-      "heroBody": "Manage every department's training program from a single, powerful dashboard.",
-      "restrictedNote": "Restricted to authorised personnel only.",
-      "title": "Administrator Login",
-      "emailPlaceholder": "admin@mwasalat.om",
-      "submitIdle": "Sign In to Admin Portal",
-      "notAdmin": "Not an admin?",
-      "learnerLogin": "Learner login"
-    },
-    "instructorLogin": {
-      "badge": "Instructor Portal",
-      "heroTitleLine1": "Teach.",
-      "heroTitleLine2": "Assess.",
-      "heroTitleLine3": "Certify.",
-      "heroBody": "Deliver sessions, track learner progress, and issue certifications across your assigned programs.",
-      "restrictedNote": "Restricted to authorised instructors only.",
-      "title": "Instructor Login",
-      "emailPlaceholder": "instructor@mwasalat.om",
-      "submitIdle": "Sign In to Instructor Portal",
-      "notInstructor": "Not an instructor?"
+    "staffLogin": {
+      "badge": "Staff Portal",
+      "heroTitleLine1": "One Login",
+      "heroTitleLine2": "For Every Team.",
+      "heroBody": "Sign in with your Mwasalat account — admins, instructors, supervisors, support, and internal learners all start here.",
+      "restrictedNote": "Restricted to Mwasalat staff and internal learner accounts.",
+      "title": "Staff Login",
+      "emailPlaceholder": "you@mwasalat.om",
+      "submitIdle": "Sign In to Staff Portal",
+      "notStaff": "External learner or contractor?",
+      "learnerLogin": "Sign in here"
     },
     "setPassword": {
       "expiredTitle": "Invitation link expired",
@@ -431,6 +544,84 @@
       "submitIdle": "Set Password & Continue",
       "submitPending": "Setting password…",
       "welcomeToast": "Welcome to Mwasalat Learning Platform!"
+    },
+    "twoFactor": {
+      "title": "Two-Factor Authentication",
+      "subtitle": "Add an extra layer of security to your account with an authenticator app.",
+      "enableCta": "Enable Two-Factor Authentication",
+      "enabledBadge": "Two-factor authentication is enabled",
+      "disableCta": "Disable",
+      "confirmDisableCta": "Confirm & Disable",
+      "scanInstruction": "Scan this QR code with an authenticator app (Google Authenticator, Authy, etc.), then enter the 6-digit code it generates.",
+      "manualEntryLabel": "Or enter this code manually",
+      "codeLabel": "6-Digit Code",
+      "codePlaceholder": "123456",
+      "codeRequired": "Please enter the 6-digit code",
+      "confirmCta": "Confirm & Enable",
+      "backupCodesIntro": "Save these one-time backup codes somewhere safe. Each can be used once if you lose access to your authenticator app.",
+      "copyCodesCta": "Copy Codes",
+      "copied": "Copied",
+      "doneCta": "Done",
+      "setupFailed": "Failed to start two-factor setup",
+      "enableFailed": "Failed to enable two-factor authentication",
+      "disableFailed": "Failed to disable two-factor authentication",
+      "disabledToast": "Two-factor authentication disabled",
+      "challengeTitle": "Two-Factor Verification",
+      "challengeSubtitle": "Enter the 6-digit code from your authenticator app.",
+      "backupCodeHint": "Lost access to your authenticator? Enter one of your backup codes instead.",
+      "verifyCta": "Verify & Sign In",
+      "verifying": "Verifying…",
+      "verifyFailed": "Verification failed",
+      "backToLogin": "Back to login"
+    },
+    "passwordExpired": {
+      "title": "Password Expired",
+      "subtitle": "Your password has expired and must be changed before you can continue.",
+      "newPasswordLabel": "New Password",
+      "newPasswordRequired": "Please enter a new password",
+      "confirmPasswordLabel": "Confirm New Password",
+      "confirmPasswordRequired": "Please confirm your new password",
+      "passwordMismatch": "Passwords do not match",
+      "submitCta": "Update Password & Sign In",
+      "submitPending": "Updating…",
+      "resetFailed": "Failed to update password"
+    }
+  },
+  "legal": {
+    "termsTab": "Terms of Service",
+    "privacyTab": "Privacy Policy",
+    "terms": {
+      "title": "Terms of Service",
+      "intro": "These terms govern your use of the Mwasalat Learning Platform.",
+      "sections": [
+        { "heading": "1. Acceptance of Terms", "body": "By creating an account or using the Mwasalat Learning Platform (\"the Platform\"), you agree to be bound by these Terms of Service. If you do not agree, please do not register or use the Platform." },
+        { "heading": "2. Eligibility & Accounts", "body": "The Platform is available to external learners who register for access to Mwasalat's public training courses. You must provide accurate information when registering and are responsible for keeping your login credentials confidential. You may not share your account with anyone else." },
+        { "heading": "3. Learner Conduct & Academic Integrity", "body": "You agree to complete assignments, quizzes, and assessments honestly and in your own words. Sharing quiz answers, impersonating another learner, or attempting to bypass attendance or check-in requirements may result in suspension of your account." },
+        { "heading": "4. Course Content & Intellectual Property", "body": "All course materials — videos, documents, quizzes, and assignments — remain the property of Mwasalat and its instructors. You may access this content for your own learning during your enrollment, but may not copy, redistribute, or reuse it outside the Platform without written permission." },
+        { "heading": "5. Certificates", "body": "Certificates of completion are issued once you meet a course's attendance, assessment, and review requirements. A certificate confirms course completion only; it does not represent professional certification unless explicitly stated on the course page." },
+        { "heading": "6. Payments & Refunds", "body": "External learners paying for course access agree to the price shown at checkout. Payments are processed through our third-party payment provider; refund eligibility, if any, is stated on the relevant course page or communicated by the Academy team before purchase." },
+        { "heading": "7. Live Classes & Recordings", "body": "Live sessions may be recorded for learners who could not attend and for quality purposes. By joining a live class, you consent to being recorded. Recordings are only shared with learners enrolled in that course." },
+        { "heading": "8. Suspension & Termination", "body": "Mwasalat may suspend or terminate your account for violating these Terms, for non-payment of fees where applicable, or if your employment or enrollment status changes (for example, a dropped enrollment). You will lose access to course content and progress upon termination, except that certificates already issued remain valid." },
+        { "heading": "9. Limitation of Liability", "body": "The Platform is provided \"as is.\" Mwasalat is not liable for interruptions in access caused by factors outside its reasonable control, such as internet outages or third-party service downtime." },
+        { "heading": "10. Changes to These Terms", "body": "We may update these Terms from time to time. Continued use of the Platform after changes take effect constitutes acceptance of the revised Terms." },
+        { "heading": "11. Contact", "body": "Questions about these Terms can be directed to the Academy support team through the Platform." }
+      ]
+    },
+    "privacy": {
+      "title": "Privacy Policy",
+      "intro": "This policy explains what information we collect on the Mwasalat Learning Platform and how we use it.",
+      "sections": [
+        { "heading": "1. Information We Collect", "body": "When you register, we collect your name, email address, and password (stored securely, never in plain text). As you use the Platform we also record your course enrollments, progress, quiz and assignment results, attendance and check-ins, certificates earned, and messages you send through course chat or discussion boards. For external learners, payment details are collected and processed directly by our payment provider — we do not store full card numbers." },
+        { "heading": "2. How We Use Your Information", "body": "We use this information to give you access to your courses, track your progress and eligibility for certificates, notify you about deadlines and announcements, respond to support requests, and generate attendance and performance reports for the administrators and instructors responsible for your training." },
+        { "heading": "3. Third-Party Services", "body": "The Platform relies on a small number of trusted service providers: Cloudinary to host uploaded files and videos, Zoom for live classes, a payment gateway for external learner payments, and an email service to deliver verification codes and notifications. These providers only receive the information needed to perform their function." },
+        { "heading": "4. Data Retention", "body": "We retain your account and learning records for as long as your account is active, and for a reasonable period afterward to support certificate verification, dispute resolution, and legal or audit requirements." },
+        { "heading": "5. Your Rights", "body": "You may request a copy of your personal data, ask us to correct inaccurate information, or request account deletion by contacting the Academy support team. Some records, such as issued certificates, may be retained for verification purposes even after account deletion." },
+        { "heading": "6. Data Security", "body": "Passwords are hashed and never stored in plain text. We use encrypted connections (HTTPS) and access controls so that only authorized administrators and instructors can view learner records relevant to their role." },
+        { "heading": "7. Cookies & Local Storage", "body": "The Platform uses your browser's local storage to keep you signed in and to remember preferences such as language and daily fee-reminder acknowledgements. We do not use third-party advertising cookies." },
+        { "heading": "8. Who This Policy Applies To", "body": "The Platform is intended for working professionals and adult learners. It is not directed at children under 16, and we do not knowingly collect personal data from children." },
+        { "heading": "9. Changes to This Policy", "body": "We may update this Privacy Policy as the Platform evolves. Material changes will be reflected here with an updated effective date." },
+        { "heading": "10. Contact", "body": "For privacy questions or requests, contact the Academy support team through the Platform." }
+      ]
     }
   },
   "discussion": {

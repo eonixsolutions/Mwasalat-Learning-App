@@ -12,6 +12,11 @@ const confirmSession = async (sessionId) => {
   return res.data.data;
 };
 
+const createReactivationCheckoutSession = async (enrollmentId) => {
+  const res = await paymentsApi.post(`/reactivate/${enrollmentId}`);
+  return res.data.data;
+};
+
 const listTransactions = async (params) => {
   const res = await paymentsApi.get('/admin/transactions', { params });
   return res.data.data;
@@ -33,6 +38,6 @@ const listReportTransactions = async ({ from, to } = {}) => {
 };
 
 export const mwasalatPaymentService = {
-  createCheckoutSession, confirmSession, listTransactions, getRevenueSummary,
-  getSalesReport, listReportTransactions,
+  createCheckoutSession, createReactivationCheckoutSession, confirmSession, listTransactions,
+  getRevenueSummary, getSalesReport, listReportTransactions,
 };

@@ -34,7 +34,7 @@ export default function MwasalatLearnerChatPage() {
             currentUserId={user?._id}
             otherName={conversation.instructor?.name}
             subtitle={getLocalizedProgramField(conversation.program, 'title', i18n.language)}
-            backTo={`/mwasalat/learner/programs/${id}`}
+            backTo={`/learner/programs/${id}`}
           />
         ) : (
           <div className="card p-10 text-center text-sm text-[#475569]">{t('learnerChat.unableToStart')}</div>

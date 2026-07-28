@@ -13,7 +13,7 @@ export default function MwasalatCertificateMiniCard({ certificate, theme }) {
 
   return (
     <Link
-      to={`/mwasalat/learner/programs/${certificate.program?._id}/certificate`}
+      to={`/learner/programs/${certificate.program?._id}/certificate`}
       className="card card-hover p-3.5 flex items-center gap-3"
     >
       <div

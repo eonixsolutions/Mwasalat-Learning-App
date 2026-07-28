@@ -20,7 +20,7 @@ const assertOwnership = async (programId, requesterId, requesterRole) => {
   return program;
 };
 
-const upsertQuiz = async (requesterId, requesterRole, programId, { questions, passPercentage }) => {
+const upsertQuiz = async (requesterId, requesterRole, programId, { questions, passPercentage }, moduleId = null) => {
   await assertOwnership(programId, requesterId, requesterRole);
 
   if (!Array.isArray(questions) || questions.length === 0) {
@@ -36,8 +36,8 @@ const upsertQuiz = async (requesterId, requesterRole, programId, { questions, pa
   }
 
   return MwasalatQuiz.findOneAndUpdate(
-    { program: programId },
-    { program: programId, questions, passPercentage: passPercentage ?? 70 },
+    { program: programId, moduleId },
+    { program: programId, moduleId, questions, passPercentage: passPercentage ?? 70 },
     { upsert: true, new: true, setDefaultsOnInsert: true }
   );
 };
@@ -57,30 +57,46 @@ const aiGenerateQuestions = async (requesterId, requesterRole, programId, numQue
   return mwasalatAiService.generateQuizQuestions(program.title, program.description, count);
 };
 
-const getQuizForInstructor = async (requesterId, requesterRole, programId) => {
+const getQuizForInstructor = async (requesterId, requesterRole, programId, moduleId = null) => {
   await assertOwnership(programId, requesterId, requesterRole);
-  return MwasalatQuiz.findOne({ program: programId });
+  return MwasalatQuiz.findOne({ program: programId, moduleId });
 };
 
-const getQuizForLearner = async (programId) => {
-  const quiz = await MwasalatQuiz.findOne({ program: programId });
+const getQuizForLearner = async (programId, moduleId = null) => {
+  const quiz = await MwasalatQuiz.findOne({ program: programId, moduleId });
   if (!quiz) return null;
   return {
     _id: quiz._id,
     program: quiz.program,
+    moduleId: quiz.moduleId,
     passPercentage: quiz.passPercentage,
     questions: quiz.questions.map((q) => ({ text: q.text, options: q.options })),
   };
 };
 
-const submitAttempt = async (learnerId, programId, answers) => {
-  const enrollment = await MwasalatEnrollment.findOne({ learner: learnerId, program: programId });
+const submitAttempt = async (learnerId, programId, answers, moduleId = null) => {
+  const [enrollment, program] = await Promise.all([
+    MwasalatEnrollment.findOne({ learner: learnerId, program: programId }),
+    MwasalatProgram.findById(programId),
+  ]);
   if (!enrollment) throw new AppError('You must be enrolled in this course to take the quiz', 403);
-  if (!enrollment.contentOpenedAt) {
+  mwasalatProgramService.assertHasAccess(enrollment);
+
+  // Modular courses gate a module's quiz on that module's own content being
+  // opened; legacy courses keep the whole-course contentOpenedAt gate.
+  if (moduleId) {
+    if (!mwasalatProgramService.isModuleContentOpened(program, enrollment, moduleId)) {
+      throw new AppError('Finish this module\'s content before taking the assessment', 403);
+    }
+  } else if (!enrollment.contentOpenedAt) {
     throw new AppError('Finish viewing the course content before taking the assessment', 403);
+  } else if (!mwasalatProgramService.isClassSessionCompleted(program)) {
+    // Course-level live/ILT quiz — contentOpenedAt alone isn't enough proof the
+    // session ran, since it's set the moment the learner clicks Join/checks in.
+    throw new AppError('Wait for your instructor to mark the class as completed before taking this assessment', 403);
   }
 
-  const quiz = await MwasalatQuiz.findOne({ program: programId });
+  const quiz = await MwasalatQuiz.findOne({ program: programId, moduleId });
   if (!quiz) throw new AppError('This course has no quiz', 404);
 
   if (!Array.isArray(answers) || answers.length !== quiz.questions.length) {
@@ -99,14 +115,30 @@ const submitAttempt = async (learnerId, programId, answers) => {
 
   await mwasalatProgramService.registerActivity(programId, enrollment);
 
-  const alreadyPassed = await MwasalatQuizAttempt.findOne({ learner: learnerId, program: programId, passed: true });
-  const priorAttemptCount = await MwasalatQuizAttempt.countDocuments({ learner: learnerId, program: programId });
+  const alreadyPassed = await MwasalatQuizAttempt.findOne({ learner: learnerId, program: programId, moduleId, passed: true });
+  const priorAttemptCount = await MwasalatQuizAttempt.countDocuments({ learner: learnerId, program: programId, moduleId });
 
-  const attempt = await MwasalatQuizAttempt.create({ learner: learnerId, program: programId, score, passed });
+  const attempt = await MwasalatQuizAttempt.create({ learner: learnerId, program: programId, moduleId, score, passed });
 
   if (passed && !alreadyPassed) {
     await MwasalatUser.findByIdAndUpdate(learnerId, { $inc: { points: POINTS_PER_PASS } });
+  }
+
+  if (moduleId && passed) {
+    // A module quiz pass is also a lesson completion — this both records it
+    // in moduleProgress.lessonsOpened-adjacent state and re-checks whether the
+    // whole course (all modules + feedback) is now complete.
+    const quizLesson = program.modules.id(moduleId)?.lessons.find((l) => l.type === 'quiz');
+    if (quizLesson) await mwasalatProgramService.markLessonOpened(learnerId, programId, moduleId, quizLesson._id);
+  } else if (!moduleId && passed && !alreadyPassed) {
     await mwasalatProgramService.maybeCompleteEnrollment(learnerId, programId);
+  }
+
+  // A learner who already has a certificate can retake the assessment once it's
+  // close to expiring to have it reissued — no-ops for courses that auto-renew,
+  // have no expiry, or aren't due for renewal yet.
+  if (passed) {
+    await mwasalatProgramService.reissueCertificateFromRetest(learnerId, programId);
   }
 
   return {
@@ -117,8 +149,8 @@ const submitAttempt = async (learnerId, programId, answers) => {
   };
 };
 
-const getMyBestAttempt = async (learnerId, programId) => {
-  return MwasalatQuizAttempt.findOne({ learner: learnerId, program: programId }).sort({ score: -1 });
+const getMyBestAttempt = async (learnerId, programId, moduleId = null) => {
+  return MwasalatQuizAttempt.findOne({ learner: learnerId, program: programId, moduleId }).sort({ score: -1 });
 };
 
 // Platform-wide quiz performance for the admin Quiz Results page: per-program

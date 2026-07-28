@@ -33,7 +33,7 @@ export default function MwasalatVerifyCertificatePage() {
       </div>
 
       <div className="bg-white rounded-2xl p-8 max-w-md w-full text-center" style={{ boxShadow: '0 4px 32px rgba(0,0,0,0.09)' }}>
-        <Link to="/mwasalat" className="inline-block">
+        <Link to="/" className="inline-block">
           <img src="/mwasalat-logo.png" alt="Mwasalat" className="h-12 w-auto object-contain mx-auto mb-6" />
         </Link>
 

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Loader2, Trophy, Award, BookOpen, Target, CheckCircle2, XCircle, Sparkles, Flame, ChevronRight } from 'lucide-react';
+import { Loader2, Trophy, Award, BookOpen, Target, CheckCircle2, XCircle, Sparkles, Flame, ChevronRight, FileText } from 'lucide-react';
 import { mwasalatProgramService } from '../../services/mwasalatProgram.service.js';
 import MwasalatLearnerLayout from '../../layouts/MwasalatLearnerLayout.jsx';
 import MwasalatCertificateMiniCard from '../../components/mwasalat/MwasalatCertificateMiniCard.jsx';
@@ -79,6 +79,15 @@ export default function MwasalatAchievementsPage() {
             </div>
           </div>
 
+          <div className="flex justify-end mb-6">
+            <Link
+              to="/learner/transcript"
+              className="inline-flex items-center gap-2 bg-white border border-[#E2E8F0] hover:border-mwasalatInk-300 text-[#1E293B] font-semibold px-4 py-2 rounded-xl transition-colors text-sm"
+            >
+              <FileText className="w-4 h-4" /> {t('learner.achievements.viewTranscript')}
+            </Link>
+          </div>
+
           {/* Stats strip */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
             <StatTile icon={BookOpen} label={t('learner.achievements.statsCourses')} value={localizeNumber(data.totalCourses, i18n.language)} tone={{ bg: 'bg-mwasalatInk-100', text: 'text-mwasalatInk-500' }} delay={0} />
@@ -111,7 +120,7 @@ export default function MwasalatAchievementsPage() {
                 {data.attempts.map((a, i) => (
                   <Link
                     key={a._id}
-                    to={`/mwasalat/learner/programs/${a.program?._id}/quiz`}
+                    to={`/learner/programs/${a.program?._id}/quiz`}
                     className="flex items-center gap-4 px-5 py-4 mwasalat-enter hover:bg-[#F8F9FB] transition-colors"
                     style={{ animationDelay: `${i * 40}ms`, borderInlineStart: `3px solid ${a.passed ? '#22C55E' : '#C22033'}` }}
                   >

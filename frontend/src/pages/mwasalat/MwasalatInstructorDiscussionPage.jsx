@@ -31,7 +31,7 @@ export default function MwasalatInstructorDiscussionPage() {
             programId={id}
             currentUser={user}
             programTitle={getLocalizedProgramField(program, 'title', i18n.language)}
-            backTo={`/mwasalat/instructor/programs/${id}`}
+            backTo={`/instructor/programs/${id}`}
           />
         )}
       </div>

@@ -30,7 +30,7 @@ export default function useMwasalatChatSocket() {
     };
 
     const handleConnect = () => {
-      if (user?._id) mwasalatSocket.emit('join-room', user._id);
+      if (user?._id) mwasalatSocket.emit('join-room', user._id, user.role);
     };
 
     mwasalatSocket.on('mwasalat:chat:message', handleMessage);

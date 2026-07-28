@@ -2,8 +2,12 @@ import { GoogleGenAI, Type } from '@google/genai';
 import { AppError } from '../../utils/AppError.js';
 import logger from '../../utils/logger.js';
 import { mwasalatActivityLogService } from '../mwasalatActivityLog/mwasalatActivityLog.service.js';
-import { MWASALAT_ROLES } from '../mwasalatUser/mwasalatUser.constants.js';
-import { ADMIN_TOOL_DECLARATIONS, ADMIN_TOOL_EXECUTORS } from './mwasalatAi.tools.js';
+import { MWASALAT_ROLES, MWASALAT_LEARNER_ROLES } from '../mwasalatUser/mwasalatUser.constants.js';
+import MwasalatCategory from '../mwasalatCategory/mwasalatCategory.model.js';
+import {
+  ADMIN_TOOL_DECLARATIONS, ADMIN_TOOL_EXECUTORS,
+  PLATFORM_ADMIN_TOOL_DECLARATIONS, PLATFORM_ADMIN_TOOL_EXECUTORS,
+} from './mwasalatAi.tools.js';
 import { INSTRUCTOR_TOOL_DECLARATIONS, buildInstructorToolExecutors } from './mwasalatAi.instructorTools.js';
 import { LEARNER_TOOL_DECLARATIONS, buildLearnerToolExecutors } from './mwasalatAi.learnerTools.js';
 import { RENDER_TOOL_NAMES } from './mwasalatAi.renderTools.js';
@@ -20,18 +24,25 @@ const SHARED_RULES = `Rules:
 
 const SYSTEM_INSTRUCTIONS = {
   [MWASALAT_ROLES.SUPER_ADMIN]: `You are the AI assistant inside the Mwasalat Learning Platform's super-admin dashboard. You can answer questions about platform-wide data: revenue, learners, instructors, programs, attendance, quiz results, and certificates. You can also share general industry insight — workforce/skills trends and training market demand in the transport & logistics sector — to help inform course strategy.\n\n${SHARED_RULES}`,
+  [MWASALAT_ROLES.PLATFORM_ADMIN]: `You are the AI assistant inside the Mwasalat Learning Platform's platform-admin dashboard. You can answer questions about platform-wide operational data: learners, instructors, programs, attendance, quiz results, and certificates. You do NOT have access to revenue, sales, or payment/transaction data — that is reserved for Super Admin. If asked about revenue, sales, or transactions, say that financial reporting is only available to a Super Admin. You can also share general industry insight — workforce/skills trends and training market demand in the transport & logistics sector — to help inform course strategy.\n\n${SHARED_RULES}`,
   [MWASALAT_ROLES.INSTRUCTOR]: `You are the AI assistant inside the Mwasalat Learning Platform's instructor dashboard. You may ONLY discuss this instructor's own programs, students, and teaching-related tasks — never other instructors' data, platform-wide financials, or admin operations. You can also share general insight on emerging course topics and in-demand skills relevant to their subject area. If asked about something outside that scope, explain that you can only help with their own courses/students plus general industry insight.\n\n${SHARED_RULES}`,
   [MWASALAT_ROLES.LEARNER]: `You are the AI assistant inside the Mwasalat Learning Platform's learner dashboard. You may ONLY discuss this learner's own courses, progress, achievements, and certificates, or help them discover available courses — never other learners' data, instructor tools, or admin/financial data. If asked about something outside that scope, explain that you can only help with their own learning.\n\n${SHARED_RULES}`,
 };
+// External learners get the same assistant as internal learners — same
+// self-scoped data, just a different account type.
+SYSTEM_INSTRUCTIONS[MWASALAT_ROLES.EXTERNAL_LEARNER] = SYSTEM_INSTRUCTIONS[MWASALAT_ROLES.LEARNER];
 
 const getToolConfigForRole = (actor) => {
   if (actor?.role === MWASALAT_ROLES.SUPER_ADMIN) {
     return { declarations: ADMIN_TOOL_DECLARATIONS, executors: ADMIN_TOOL_EXECUTORS };
   }
+  if (actor?.role === MWASALAT_ROLES.PLATFORM_ADMIN) {
+    return { declarations: PLATFORM_ADMIN_TOOL_DECLARATIONS, executors: PLATFORM_ADMIN_TOOL_EXECUTORS };
+  }
   if (actor?.role === MWASALAT_ROLES.INSTRUCTOR) {
     return { declarations: INSTRUCTOR_TOOL_DECLARATIONS, executors: buildInstructorToolExecutors(actor) };
   }
-  if (actor?.role === MWASALAT_ROLES.LEARNER) {
+  if (MWASALAT_LEARNER_ROLES.includes(actor?.role)) {
     return { declarations: LEARNER_TOOL_DECLARATIONS, executors: buildLearnerToolExecutors(actor) };
   }
   throw new AppError('AI assistant is not available for this account', 403);
@@ -156,19 +167,16 @@ const ask = async (actor, question, history) => {
   return { answer, chart: pendingChart, table: pendingTable, toolCalls: toolCallNames };
 };
 
-// Real-AI replacement for the old keyword-matching suggestFromTitle heuristic
-// (still kept as the fallback — see aiAutofill in mwasalatProgram.service.js).
-// Single-shot structured JSON output, no tool-calling loop needed here.
-const autofillCourseDetails = async (title) => {
-  const ai = getClient();
-  const model = process.env.GEMINI_MODEL || DEFAULT_GEMINI_MODEL;
-
+// Free-text fallback used only when no managed category taxonomy exists yet
+// (fresh install, before MwasalatCategory has any rows) — same shape as the
+// old always-free-text version of this function.
+const autofillCourseDetailsFreeText = async (title, ai, model) => {
   const response = await ai.models.generateContent({
     model,
     contents: [{
       role: 'user',
       parts: [{
-        text: `Suggest a category, sub-category, and a 1-2 sentence marketing description for this staff training course title on the Mwasalat Learning Platform (a transport company's internal training LMS): "${title}".\n\nPick a category that fits a transport-company training platform — e.g. Driver & Operations Training, Health/Safety & Compliance, Customer Service, Compliance & Governance, Technical & Maintenance Staff Training, IT & Digital Skills, Leadership & Soft Skills, HR & Onboarding, Specialized & Regulatory Certifications, or Emergency & Crisis Management — or another close fit if none of those match well.`,
+        text: `Suggest a category, sub-category, and a 1-2 sentence marketing description for this staff training course title on the Mwasalat Learning Platform (a transport company's internal training LMS): "${title}".\n\nPick a category that fits a transport-company training platform — e.g. Driver & Operations Training, Health, Safety & Compliance, Customer Service, Compliance & Governance, Technical & Maintenance Staff Training, IT & Digital Skills, Leadership & Soft Skills, HR & Onboarding, Specialized & Regulatory Certifications, or Emergency & Crisis Management — or another close fit if none of those match well.`,
       }],
     }],
     config: {
@@ -199,6 +207,154 @@ const autofillCourseDetails = async (title) => {
     throw new AppError('AI returned an incomplete suggestion', 502);
   }
   return parsed;
+};
+
+// Real-AI replacement for the old keyword-matching suggestFromTitle heuristic
+// (still kept as the fallback — see aiAutofill in mwasalatProgram.service.js).
+//
+// Previously this asked Gemini to freely invent a category/subCategory string
+// from a hardcoded example list in the prompt. That list drifted from the real,
+// admin-managed MwasalatCategory taxonomy (it even had a typo — "Health/Safety"
+// vs the seeded "Health, Safety & Compliance") and never reflected categories an
+// admin added later, so the frontend's exact-name match against the live
+// category list (MwasalatAddCoursePage.jsx) would frequently fail and silently
+// reset both the category and sub-category selects to blank. Now the category
+// (and, when the category has a managed sub-category list, the sub-category too)
+// is constrained via `enum` to the platform's real, current taxonomy, so the
+// suggestion is always a value that actually exists in the dropdown.
+const autofillCourseDetails = async (title) => {
+  const ai = getClient();
+  const model = process.env.GEMINI_MODEL || DEFAULT_GEMINI_MODEL;
+
+  const categories = await MwasalatCategory.find({ isActive: true }).sort({ name: 1 });
+  if (!categories.length) return autofillCourseDetailsFreeText(title, ai, model);
+
+  const categoryNames = categories.map((c) => c.name);
+  const taxonomyText = categories
+    .map((c) => `- ${c.name}${c.subCategories.length ? ` (sub-categories: ${c.subCategories.map((s) => s.name).join(', ')})` : ' (no sub-categories defined yet)'}`)
+    .join('\n');
+
+  const categoryResponse = await ai.models.generateContent({
+    model,
+    contents: [{
+      role: 'user',
+      parts: [{
+        text: `Pick the single best-fit category from the exact list below, and write a 1-2 sentence marketing description, for this staff training course title on the Mwasalat Learning Platform (a transport company's internal training LMS): "${title}".\n\nAvailable categories:\n${taxonomyText}\n\nAlso suggest a short sub-category name for this course, to be used only as a fallback in case the category you pick turns out to have no managed sub-category list yet.`,
+      }],
+    }],
+    config: {
+      systemInstruction: 'You suggest course metadata for an internal corporate training platform, choosing only from the taxonomy provided. Respond only with the requested JSON.',
+      responseMimeType: 'application/json',
+      responseSchema: {
+        type: Type.OBJECT,
+        properties: {
+          category: { type: Type.STRING, enum: categoryNames },
+          description: { type: Type.STRING },
+          subCategoryFallback: { type: Type.STRING },
+        },
+        required: ['category', 'description', 'subCategoryFallback'],
+      },
+    },
+  });
+
+  const categoryText = categoryResponse.text?.trim();
+  if (!categoryText) throw new AppError('AI did not return a suggestion', 502);
+
+  let categoryParsed;
+  try {
+    categoryParsed = JSON.parse(categoryText);
+  } catch {
+    throw new AppError('AI returned an invalid suggestion', 502);
+  }
+  if (!categoryParsed.category?.trim() || !categoryParsed.description?.trim()) {
+    throw new AppError('AI returned an incomplete suggestion', 502);
+  }
+
+  const matchedCategory = categories.find((c) => c.name === categoryParsed.category.trim());
+  const subCategoryNames = matchedCategory?.subCategories.map((s) => s.name) ?? [];
+
+  let subCategory = categoryParsed.subCategoryFallback?.trim() ?? '';
+  if (subCategoryNames.length) {
+    const subResponse = await ai.models.generateContent({
+      model,
+      contents: [{
+        role: 'user',
+        parts: [{
+          text: `Pick the single best-fit sub-category from the exact list below for this staff training course title, under the "${matchedCategory.name}" category, on the Mwasalat Learning Platform: "${title}".\n\nAvailable sub-categories:\n${subCategoryNames.map((s) => `- ${s}`).join('\n')}`,
+        }],
+      }],
+      config: {
+        systemInstruction: 'You suggest course taxonomy metadata for an internal corporate training platform, choosing only from the list provided. Respond only with the requested JSON.',
+        responseMimeType: 'application/json',
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: { subCategory: { type: Type.STRING, enum: subCategoryNames } },
+          required: ['subCategory'],
+        },
+      },
+    });
+
+    let subParsed;
+    try {
+      subParsed = JSON.parse(subResponse.text?.trim() ?? '');
+    } catch {
+      subParsed = null;
+    }
+    subCategory = subParsed?.subCategory?.trim() || subCategoryNames[0];
+  }
+
+  return {
+    category: matchedCategory?.name ?? categoryParsed.category.trim(),
+    subCategory,
+    description: categoryParsed.description.trim(),
+  };
+};
+
+// Suggests a description + a starter list of subcategories when a Platform
+// Admin creates a new top-level category — same single-shot structured-JSON
+// pattern as autofillCourseDetails, just one level up the taxonomy.
+const suggestCategoryDetails = async (categoryName) => {
+  const ai = getClient();
+  const model = process.env.GEMINI_MODEL || DEFAULT_GEMINI_MODEL;
+
+  const response = await ai.models.generateContent({
+    model,
+    contents: [{
+      role: 'user',
+      parts: [{
+        text: `Suggest a 1-2 sentence description and 3-6 relevant subcategories for this training course category on the Mwasalat Learning Platform (a transport company's internal training LMS): "${categoryName}".\n\nSubcategories should be specific enough for an instructor to pick one when categorizing a course, e.g. for "Health/Safety & Compliance" you might suggest "Fire Safety", "First Aid", "Hazard Reporting".`,
+      }],
+    }],
+    config: {
+      systemInstruction: 'You suggest course taxonomy metadata for an internal corporate training platform. Respond only with the requested JSON.',
+      responseMimeType: 'application/json',
+      responseSchema: {
+        type: Type.OBJECT,
+        properties: {
+          description: { type: Type.STRING },
+          subCategories: { type: Type.ARRAY, items: { type: Type.STRING } },
+        },
+        required: ['description', 'subCategories'],
+      },
+    },
+  });
+
+  const text = response.text?.trim();
+  if (!text) throw new AppError('AI did not return a suggestion', 502);
+
+  let parsed;
+  try {
+    parsed = JSON.parse(text);
+  } catch {
+    throw new AppError('AI returned an invalid suggestion', 502);
+  }
+  const subCategories = (Array.isArray(parsed.subCategories) ? parsed.subCategories : [])
+    .map((s) => s?.trim())
+    .filter(Boolean);
+  if (!parsed.description?.trim() || !subCategories.length) {
+    throw new AppError('AI returned an incomplete suggestion', 502);
+  }
+  return { description: parsed.description.trim(), subCategories };
 };
 
 // Drafts multiple-choice questions from just the course title/description (no
@@ -261,4 +417,4 @@ const generateQuizQuestions = async (title, description, numQuestions = DEFAULT_
   return { questions };
 };
 
-export const mwasalatAiService = { ask, autofillCourseDetails, generateQuizQuestions };
+export const mwasalatAiService = { ask, autofillCourseDetails, suggestCategoryDetails, generateQuizQuestions };

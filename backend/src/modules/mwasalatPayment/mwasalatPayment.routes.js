@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { mwasalatPaymentController } from './mwasalatPayment.controller.js';
 import { mwasalatAuthMiddleware } from '../mwasalatAuth/mwasalatAuth.middleware.js';
-import { MWASALAT_ROLES } from '../mwasalatUser/mwasalatUser.constants.js';
+import { MWASALAT_ROLES, MWASALAT_LEARNER_ROLES } from '../mwasalatUser/mwasalatUser.constants.js';
 
 const router = Router();
 
@@ -10,14 +10,21 @@ const router = Router();
 router.post(
   '/checkout/:programId',
   mwasalatAuthMiddleware.authenticate,
-  mwasalatAuthMiddleware.authorize(MWASALAT_ROLES.LEARNER),
+  mwasalatAuthMiddleware.authorize(...MWASALAT_LEARNER_ROLES),
   mwasalatPaymentController.createCheckoutSession
+);
+
+router.post(
+  '/reactivate/:enrollmentId',
+  mwasalatAuthMiddleware.authenticate,
+  mwasalatAuthMiddleware.authorize(...MWASALAT_LEARNER_ROLES),
+  mwasalatPaymentController.createReactivationCheckoutSession
 );
 
 router.post(
   '/confirm/:sessionId',
   mwasalatAuthMiddleware.authenticate,
-  mwasalatAuthMiddleware.authorize(MWASALAT_ROLES.LEARNER),
+  mwasalatAuthMiddleware.authorize(...MWASALAT_LEARNER_ROLES),
   mwasalatPaymentController.confirmSession
 );
 

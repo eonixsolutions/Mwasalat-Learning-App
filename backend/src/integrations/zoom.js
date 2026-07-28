@@ -1,5 +1,6 @@
 import { AppError } from '../utils/AppError.js';
 import logger from '../utils/logger.js';
+import { getOrgTimezone } from '../utils/orgTimezone.js';
 
 const ZOOM_ACCOUNT_ID = process.env.ZOOM_ACCOUNT_ID;
 const ZOOM_CLIENT_ID = process.env.ZOOM_CLIENT_ID;
@@ -39,7 +40,7 @@ export const createZoomMeeting = async ({ topic, startTime, durationMinutes = 60
   }
   if (!startTime) throw new AppError('Set the scheduled date & time first', 400);
 
-  const accessToken = await getAccessToken();
+  const [accessToken, timezone] = await Promise.all([getAccessToken(), getOrgTimezone()]);
   const res = await fetch('https://api.zoom.us/v2/users/me/meetings', {
     method: 'POST',
     headers: {
@@ -49,9 +50,11 @@ export const createZoomMeeting = async ({ topic, startTime, durationMinutes = 60
     body: JSON.stringify({
       topic: (topic || 'Mwasalat Live Class').slice(0, 200),
       type: 2, // scheduled meeting
+      // start_time carries the real instant (as UTC, via the trailing 'Z'); `timezone`
+      // below only controls how Zoom *displays* it in its own UI/invite emails.
       start_time: new Date(startTime).toISOString(),
       duration: durationMinutes,
-      timezone: 'UTC',
+      timezone,
       settings: { join_before_host: false, waiting_room: true, approval_type: 0 },
     }),
   });

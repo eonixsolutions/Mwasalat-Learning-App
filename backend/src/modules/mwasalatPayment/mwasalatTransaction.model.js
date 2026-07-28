@@ -9,6 +9,10 @@ const mwasalatTransactionSchema = new mongoose.Schema(
     stripeSessionId: { type: String, required: true, unique: true },
     status: { type: String, enum: ['paid', 'refunded'], default: 'paid' },
     paidAt: { type: Date, default: Date.now },
+    // Distinguishes a reactivation payment (half-price, unlocking a
+    // deadline-locked enrollment) from a normal new-enrollment purchase —
+    // existing rows default to 'enrollment' so nothing already recorded changes meaning.
+    type: { type: String, enum: ['enrollment', 'reactivation'], default: 'enrollment' },
   },
   { timestamps: true }
 );

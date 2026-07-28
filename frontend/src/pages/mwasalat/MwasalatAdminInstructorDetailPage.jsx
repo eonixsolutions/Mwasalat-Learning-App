@@ -40,8 +40,8 @@ export default function MwasalatAdminInstructorDetailPage() {
 
   return (
     <MwasalatAdminLayout
-      title={data?.instructor?.name ?? t('instructorDetail.defaultTitle')}
-      subtitle={data?.instructor?.email ?? t('instructorDetail.defaultSubtitle')}
+      title={t('instructorDetail.defaultTitle')}
+      subtitle={data?.instructor?.name ?? t('instructorDetail.defaultSubtitle')}
     >
       <div className="max-w-6xl mx-auto">
         {isLoading ? (

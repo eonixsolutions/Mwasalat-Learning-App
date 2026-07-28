@@ -5,9 +5,20 @@ import { MWASALAT_ROLES } from '../mwasalatUser/mwasalatUser.constants.js';
 
 const router = Router();
 
-router.use(mwasalatAuthMiddleware.authenticate, mwasalatAuthMiddleware.authorize(MWASALAT_ROLES.SUPER_ADMIN));
+router.use(mwasalatAuthMiddleware.authenticate);
 
-router.get('/', mwasalatActivityLogController.list);
-router.get('/online-count', mwasalatActivityLogController.onlineCount);
+// The audit log itself is Super Admin's exclusive oversight tool over Platform
+// Admin's actions — but "users online" is just a harmless engagement metric
+// shown in the shared admin header, not an audit concern.
+router.get(
+  '/',
+  mwasalatAuthMiddleware.authorize(MWASALAT_ROLES.SUPER_ADMIN),
+  mwasalatActivityLogController.list
+);
+router.get(
+  '/online-count',
+  mwasalatAuthMiddleware.authorize(MWASALAT_ROLES.SUPER_ADMIN, MWASALAT_ROLES.PLATFORM_ADMIN),
+  mwasalatActivityLogController.onlineCount
+);
 
 export default router;

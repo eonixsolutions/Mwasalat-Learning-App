@@ -27,7 +27,7 @@ export default function MwasalatCheckInPage() {
         <MwasalatLanguageToggle className="!text-mwasalatInk-500 !border-mwasalatInk-200 hover:!border-mwasalatInk-400 bg-white/70 backdrop-blur" />
       </div>
       <div className="bg-white rounded-2xl p-8 max-w-sm w-full text-center" style={{ boxShadow: '0 4px 32px rgba(0,0,0,0.09)' }}>
-        <Link to="/mwasalat" className="inline-block">
+        <Link to="/" className="inline-block">
           <img src="/mwasalat-logo.png" alt="Mwasalat" className="h-12 w-auto object-contain mx-auto mb-6" />
         </Link>
 
@@ -51,7 +51,7 @@ export default function MwasalatCheckInPage() {
             <XCircle className="w-10 h-10 text-mwasalatRed-500 mx-auto mb-3" />
             <h2 className="text-lg font-semibold text-[#1E293B] mb-1">{t('learner.checkIn.failedTitle')}</h2>
             <p className="text-sm text-[#475569] mb-4">{message}</p>
-            <Link to="/mwasalat/login" className="text-sm font-medium text-mwasalatInk-500 hover:underline">{t('learner.checkIn.signInRetry')}</Link>
+            <Link to="/login" className="text-sm font-medium text-mwasalatInk-500 hover:underline">{t('learner.checkIn.signInRetry')}</Link>
           </>
         )}
       </div>

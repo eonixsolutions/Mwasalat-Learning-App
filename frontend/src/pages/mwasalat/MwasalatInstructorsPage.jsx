@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
@@ -7,6 +8,7 @@ import MwasalatAdminLayout from '../../layouts/MwasalatAdminLayout.jsx';
 import { mwasalatUserService } from '../../services/mwasalatUser.service.js';
 import { mwasalatProgramService } from '../../services/mwasalatProgram.service.js';
 import MwasalatUserTable from '../../components/mwasalat/MwasalatUserTable.jsx';
+import { useMwasalatAuthStore } from '../../store/mwasalatAuthStore.js';
 import { localizeNumber } from '../../utils/mwasalatLocalize.js';
 
 const inputClass = 'w-full px-3.5 py-2.5 rounded-xl border border-[#E2E8F0] text-sm bg-white text-[#1E293B] placeholder:text-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-mwasalatInk-500/20 hover:border-mwasalatInk-300 transition-colors';
@@ -66,6 +68,9 @@ function InviteInstructorModal({ onClose, onInvited }) {
 
 export default function MwasalatInstructorsPage() {
   const { t, i18n } = useTranslation('mwasalatApp');
+  const navigate = useNavigate();
+  const { user } = useMwasalatAuthStore();
+  const canManage = user?.role === 'platform_admin';
   const STATUS_FILTERS = [
     { value: 'all', label: t('userFilters.all') },
     { value: 'active', label: t('userFilters.active') },
@@ -142,14 +147,16 @@ export default function MwasalatInstructorsPage() {
     <MwasalatAdminLayout
       title={t('admin.nav.instructors')}
       subtitle={t('instructorsPage.subtitle')}
-      actions={(
-        <button
-          onClick={() => setShowInviteModal(true)}
-          className="inline-flex items-center gap-2 bg-mwasalatInk-500 hover:bg-mwasalatInk-400 text-white font-semibold px-3.5 py-2 rounded-xl transition-colors text-xs"
-        >
-          <Mail className="w-3.5 h-3.5" /> {t('instructorsPage.inviteButton')}
-        </button>
-      )}
+      actions={canManage ? (
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setShowInviteModal(true)}
+            className="inline-flex items-center gap-2 bg-mwasalatInk-500 hover:bg-mwasalatInk-400 text-white font-semibold px-3.5 py-2 rounded-xl transition-colors text-xs"
+          >
+            <Mail className="w-3.5 h-3.5" /> {t('instructorsPage.inviteButton')}
+          </button>
+        </div>
+      ) : null}
     >
       <div className="max-w-5xl mx-auto">
         <div className="flex flex-wrap items-center gap-3 mb-5">
@@ -183,9 +190,11 @@ export default function MwasalatInstructorsPage() {
             isLoading={isLoading}
             pendingId={pendingId}
             onToggle={handleToggle}
+            onMessage={canManage ? (u) => navigate(`/admin/chat?with=${u._id}`) : undefined}
             emptyLabel={instructors.length === 0 ? t('instructorsPage.emptyNoInstructors') : t('instructorsPage.emptyNoMatch')}
-            linkTo={(u) => `/mwasalat/admin/instructors/${u._id}`}
+            linkTo={(u) => `/admin/instructors/${u._id}`}
             columns={instructorColumns}
+            readOnly={!canManage}
           />
         </div>
       </div>

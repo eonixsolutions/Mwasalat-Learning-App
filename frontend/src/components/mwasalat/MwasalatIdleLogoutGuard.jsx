@@ -30,7 +30,7 @@ export default function MwasalatIdleLogoutGuard() {
       if (Date.now() - lastActivityRef.current >= IDLE_TIMEOUT_MS) {
         mwasalatAuthService.logout();
         toast(t('common.idleLogoutMessage'));
-        navigate(MWASALAT_ROLE_LOGIN[user?.role] || '/mwasalat/login', { replace: true });
+        navigate(MWASALAT_ROLE_LOGIN[user?.role] || '/login', { replace: true });
       }
     }, CHECK_INTERVAL_MS);
 

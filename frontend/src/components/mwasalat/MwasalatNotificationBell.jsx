@@ -1,10 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Bell, CheckCheck, Megaphone } from 'lucide-react';
+import toast from 'react-hot-toast';
+import { Bell, CheckCheck, Megaphone, BellPlus } from 'lucide-react';
 import { mwasalatNotificationService } from '../../services/mwasalatNotification.service.js';
 import { useMwasalatNotificationStore } from '../../store/mwasalatNotificationStore.js';
 import useMwasalatSocket from '../../hooks/useMwasalatSocket.js';
 import { localizeNumber } from '../../utils/mwasalatLocalize.js';
+import { isPushSupported, getPushSubscription, subscribeToPush } from '../../utils/mwasalatPushNotifications.js';
 
 // See MwasalatLanguageToggle for the same dark/light header split.
 const TRIGGER_THEME_CLASSES = {
@@ -15,6 +17,8 @@ const TRIGGER_THEME_CLASSES = {
 export default function MwasalatNotificationBell({ theme = 'dark' }) {
   const { t, i18n } = useTranslation('mwasalatApp');
   const [open, setOpen] = useState(false);
+  const [showEnablePush, setShowEnablePush] = useState(false);
+  const [enablingPush, setEnablingPush] = useState(false);
   const ref = useRef(null);
   const { notifications, unreadCount, setNotifications, markAsRead, markAllAsRead } = useMwasalatNotificationStore();
 
@@ -23,6 +27,24 @@ export default function MwasalatNotificationBell({ theme = 'dark' }) {
   useEffect(() => {
     mwasalatNotificationService.list().then(setNotifications).catch(() => {});
   }, [setNotifications]);
+
+  useEffect(() => {
+    if (!isPushSupported() || Notification.permission === 'denied') return;
+    getPushSubscription().then((sub) => setShowEnablePush(!sub));
+  }, []);
+
+  const handleEnablePush = async () => {
+    setEnablingPush(true);
+    try {
+      await subscribeToPush();
+      setShowEnablePush(false);
+      toast.success(t('common.pushEnabled'));
+    } catch {
+      toast.error(t('common.pushEnableFailed'));
+    } finally {
+      setEnablingPush(false);
+    }
+  };
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -84,6 +106,20 @@ export default function MwasalatNotificationBell({ theme = 'dark' }) {
               </button>
             )}
           </div>
+
+          {showEnablePush && (
+            <div className="flex items-center gap-2.5 px-4 py-3 border-b border-[#F1F5F9] bg-mwasalatInk-100/40">
+              <BellPlus className="w-4 h-4 text-mwasalatInk-500 flex-shrink-0" />
+              <p className="text-xs text-[#475569] flex-1">{t('common.pushEnablePrompt')}</p>
+              <button
+                onClick={handleEnablePush}
+                disabled={enablingPush}
+                className="text-xs font-semibold text-mwasalatRed-600 hover:text-mwasalatRed-700 transition-colors disabled:opacity-50 flex-shrink-0"
+              >
+                {t('common.enable')}
+              </button>
+            </div>
+          )}
 
           <div className="max-h-80 overflow-y-auto">
             {notifications.length === 0 ? (

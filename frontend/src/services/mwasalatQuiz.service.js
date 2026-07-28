@@ -2,28 +2,33 @@ import { createMwasalatApi } from '../api/mwasalatApiClient.js';
 
 const quizApi = createMwasalatApi('/api/mwasalat-quiz');
 
-const upsertQuiz = async (programId, data) => {
-  const res = await quizApi.put(`/${programId}`, data);
+// moduleId is optional — pass it for a modular course's per-module quiz;
+// omit it (or pass null/undefined) for a legacy course-level quiz, which hits
+// the exact same routes/behavior as before this option existed.
+const scopedPath = (programId, moduleId, suffix = '') => (moduleId ? `/${programId}/module/${moduleId}${suffix}` : `/${programId}${suffix}`);
+
+const upsertQuiz = async (programId, data, moduleId) => {
+  const res = await quizApi.put(scopedPath(programId, moduleId), data);
   return res.data.data;
 };
 
-const getQuizForInstructor = async (programId) => {
-  const res = await quizApi.get(`/${programId}/instructor-view`);
+const getQuizForInstructor = async (programId, moduleId) => {
+  const res = await quizApi.get(scopedPath(programId, moduleId, '/instructor-view'));
   return res.data.data;
 };
 
-const getQuizForLearner = async (programId) => {
-  const res = await quizApi.get(`/${programId}`);
+const getQuizForLearner = async (programId, moduleId) => {
+  const res = await quizApi.get(scopedPath(programId, moduleId));
   return res.data.data;
 };
 
-const submitAttempt = async (programId, answers) => {
-  const res = await quizApi.post(`/${programId}/submit`, { answers });
+const submitAttempt = async (programId, answers, moduleId) => {
+  const res = await quizApi.post(scopedPath(programId, moduleId, '/submit'), { answers });
   return res.data.data;
 };
 
-const getMyBestAttempt = async (programId) => {
-  const res = await quizApi.get(`/${programId}/my-best`);
+const getMyBestAttempt = async (programId, moduleId) => {
+  const res = await quizApi.get(scopedPath(programId, moduleId, '/my-best'));
   return res.data.data;
 };
 

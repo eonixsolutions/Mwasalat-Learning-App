@@ -3,7 +3,9 @@ import { successResponse } from '../../utils/response.js';
 import { mwasalatQuizService } from './mwasalatQuiz.service.js';
 
 const upsertQuiz = asyncHandler(async (req, res) => {
-  const quiz = await mwasalatQuizService.upsertQuiz(req.mwasalatUser._id, req.mwasalatUser.role, req.params.programId, req.body);
+  const quiz = await mwasalatQuizService.upsertQuiz(
+    req.mwasalatUser._id, req.mwasalatUser.role, req.params.programId, req.body, req.params.moduleId
+  );
   successResponse(res, 'Quiz saved', quiz);
 });
 
@@ -15,22 +17,26 @@ const generateQuestions = asyncHandler(async (req, res) => {
 });
 
 const getQuizForInstructor = asyncHandler(async (req, res) => {
-  const quiz = await mwasalatQuizService.getQuizForInstructor(req.mwasalatUser._id, req.mwasalatUser.role, req.params.programId);
+  const quiz = await mwasalatQuizService.getQuizForInstructor(
+    req.mwasalatUser._id, req.mwasalatUser.role, req.params.programId, req.params.moduleId
+  );
   successResponse(res, 'Quiz fetched', quiz);
 });
 
 const getQuizForLearner = asyncHandler(async (req, res) => {
-  const quiz = await mwasalatQuizService.getQuizForLearner(req.params.programId);
+  const quiz = await mwasalatQuizService.getQuizForLearner(req.params.programId, req.params.moduleId);
   successResponse(res, 'Quiz fetched', quiz);
 });
 
 const submitAttempt = asyncHandler(async (req, res) => {
-  const result = await mwasalatQuizService.submitAttempt(req.mwasalatUser._id, req.params.programId, req.body.answers);
+  const result = await mwasalatQuizService.submitAttempt(
+    req.mwasalatUser._id, req.params.programId, req.body.answers, req.params.moduleId
+  );
   successResponse(res, 'Quiz submitted', result);
 });
 
 const getMyBestAttempt = asyncHandler(async (req, res) => {
-  const attempt = await mwasalatQuizService.getMyBestAttempt(req.mwasalatUser._id, req.params.programId);
+  const attempt = await mwasalatQuizService.getMyBestAttempt(req.mwasalatUser._id, req.params.programId, req.params.moduleId);
   successResponse(res, 'Attempt fetched', attempt);
 });
 

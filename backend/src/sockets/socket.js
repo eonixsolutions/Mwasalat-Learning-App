@@ -20,8 +20,9 @@ export const initSocket = (httpServer) => {
   io.of('/mwasalat').on('connection', (socket) => {
     logger.debug(`Mwasalat socket connected: ${socket.id}`);
 
-    socket.on('join-room', (userId) => {
+    socket.on('join-room', (userId, role) => {
       socket.join(`mwasalat-user:${userId}`);
+      if (role) socket.join(`mwasalat-role:${role}`);
       logger.debug(`Mwasalat socket ${socket.id} joined room mwasalat-user:${userId}`);
 
       onlineUserIdBySocket.set(socket.id, userId);
@@ -61,8 +62,13 @@ export const getIO = () => {
   return io;
 };
 
-export const broadcastMwasalatNotification = (notification) => {
-  getIO().of('/mwasalat').emit('mwasalat:notification', notification);
+export const broadcastMwasalatNotification = (notification, roles) => {
+  const namespace = getIO().of('/mwasalat');
+  if (roles?.length) {
+    roles.forEach((role) => namespace.to(`mwasalat-role:${role}`).emit('mwasalat:notification', notification));
+  } else {
+    namespace.emit('mwasalat:notification', notification);
+  }
 };
 
 export const emitToMwasalatUser = (userId, event, data) => {

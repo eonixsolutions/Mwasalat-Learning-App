@@ -7,6 +7,7 @@ import toast from 'react-hot-toast';
 import { ShieldCheck, Eye, EyeOff, Loader2, Lock, AlertTriangle } from 'lucide-react';
 import { mwasalatAuthService } from '../../services/mwasalatAuth.service.js';
 import { STRONG_PASSWORD_REGEX } from '../../utils/passwordPolicy.js';
+import { MWASALAT_ROLE_DASHBOARD, MWASALAT_ROLE_LOGIN } from '../../constants/mwasalatRoles.js';
 import MwasalatLanguageToggle from '../../components/mwasalat/MwasalatLanguageToggle.jsx';
 
 const inputClass = 'w-full ps-10 pe-10 py-2.5 rounded-xl border border-[#E2E8F0] text-sm bg-white text-[#1E293B] placeholder:text-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-mwasalatInk-500/20 hover:border-mwasalatInk-300 transition-colors';
@@ -33,7 +34,7 @@ export default function MwasalatSetPasswordPage() {
     },
     onSuccess: () => {
       toast.success(t('auth.setPassword.welcomeToast'));
-      navigate('/mwasalat/instructor/dashboard');
+      navigate(MWASALAT_ROLE_DASHBOARD[invite?.role] ?? '/instructor/dashboard');
     },
     onError: (err) => toast.error(err.response?.data?.message || t('auth.errors.setPasswordFailed')),
   });
@@ -48,7 +49,7 @@ export default function MwasalatSetPasswordPage() {
           <AlertTriangle className="w-8 h-8 text-mwasalatRed-500 mx-auto mb-3" />
           <h2 className="text-lg font-semibold text-[#1E293B] mb-1">{t('auth.setPassword.expiredTitle')}</h2>
           <p className="text-sm text-[#475569] mb-4">{t('auth.setPassword.expiredBody')}</p>
-          <Link to="/mwasalat/instructor/login" className="text-sm font-medium text-mwasalatInk-500 hover:underline">{t('auth.setPassword.backToLogin')}</Link>
+          <Link to={MWASALAT_ROLE_LOGIN[invite?.role] ?? MWASALAT_ROLE_LOGIN.instructor} className="text-sm font-medium text-mwasalatInk-500 hover:underline">{t('auth.setPassword.backToLogin')}</Link>
         </div>
       </div>
     );
@@ -61,7 +62,7 @@ export default function MwasalatSetPasswordPage() {
       </div>
       <div className="bg-white rounded-2xl p-8 max-w-md w-full" style={{ boxShadow: '0 4px 32px rgba(0,0,0,0.09)' }}>
         <div className="flex items-center justify-center mb-6">
-          <Link to="/mwasalat">
+          <Link to="/">
             <img src="/mwasalat-logo.png" alt="Mwasalat" className="h-12 w-auto object-contain" />
           </Link>
         </div>

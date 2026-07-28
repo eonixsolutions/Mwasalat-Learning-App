@@ -13,9 +13,9 @@ const createLiveMeeting = asyncHandler(async (req, res) => {
 });
 
 const create = asyncHandler(async (req, res) => {
-  const pdfFile = req.files?.pdfFile?.[0];
+  const pdfFiles = req.files?.pdfFile ?? [];
   const videoFile = req.files?.videoFile?.[0];
-  const program = await mwasalatProgramService.create(req.mwasalatUser._id, req.body, pdfFile, videoFile, req.mwasalatUser);
+  const program = await mwasalatProgramService.create(req.mwasalatUser._id, req.body, pdfFiles, videoFile, req.mwasalatUser);
   successResponse(res, 'Program created', program, 201);
 });
 
@@ -26,7 +26,12 @@ const update = asyncHandler(async (req, res) => {
 
 const remove = asyncHandler(async (req, res) => {
   const program = await mwasalatProgramService.remove(req.mwasalatUser._id, req.mwasalatUser.role, req.params.id, req.mwasalatUser);
-  successResponse(res, 'Program deleted', program);
+  successResponse(res, 'Course deletion scheduled', program);
+});
+
+const cancelScheduledDeletion = asyncHandler(async (req, res) => {
+  const program = await mwasalatProgramService.cancelScheduledDeletion(req.mwasalatUser._id, req.mwasalatUser.role, req.params.id, req.mwasalatUser);
+  successResponse(res, 'Scheduled deletion cancelled', program);
 });
 
 const listMine = asyncHandler(async (req, res) => {
@@ -35,18 +40,34 @@ const listMine = asyncHandler(async (req, res) => {
 });
 
 const listPublic = asyncHandler(async (req, res) => {
-  const programs = await mwasalatProgramService.listPublic();
+  const programs = await mwasalatProgramService.listPublic(req.mwasalatUser);
   successResponse(res, 'Programs fetched', programs);
 });
 
 const enroll = asyncHandler(async (req, res) => {
-  const enrollment = await mwasalatProgramService.enroll(req.mwasalatUser._id, req.params.id);
+  const enrollment = await mwasalatProgramService.enroll(
+    req.mwasalatUser._id, req.mwasalatUser.role, req.params.id, req.mwasalatUser.department
+  );
   successResponse(res, 'Enrolled successfully', enrollment, 201);
 });
 
 const listMyEnrollments = asyncHandler(async (req, res) => {
   const enrollments = await mwasalatProgramService.listMyEnrollments(req.mwasalatUser._id);
   successResponse(res, 'Enrollments fetched', enrollments);
+});
+
+const approveEnrollment = asyncHandler(async (req, res) => {
+  const enrollment = await mwasalatProgramService.approveEnrollment(
+    req.mwasalatUser._id, req.mwasalatUser.role, req.params.id, req.params.learnerId
+  );
+  successResponse(res, 'Enrollment approved', enrollment);
+});
+
+const rejectEnrollment = asyncHandler(async (req, res) => {
+  const enrollment = await mwasalatProgramService.rejectEnrollment(
+    req.mwasalatUser._id, req.mwasalatUser.role, req.params.id, req.params.learnerId, req.body.reason
+  );
+  successResponse(res, 'Enrollment rejected', enrollment);
 });
 
 const toggleStar = asyncHandler(async (req, res) => {
@@ -94,6 +115,13 @@ const markAttendance = asyncHandler(async (req, res) => {
 const getAttendance = asyncHandler(async (req, res) => {
   const attendance = await mwasalatProgramService.getAttendance(req.params.id);
   successResponse(res, 'Attendance fetched', attendance);
+});
+
+const completeClass = asyncHandler(async (req, res) => {
+  const program = await mwasalatProgramService.completeClass(
+    req.mwasalatUser._id, req.mwasalatUser.role, req.params.id, req.body.contentType, req.mwasalatUser
+  );
+  successResponse(res, 'Class marked as completed', program);
 });
 
 const submitFeedback = asyncHandler(async (req, res) => {
@@ -144,7 +172,7 @@ const getLearnerAchievements = asyncHandler(async (req, res) => {
 });
 
 const getAdminOverview = asyncHandler(async (req, res) => {
-  const overview = await mwasalatProgramService.getAdminOverview();
+  const overview = await mwasalatProgramService.getAdminOverview(req.mwasalatUser);
   successResponse(res, 'Overview fetched', overview);
 });
 
@@ -154,7 +182,7 @@ const listAllCertificates = asyncHandler(async (req, res) => {
 });
 
 const listAllForAdmin = asyncHandler(async (req, res) => {
-  const programs = await mwasalatProgramService.listAllForAdmin();
+  const programs = await mwasalatProgramService.listAllForAdmin(req.mwasalatUser);
   successResponse(res, 'Programs fetched', programs);
 });
 
@@ -169,17 +197,17 @@ const listInstructorSummaries = asyncHandler(async (req, res) => {
 });
 
 const getTopCoursesByCompletionRate = asyncHandler(async (req, res) => {
-  const courses = await mwasalatProgramService.getTopCoursesByCompletionRate();
+  const courses = await mwasalatProgramService.getTopCoursesByCompletionRate(req.mwasalatUser);
   successResponse(res, 'Top courses fetched', courses);
 });
 
 const getUpcomingClasses = asyncHandler(async (req, res) => {
-  const classes = await mwasalatProgramService.getUpcomingClasses();
+  const classes = await mwasalatProgramService.getUpcomingClasses(req.mwasalatUser);
   successResponse(res, 'Upcoming classes fetched', classes);
 });
 
 const getRecentActivityFeed = asyncHandler(async (req, res) => {
-  const feed = await mwasalatProgramService.getRecentActivityFeed(Number(req.query.limit) || 8);
+  const feed = await mwasalatProgramService.getRecentActivityFeed(Number(req.query.limit) || 8, req.mwasalatUser);
   successResponse(res, 'Activity feed fetched', feed);
 });
 
@@ -200,12 +228,99 @@ const sendEncouragement = asyncHandler(async (req, res) => {
   successResponse(res, 'Encouragement sent', result);
 });
 
+// --- Modular ("super course") modules/lessons ---
+
+const addModule = asyncHandler(async (req, res) => {
+  const program = await mwasalatProgramService.addModule(req.mwasalatUser._id, req.mwasalatUser.role, req.params.id, req.body);
+  successResponse(res, 'Module added', program, 201);
+});
+
+const updateModule = asyncHandler(async (req, res) => {
+  const program = await mwasalatProgramService.updateModule(
+    req.mwasalatUser._id, req.mwasalatUser.role, req.params.id, req.params.moduleId, req.body
+  );
+  successResponse(res, 'Module updated', program);
+});
+
+const removeModule = asyncHandler(async (req, res) => {
+  const program = await mwasalatProgramService.removeModule(
+    req.mwasalatUser._id, req.mwasalatUser.role, req.params.id, req.params.moduleId
+  );
+  successResponse(res, 'Module removed', program);
+});
+
+const reorderModules = asyncHandler(async (req, res) => {
+  const program = await mwasalatProgramService.reorderModules(
+    req.mwasalatUser._id, req.mwasalatUser.role, req.params.id, req.body.orderedModuleIds
+  );
+  successResponse(res, 'Modules reordered', program);
+});
+
+const addLesson = asyncHandler(async (req, res) => {
+  const program = await mwasalatProgramService.addLesson(
+    req.mwasalatUser._id, req.mwasalatUser.role, req.params.id, req.params.moduleId, req.body, req.file
+  );
+  successResponse(res, 'Lesson added', program, 201);
+});
+
+const updateLesson = asyncHandler(async (req, res) => {
+  const program = await mwasalatProgramService.updateLesson(
+    req.mwasalatUser._id, req.mwasalatUser.role, req.params.id, req.params.moduleId, req.params.lessonId, req.body, req.file
+  );
+  successResponse(res, 'Lesson updated', program);
+});
+
+const removeLesson = asyncHandler(async (req, res) => {
+  const program = await mwasalatProgramService.removeLesson(
+    req.mwasalatUser._id, req.mwasalatUser.role, req.params.id, req.params.moduleId, req.params.lessonId
+  );
+  successResponse(res, 'Lesson removed', program);
+});
+
+const reorderLessons = asyncHandler(async (req, res) => {
+  const program = await mwasalatProgramService.reorderLessons(
+    req.mwasalatUser._id, req.mwasalatUser.role, req.params.id, req.params.moduleId, req.body.orderedLessonIds
+  );
+  successResponse(res, 'Lessons reordered', program);
+});
+
+const getCourseForLearner = asyncHandler(async (req, res) => {
+  const course = await mwasalatProgramService.getCourseForLearner(req.mwasalatUser._id, req.params.id);
+  successResponse(res, 'Course fetched', course);
+});
+
+const markLessonOpened = asyncHandler(async (req, res) => {
+  const result = await mwasalatProgramService.markLessonOpened(
+    req.mwasalatUser._id, req.params.id, req.params.moduleId, req.params.lessonId
+  );
+  successResponse(res, 'Lesson marked as opened', result);
+});
+
+const updateLessonMediaProgress = asyncHandler(async (req, res) => {
+  const result = await mwasalatProgramService.updateLessonMediaProgress(
+    req.mwasalatUser._id, req.params.id, req.params.moduleId, req.params.lessonId, req.body.positionSeconds, req.body.durationSeconds
+  );
+  successResponse(res, 'Progress recorded', result);
+});
+
+const getLessonMediaUrl = asyncHandler(async (req, res) => {
+  const result = await mwasalatProgramService.getLessonMediaUrl(
+    req.mwasalatUser._id, req.params.id, req.params.moduleId, req.params.lessonId
+  );
+  successResponse(res, 'Media URL fetched', result);
+});
+
 export const mwasalatProgramController = {
-  aiAutofill, createLiveMeeting, create, update, remove, listMine, listPublic, enroll, listMyEnrollments, toggleStar,
+  aiAutofill, createLiveMeeting, create, update, remove, cancelScheduledDeletion, listMine, listPublic, enroll, listMyEnrollments, toggleStar,
+  approveEnrollment, rejectEnrollment,
   getById, getLearners, getMyRoster, getFeedback, getStats, checkIn, markAttendance, getAttendance,
+  completeClass,
   submitFeedback, getCompletionStatus, markContentOpened, getMyCertificate, verifyCertificate,
   getVideoUrl, updateVideoProgress, sendEncouragement,
   getMyAchievements, getLearnerAchievements, getAdminOverview, listAllCertificates, listAllForAdmin,
   getInstructorDetail, listInstructorSummaries, getMySummary, getMyTodaySchedule,
   getTopCoursesByCompletionRate, getUpcomingClasses, getRecentActivityFeed,
+  addModule, updateModule, removeModule, reorderModules,
+  addLesson, updateLesson, removeLesson, reorderLessons,
+  getCourseForLearner, markLessonOpened, updateLessonMediaProgress, getLessonMediaUrl,
 };

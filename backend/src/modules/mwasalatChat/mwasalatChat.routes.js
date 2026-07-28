@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { mwasalatChatController } from './mwasalatChat.controller.js';
 import { mwasalatAuthMiddleware } from '../mwasalatAuth/mwasalatAuth.middleware.js';
-import { MWASALAT_ROLES } from '../mwasalatUser/mwasalatUser.constants.js';
+import { MWASALAT_ROLES, MWASALAT_LEARNER_ROLES } from '../mwasalatUser/mwasalatUser.constants.js';
 
 const router = Router();
 
@@ -9,7 +9,7 @@ router.use(mwasalatAuthMiddleware.authenticate);
 
 router.post(
   '/learner/:programId',
-  mwasalatAuthMiddleware.authorize(MWASALAT_ROLES.LEARNER),
+  mwasalatAuthMiddleware.authorize(...MWASALAT_LEARNER_ROLES),
   mwasalatChatController.getOrCreateAsLearner
 );
 router.post(

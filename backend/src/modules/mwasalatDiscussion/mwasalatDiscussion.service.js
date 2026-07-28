@@ -3,8 +3,10 @@ import MwasalatDiscussionReply from './mwasalatDiscussionReply.model.js';
 import MwasalatProgram from '../mwasalatProgram/mwasalatProgram.model.js';
 import MwasalatEnrollment from '../mwasalatProgram/mwasalatEnrollment.model.js';
 import { MWASALAT_ROLES } from '../mwasalatUser/mwasalatUser.constants.js';
+import { PROGRAM_STATUS } from '../mwasalatProgram/mwasalatProgram.constants.js';
 import { AppError } from '../../utils/AppError.js';
 import { emitToMwasalatProgramRoom } from '../../sockets/socket.js';
+import { mwasalatProgramService } from '../mwasalatProgram/mwasalatProgram.service.js';
 
 const loadProgramOrThrow = async (programId) => {
   const program = await MwasalatProgram.findById(programId);
@@ -22,6 +24,7 @@ const assertCourseAccess = async (program, user) => {
   }
   const enrollment = await MwasalatEnrollment.findOne({ learner: user._id, program: program._id });
   if (!enrollment) throw new AppError('You must be enrolled in this course to view its discussion', 403);
+  mwasalatProgramService.assertHasAccess(enrollment);
 };
 
 const canModerate = (program, user) =>
@@ -48,6 +51,9 @@ const createThread = async (programId, user, { title, body }) => {
   if (!body?.trim()) throw new AppError('A description is required', 400);
   const program = await loadProgramOrThrow(programId);
   await assertCourseAccess(program, user);
+  if (program.status === PROGRAM_STATUS.ARCHIVED) {
+    throw new AppError('This course has been archived — the discussion is closed to new posts', 403);
+  }
 
   const thread = await MwasalatDiscussionThread.create({
     program: programId,
@@ -78,6 +84,9 @@ const addReply = async (threadId, user, body) => {
   if (!thread) throw new AppError('Question not found', 404);
   const program = await loadProgramOrThrow(thread.program);
   await assertCourseAccess(program, user);
+  if (program.status === PROGRAM_STATUS.ARCHIVED) {
+    throw new AppError('This course has been archived — the discussion is closed to new posts', 403);
+  }
 
   const reply = await MwasalatDiscussionReply.create({
     thread: threadId,

@@ -68,15 +68,69 @@ export const instructorInviteTemplate = ({ name, setPasswordUrl }) =>
     <p style="margin:8px 0 0;font-size:12px;color:#94A3B8;word-break:break-all;">${setPasswordUrl}</p>
   `);
 
-export const mwasalatResetPasswordTemplate = ({ resetUrl }) =>
+export const platformAdminInviteTemplate = ({ name, setPasswordUrl }) =>
+  base(`
+    <h2 style="margin:0 0 8px;font-size:22px;font-weight:700;color:#1E293B;">You're invited as a platform admin</h2>
+    <p style="margin:0 0 20px;font-size:15px;color:#475569;line-height:1.6;">
+      Hi ${name}, the super admin has invited you to join the Mwasalat Learning Platform as a platform admin.
+      Set your password to activate your account.
+    </p>
+    ${btn(setPasswordUrl, 'Set Your Password')}
+    <p style="margin:20px 0 0;font-size:13px;color:#94A3B8;line-height:1.6;">
+      This link expires in <strong>7 days</strong>. If the button doesn't work, copy and paste this URL into your browser:
+    </p>
+    <p style="margin:8px 0 0;font-size:12px;color:#94A3B8;word-break:break-all;">${setPasswordUrl}</p>
+  `);
+
+const ROLE_LABELS = {
+  super_admin: 'admin', platform_admin: 'platform admin', department_admin: 'department admin',
+  supervisor: 'supervisor', instructor: 'instructor', it_support: 'IT support', learner: 'learner',
+  external_learner: 'learner',
+};
+
+export const staffInviteTemplate = ({ name, role, setPasswordUrl }) =>
+  base(`
+    <h2 style="margin:0 0 8px;font-size:22px;font-weight:700;color:#1E293B;">You're invited as ${ROLE_LABELS[role] ?? 'a staff member'}</h2>
+    <p style="margin:0 0 20px;font-size:15px;color:#475569;line-height:1.6;">
+      Hi ${name}, an administrator has invited you to join the Mwasalat Learning Platform as ${ROLE_LABELS[role] ?? 'a staff member'}.
+      Set your password to activate your account.
+    </p>
+    ${btn(setPasswordUrl, 'Set Your Password')}
+    <p style="margin:20px 0 0;font-size:13px;color:#94A3B8;line-height:1.6;">
+      This link expires in <strong>7 days</strong>. If the button doesn't work, copy and paste this URL into your browser:
+    </p>
+    <p style="margin:8px 0 0;font-size:12px;color:#94A3B8;word-break:break-all;">${setPasswordUrl}</p>
+  `);
+
+export const bulkImportInviteTemplate = ({ name, role, setPasswordUrl }) =>
+  base(`
+    <h2 style="margin:0 0 8px;font-size:22px;font-weight:700;color:#1E293B;">Your account is ready</h2>
+    <p style="margin:0 0 20px;font-size:15px;color:#475569;line-height:1.6;">
+      Hi ${name}, an administrator has created a ${ROLE_LABELS[role] ?? 'learner'} account for you on the Mwasalat Learning Platform.
+      Set your password to activate it.
+    </p>
+    ${btn(setPasswordUrl, 'Set Your Password')}
+    <p style="margin:20px 0 0;font-size:13px;color:#94A3B8;line-height:1.6;">
+      This link expires in <strong>7 days</strong>. If the button doesn't work, copy and paste this URL into your browser:
+    </p>
+    <p style="margin:8px 0 0;font-size:12px;color:#94A3B8;word-break:break-all;">${setPasswordUrl}</p>
+  `);
+
+export const mwasalatResetPasswordTemplate = ({ otp }) =>
   base(`
     <h2 style="margin:0 0 8px;font-size:22px;font-weight:700;color:#1E293B;">Reset your password</h2>
     <p style="margin:0 0 20px;font-size:15px;color:#475569;line-height:1.6;">
-      You requested a password reset for your Mwasalat Learning Platform account. Click the button below to choose a new password.
+      You requested a password reset for your Mwasalat Learning Platform account. Enter this code in the app to choose a new password.
     </p>
-    ${btn(resetUrl, 'Reset Password')}
+    <table cellpadding="0" cellspacing="0" style="margin:8px 0 24px;">
+      <tr>
+        <td style="background-color:#F1F5F9;border-radius:12px;padding:16px 28px;">
+          <span style="font-size:32px;font-weight:700;letter-spacing:8px;color:#1F5E63;font-family:monospace;">${otp}</span>
+        </td>
+      </tr>
+    </table>
     <p style="margin:20px 0 0;font-size:13px;color:#94A3B8;line-height:1.6;">
-      This link expires in <strong>1 hour</strong>. If you didn't request this, you can safely ignore this email.
+      This code expires in <strong>10 minutes</strong>. If you didn't request this, you can safely ignore this email.
     </p>
   `);
 
@@ -102,13 +156,15 @@ export const certificateIssuedTemplate = ({ name, courseTitle, certificateNumber
     </p>
   `);
 
-export const certificateExpiringTemplate = ({ name, courseTitle, certificateNumber, expiresAt, certificateUrl }) =>
+export const certificateExpiringTemplate = ({ name, courseTitle, certificateNumber, expiresAt, certificateUrl, willAutoRenew }) =>
   base(`
-    <h2 style="margin:0 0 8px;font-size:22px;font-weight:700;color:#1E293B;">Your certificate expires soon</h2>
+    <h2 style="margin:0 0 8px;font-size:22px;font-weight:700;color:#1E293B;">${willAutoRenew ? 'Your certificate will renew automatically' : 'Your certificate expires soon'}</h2>
     <p style="margin:0 0 20px;font-size:15px;color:#475569;line-height:1.6;">
       Hi ${name}, your certificate for <strong>${courseTitle}</strong> expires on
       <strong>${new Date(expiresAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}</strong> —
-      about a month from now. Renew or retake the course beforehand to keep it valid.
+      about a month from now. ${willAutoRenew
+        ? 'It will be renewed automatically before then, so there\'s nothing you need to do.'
+        : 'Retake and pass the course assessment beforehand to have it reissued and keep it valid.'}
     </p>
     <table width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 20px;border:2px solid #A94E43;border-radius:14px;">
       <tr>
@@ -122,7 +178,7 @@ export const certificateExpiringTemplate = ({ name, courseTitle, certificateNumb
     </table>
     ${btn(certificateUrl, 'View Certificate')}
     <p style="margin:20px 0 0;font-size:13px;color:#94A3B8;line-height:1.6;">
-      If this certification needs to stay current, plan your renewal ahead of the expiry date.
+      ${willAutoRenew ? 'You\'ll get a separate email once the renewal goes through.' : 'If this certification needs to stay current, plan your retest ahead of the expiry date.'}
     </p>
   `);
 

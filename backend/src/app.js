@@ -13,6 +13,11 @@ import { mwasalatPaymentController } from './modules/mwasalatPayment/mwasalatPay
 
 const app = express();
 
+// Needed so req.ip reflects the real client address (X-Forwarded-For) rather
+// than the reverse proxy's own address when deployed behind one — required
+// for IP-restriction and per-IP rate limiting to work correctly in production.
+app.set('trust proxy', 1);
+
 app.use(helmet());
 app.use(cors({ origin: process.env.CLIENT_URL, credentials: true }));
 app.use(cookieParser());

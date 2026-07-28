@@ -136,7 +136,7 @@ function Header() {
   const { isAuthenticated, user } = useMwasalatAuthStore();
 
   const scrollToTop = (e) => {
-    if (window.location.pathname === '/mwasalat') {
+    if (window.location.pathname === '/') {
       e.preventDefault();
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
@@ -148,7 +148,7 @@ function Header() {
       style={{ background: '#B31E2E' }}
     >
       <div className="max-w-7xl mx-auto px-6 lg:px-8 h-24 flex items-center justify-between">
-        <Link to="/mwasalat" onClick={scrollToTop} className="flex items-center">
+        <Link to="/" onClick={scrollToTop} className="flex items-center">
           <img src="/mwasalat-logo.png" alt="Mwasalat" className="h-20 w-auto object-contain" />
         </Link>
 
@@ -163,7 +163,7 @@ function Header() {
           <MwasalatLanguageToggle />
           {isAuthenticated && user ? (
             <Link
-              to={MWASALAT_ROLE_DASHBOARD[user.role] || '/mwasalat'}
+              to={MWASALAT_ROLE_DASHBOARD[user.role] || '/'}
               className="flex items-center gap-2.5 ps-1.5 pe-3.5 py-1.5 rounded-full border border-white/25 hover:border-white/50 transition-colors"
             >
               <div className="w-7 h-7 rounded-full bg-white flex items-center justify-center text-mwasalatRed-600 text-xs font-semibold flex-shrink-0">
@@ -173,7 +173,7 @@ function Header() {
             </Link>
           ) : (
             <Link
-              to="/mwasalat/login"
+              to="/login"
               className="inline-flex items-center justify-center px-4 py-2 rounded-xl text-sm font-semibold text-mwasalatRed-600 bg-white hover:bg-mwasalatRed-100 transition-colors"
             >
               {t('nav.signIn')}
@@ -237,13 +237,13 @@ function HeroSection() {
               </button>
             </a>
             {isAuthenticated && user ? (
-              <Link to={MWASALAT_ROLE_DASHBOARD[user.role] || '/mwasalat'}>
+              <Link to={MWASALAT_ROLE_DASHBOARD[user.role] || '/'}>
                 <button className="inline-flex items-center gap-2 border border-mwasalatInk-200 hover:border-mwasalatInk-500 text-mwasalatInk-500 font-semibold px-7 py-3 rounded-xl text-sm transition-colors">
                   {t('hero.goToDashboard')}
                 </button>
               </Link>
             ) : (
-              <Link to="/mwasalat/login">
+              <Link to="/login">
                 <button className="inline-flex items-center gap-2 border border-mwasalatInk-200 hover:border-mwasalatInk-500 text-mwasalatInk-500 font-semibold px-7 py-3 rounded-xl text-sm transition-colors">
                   {t('hero.signIn')}
                 </button>
@@ -416,7 +416,7 @@ function ProgramCard({ program }) {
         <span dir="ltr" className="font-display font-semibold text-mwasalatRed-600">{localizeNumber(program.price, i18n.language)}</span>
       </div>
       <button
-        onClick={() => navigate('/mwasalat/login')}
+        onClick={() => navigate('/login')}
         className="mt-4 w-full inline-flex items-center justify-center gap-1.5 bg-mwasalatRed-500 hover:bg-mwasalatRed-600 text-white font-semibold px-4 py-2.5 rounded-xl text-sm transition-colors"
       >
         {t('programs.enrollNow')}
@@ -666,7 +666,7 @@ function ClosingCta() {
               </button>
             </a>
             {!(isAuthenticated && user) && (
-              <Link to="/mwasalat/login">
+              <Link to="/login">
                 <button className="inline-flex items-center gap-2 border border-white/40 hover:border-white text-white font-semibold px-7 py-3 rounded-xl text-sm transition-colors">
                   {t('closingCta.signIn')}
                 </button>
@@ -688,7 +688,7 @@ function Footer() {
       <div className="max-w-7xl mx-auto px-6 lg:px-8 pt-14 pb-10">
         <div className="grid lg:grid-cols-[1.3fr_1fr_1fr_1.2fr] gap-10 pb-12 border-b border-white/10">
           <div>
-            <Link to="/mwasalat" className="inline-block">
+            <Link to="/" className="inline-block">
               <img src="/mwasalat-logo.png" alt="Mwasalat" className="h-16 w-auto object-contain" />
             </Link>
             <p className="mt-5 text-sm text-white/55 leading-relaxed max-w-xs">
@@ -721,7 +721,7 @@ function Footer() {
             <ul className="space-y-2.5 text-sm text-white/60">
               <li><a href="#how-it-works" className="hover:text-mwasalatRed-300 transition-colors">{t('footer.howItWorks')}</a></li>
               <li><a href="#about" className="hover:text-mwasalatRed-300 transition-colors">{t('footer.about')}</a></li>
-              <li><Link to="/mwasalat/login" className="hover:text-mwasalatRed-300 transition-colors">{t('footer.signIn')}</Link></li>
+              <li><Link to="/login" className="hover:text-mwasalatRed-300 transition-colors">{t('footer.signIn')}</Link></li>
             </ul>
           </div>
 

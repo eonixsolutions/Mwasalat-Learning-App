@@ -52,9 +52,9 @@ export default function MwasalatChatBell({ theme = 'dark' }) {
     clearUnread(conversation._id);
     const iAmLearner = String(conversation.learner?._id) === String(user?._id);
     if (iAmLearner) {
-      navigate(`/mwasalat/learner/programs/${conversation.program?._id}/chat`);
+      navigate(`/learner/programs/${conversation.program?._id}/chat`);
     } else {
-      navigate(`/mwasalat/instructor/programs/${conversation.program?._id}/chat/${conversation.learner?._id}`);
+      navigate(`/instructor/programs/${conversation.program?._id}/chat/${conversation.learner?._id}`);
     }
   };
 

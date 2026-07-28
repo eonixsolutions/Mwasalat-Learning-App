@@ -12,7 +12,7 @@ initSocket(httpServer);
 
 const start = async () => {
   await connectDB();
-  startScheduler();
+  await startScheduler();
   httpServer.listen(PORT, () => {
     logger.info(`Server running on port ${PORT} [${process.env.NODE_ENV}]`);
   });

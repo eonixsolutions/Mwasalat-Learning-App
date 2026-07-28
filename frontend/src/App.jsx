@@ -3,6 +3,9 @@ import { BrowserRouter, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import AppRoutes from './routes/AppRoutes.jsx';
 import MwasalatIdleLogoutGuard from './components/mwasalat/MwasalatIdleLogoutGuard.jsx';
+import MwasalatInstallPrompt from './components/mwasalat/MwasalatInstallPrompt.jsx';
+import MwasalatOfflineBanner from './components/mwasalat/MwasalatOfflineBanner.jsx';
+import MwasalatAnalytics from './components/mwasalat/MwasalatAnalytics.jsx';
 import './lib/mwasalatI18n.js';
 
 function ScrollToTop() {
@@ -35,8 +38,11 @@ export default function App() {
     <BrowserRouter>
       <LanguageDirSync />
       <ScrollToTop />
+      <MwasalatAnalytics />
+      <MwasalatOfflineBanner />
       <MwasalatIdleLogoutGuard />
       <AppRoutes />
+      <MwasalatInstallPrompt />
     </BrowserRouter>
   );
 }

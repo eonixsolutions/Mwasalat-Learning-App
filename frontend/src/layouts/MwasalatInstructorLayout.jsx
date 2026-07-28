@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { LayoutGrid, Plus, LogOut, Menu, X, Users, AlertTriangle } from 'lucide-react';
+import { LayoutGrid, Table2, Plus, LogOut, Menu, X, Users, AlertTriangle, CalendarDays, MessageCircle } from 'lucide-react';
 import { useMwasalatAuthStore } from '../store/mwasalatAuthStore.js';
 import { mwasalatAuthService } from '../services/mwasalatAuth.service.js';
+import { MWASALAT_ROLE_LOGIN } from '../constants/mwasalatRoles.js';
 import MwasalatNotificationBell from '../components/mwasalat/MwasalatNotificationBell.jsx';
 import MwasalatChatBell from '../components/mwasalat/MwasalatChatBell.jsx';
 import MwasalatLanguageToggle from '../components/mwasalat/MwasalatLanguageToggle.jsx';
@@ -11,10 +12,13 @@ import MwasalatAiTrigger from '../components/mwasalat/MwasalatAiTrigger.jsx';
 import MwasalatAiPanel from '../components/mwasalat/MwasalatAiPanel.jsx';
 
 const NAV_ITEMS = [
-  { to: '/mwasalat/instructor/dashboard', id: 'myPrograms', icon: LayoutGrid },
-  { to: '/mwasalat/instructor/programs/new', id: 'addCourse', icon: Plus },
-  { to: '/mwasalat/instructor/students', id: 'myStudents', icon: Users },
-  { to: '/mwasalat/instructor/at-risk', id: 'atRisk', icon: AlertTriangle },
+  { to: '/instructor/dashboard', id: 'dashboard', icon: LayoutGrid },
+  { to: '/instructor/chat', id: 'adminChat', icon: MessageCircle },
+  { to: '/instructor/programs', id: 'myPrograms', icon: Table2 },
+  { to: '/instructor/calendar', id: 'calendar', icon: CalendarDays },
+  { to: '/instructor/programs/new', id: 'addCourse', icon: Plus },
+  { to: '/instructor/students', id: 'myStudents', icon: Users },
+  { to: '/instructor/at-risk', id: 'atRisk', icon: AlertTriangle },
 ];
 
 export default function MwasalatInstructorLayout({ title, subtitle, actions, children }) {
@@ -30,32 +34,27 @@ export default function MwasalatInstructorLayout({ title, subtitle, actions, chi
 
   const handleLogout = () => {
     mwasalatAuthService.logout();
-    navigate('/mwasalat/instructor/login');
+    navigate(MWASALAT_ROLE_LOGIN[user?.role] ?? MWASALAT_ROLE_LOGIN.instructor);
   };
 
   const sidebarContent = (
     <>
-      {/* Branded red header band (real Mwasalat identity color), matching the
-          admin/learner sidebars — the logo's white plate goes in its own white
-          chip rather than floating directly on the red. */}
+      {/* Branded red header band (real Mwasalat identity color), same full
+          logo mark and size as the public landing page header — the PNG has
+          its own white plate baked in, so it reads fine directly on the red. */}
       <div
-        className="h-20 flex items-center justify-between px-4 border-b border-black/10 flex-shrink-0"
+        className="flex items-center justify-between px-4 py-4 border-b border-black/10 flex-shrink-0"
         style={{ background: 'linear-gradient(135deg, #7A1420 0%, #9C1B29 55%, #C22033 100%)' }}
       >
-        <Link to="/mwasalat" className="flex items-center gap-2.5 min-w-0">
-          <span className="w-11 h-11 rounded-2xl bg-white shadow-sm flex items-center justify-center flex-shrink-0 p-1.5">
-            <img src="/mwasalat-mark.png" alt="Mwasalat" className="w-full h-full object-contain" />
-          </span>
-          <span className="min-w-0 leading-tight">
-            <span className="block text-white font-bold text-sm tracking-wide truncate">{t('common.brandName')}</span>
-            <span className="block text-white/75 text-[11px] truncate">{t('common.brandTagline')}</span>
-          </span>
+        <Link to="/" className="flex flex-col gap-1.5 min-w-0">
+          <img src="/mwasalat-logo.png" alt="Mwasalat" className="h-16 w-auto object-contain" />
+          <span className="text-white/80 text-[11px] font-medium tracking-wide truncate">{t('common.brandTagline')}</span>
         </Link>
         <button
           type="button"
           onClick={() => setSidebarOpen(false)}
           aria-label={t('common.closeMenu')}
-          className="lg:hidden w-8 h-8 rounded-lg flex items-center justify-center text-white/80 hover:bg-white/10 hover:text-white transition-colors"
+          className="lg:hidden w-8 h-8 rounded-lg flex items-center justify-center text-white/80 hover:bg-white/10 hover:text-white transition-colors flex-shrink-0"
         >
           <X className="w-4 h-4" />
         </button>
@@ -87,7 +86,7 @@ export default function MwasalatInstructorLayout({ title, subtitle, actions, chi
 
       <div className="p-3 border-t border-[#E2E8F0] flex-shrink-0">
         <Link
-          to="/mwasalat/instructor/profile"
+          to="/instructor/profile"
           className="flex items-center gap-2 px-2 py-1.5 mb-1.5 rounded-lg bg-[#F8F9FB] hover:bg-mwasalatInk-100 transition-colors"
         >
           <div className="w-8 h-8 rounded-full bg-mwasalatInk-500 flex items-center justify-center text-white text-xs font-semibold flex-shrink-0">
@@ -147,12 +146,11 @@ export default function MwasalatInstructorLayout({ title, subtitle, actions, chi
           </div>
           <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
             {actions}
-            <MwasalatAiTrigger theme="light" />
             <MwasalatLanguageToggle theme="light" />
             <MwasalatChatBell theme="light" />
             <MwasalatNotificationBell theme="light" />
             <Link
-              to="/mwasalat/instructor/profile"
+              to="/instructor/profile"
               aria-label={t('common.viewProfile')}
               className="w-8 h-8 rounded-full bg-mwasalatRed-500 flex items-center justify-center text-white text-xs font-semibold flex-shrink-0 ring-2 ring-mwasalatRed-100 hover:ring-mwasalatRed-300 transition-all"
             >
@@ -166,6 +164,7 @@ export default function MwasalatInstructorLayout({ title, subtitle, actions, chi
         </main>
       </div>
 
+      <MwasalatAiTrigger />
       <MwasalatAiPanel />
     </div>
   );

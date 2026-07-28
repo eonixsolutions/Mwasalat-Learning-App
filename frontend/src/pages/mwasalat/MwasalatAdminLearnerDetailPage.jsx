@@ -38,8 +38,8 @@ export default function MwasalatAdminLearnerDetailPage() {
 
   return (
     <MwasalatAdminLayout
-      title={data?.learner?.name ?? t('learnerDetail.defaultTitle')}
-      subtitle={data?.learner?.email ?? t('learnerDetail.defaultSubtitle')}
+      title={t('learnerDetail.defaultTitle')}
+      subtitle={data?.learner?.name ?? t('learnerDetail.defaultSubtitle')}
     >
       <div className="max-w-5xl mx-auto">
         {isLoading ? (

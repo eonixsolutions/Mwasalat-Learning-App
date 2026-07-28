@@ -1,4 +1,63 @@
 {
+  "supervisor": {
+    "defaultName": "Supervisor",
+    "nav": {
+      "tagline": "Supervisor",
+      "section": "Supervisor",
+      "myTeam": "My Team",
+      "adminChat": "Chat with Admin"
+    },
+    "dashboard": {
+      "title": "My Team",
+      "subtitle": "Direct reports and their course progress — read-only",
+      "loading": "Loading your team…",
+      "noReports": "No one currently lists you as their supervisor.",
+      "directReports": "Direct Reports",
+      "totalEnrollments": "Total Enrollments",
+      "totalCompletions": "Total Completions",
+      "rosterTitle": "Team Roster",
+      "blocked": "Blocked",
+      "enrolledLabel": "Enrolled",
+      "completedLabel": "Completed",
+      "lastLoginLabel": "Last Login",
+      "neverLoggedIn": "Never",
+      "overdue": {
+        "title": "Overdue Mandatory Courses ({{count}})",
+        "dueOn": "was due {{date}}",
+        "escalateCta": "Report to Admin",
+        "escalated": "Reported",
+        "escalateSuccess": "Platform Admin notified",
+        "escalateFailed": "Failed to notify Platform Admin"
+      }
+    }
+  },
+  "itSupport": {
+    "defaultName": "IT Support",
+    "nav": {
+      "tagline": "IT Support",
+      "section": "IT Support",
+      "dashboard": "Dashboard",
+      "adminChat": "Chat with Admin",
+      "activityLog": "Activity Log"
+    },
+    "dashboard": {
+      "title": "IT Support",
+      "subtitle": "Platform health and account status — read-only",
+      "loading": "Loading overview…",
+      "healthOk": "All systems operational",
+      "healthDegraded": "Platform degraded — database unreachable",
+      "uptimeLabel": "Uptime: {{uptime}}",
+      "activeUsers": "Active Users",
+      "blockedUsers": "Blocked Users",
+      "invitedUsers": "Invited, Not Activated",
+      "recentLockoutsTitle": "Recent Account Lockouts",
+      "noLockouts": "No accounts are currently locked out.",
+      "lockedUntil": "Locked until {{date}}",
+      "failedAttempts": "{{count}} failed attempts",
+      "activityLogCta": "View Activity Log",
+      "activityLogCtaBody": "Full audit trail of actions across the platform"
+    }
+  },
   "adminDashboard": {
     "welcomeTitle": "Welcome back, {{name}}",
     "greetings": {
@@ -8,11 +67,12 @@
     },
     "defaultAdminName": "Admin",
     "subtitle": "Here's what's happening with your learning platform today.",
+    "departmentContext": "Department: {{name}}",
     "loadingOverview": "Loading overview…",
     "untitledProgram": "Untitled program",
     "generateReport": "Generate Report",
     "stats": {
-      "totalRevenue": "Total Revenue",
+      "totalRevenue": "Total Revenue (External Learners)",
       "totalLearners": "Total Learners",
       "instructors": "Instructors",
       "activePrograms": "Active Programs",
@@ -24,20 +84,10 @@
       "draftPrograms": "{{count}} Draft Programs"
     },
     "notifyModal": {
-      "title": "Send Notification",
-      "body": "Every learner and instructor currently on the platform gets this instantly.",
-      "titleLabel": "Title",
-      "titlePlaceholder": "e.g. Scheduled maintenance tonight",
-      "messageLabel": "Message",
-      "messagePlaceholder": "What do they need to know?",
-      "sending": "Sending…",
-      "sendButton": "Send to Everyone",
-      "validationError": "Title and message are required",
-      "sentToast": "Notification sent to everyone",
-      "sendFailed": "Failed to send notification"
+      "title": "Send Notification"
     },
     "charts": {
-      "monthlyRevenueTitle": "Revenue Overview",
+      "monthlyRevenueTitle": "External Learner Revenue",
       "monthlyRevenueSubtitle": "Last 6 months, OMR",
       "weeklyLearnersTitle": "New Learners",
       "weeklyLearnersSubtitle": "Signups over the last 8 weeks",
@@ -94,7 +144,13 @@
     "blockedToast": "Learner blocked",
     "unblockedToast": "Learner unblocked",
     "updateFailed": "Failed to update learner",
+    "allRoles": "All",
+    "roles": {
+      "learner": "Learner",
+      "external_learner": "External Learner"
+    },
     "columns": {
+      "role": "Type",
       "lastActive": "Last Active",
       "neverLoggedIn": "Never logged in"
     }
@@ -143,6 +199,75 @@
       "submitButton": "Send Invitation"
     }
   },
+  "adminStaff": {
+    "subtitle": "Department admins, supervisors, and IT support accounts",
+    "inviteButton": "Invite Staff",
+    "searchPlaceholder": "Search by name or email…",
+    "allRoles": "All Roles",
+    "emptyNoStaff": "No staff accounts yet — send an invite to get started.",
+    "emptyNoMatch": "No staff match this filter.",
+    "blockedToast": "Account blocked",
+    "unblockedToast": "Account unblocked",
+    "updateFailed": "Failed to update account",
+    "columns": { "role": "Role" },
+    "roles": {
+      "department_admin": "Department Admin",
+      "supervisor": "Supervisor",
+      "it_support": "IT Support"
+    },
+    "inviteModal": {
+      "title": "Invite Staff",
+      "roleLabel": "Role",
+      "selectDepartment": "Select a department",
+      "sentToast": "Invitation sent",
+      "sendFailed": "Failed to send invitation",
+      "submitButton": "Send Invitation"
+    }
+  },
+  "adminDepartments": {
+    "subtitle": "Org structure used to scope access and reporting",
+    "createTitle": "Add a Department",
+    "createSubtitle": "Departments scope what department admins and reports can see.",
+    "namePlaceholder": "Department name",
+    "nameArPlaceholder": "Arabic name (optional)",
+    "nameRequired": "Department name is required",
+    "descriptionPlaceholder": "Description (optional)",
+    "addCta": "Add Department",
+    "createdToast": "Department created",
+    "updatedToast": "Department updated",
+    "deletedToast": "Department deleted",
+    "saveFailed": "Failed to save department",
+    "empty": "No departments yet.",
+    "searchPlaceholder": "Search departments…",
+    "active": "Active",
+    "inactive": "Inactive",
+    "columns": { "name": "Name", "nameAr": "Arabic Name", "members": "Members", "status": "Status" },
+    "editModal": { "title": "Edit Department" },
+    "deleteModal": { "title": "Delete department?", "body": "This will permanently delete \"{{name}}\". This can't be undone." }
+  },
+  "adminCohorts": {
+    "subtitle": "Ad-hoc rosters used to target mandatory training assignments",
+    "createTitle": "Create Cohort",
+    "namePlaceholder": "Cohort name",
+    "nameArPlaceholder": "Arabic name (optional)",
+    "descriptionPlaceholder": "Description (optional)",
+    "departmentLabel": "Department",
+    "noDepartment": "No department",
+    "membersLabel": "Members",
+    "selected": "selected",
+    "memberSearchPlaceholder": "Search learners by name or email…",
+    "noLearners": "No learners found.",
+    "addCta": "Create Cohort",
+    "createdToast": "Cohort created",
+    "updatedToast": "Cohort updated",
+    "deletedToast": "Cohort deleted",
+    "saveFailed": "Failed to save cohort",
+    "empty": "No cohorts yet.",
+    "searchPlaceholder": "Search cohorts…",
+    "columns": { "name": "Name", "members": "Members" },
+    "editModal": { "title": "Edit Cohort" },
+    "deleteModal": { "title": "Delete cohort?", "body": "This will permanently delete \"{{name}}\". This can't be undone." }
+  },
   "instructorDetail": {
     "defaultTitle": "Instructor",
     "defaultSubtitle": "Programs & performance",
@@ -189,7 +314,7 @@
     }
   },
   "paymentsPage": {
-    "subtitle": "Revenue and transaction history across the platform",
+    "subtitle": "External-learner revenue and transaction history — internal training is free and doesn't appear here",
     "empty": "No payments recorded yet.",
     "searchPlaceholder": "Search by learner or program…",
     "statusPaid": "Paid",
@@ -199,7 +324,7 @@
     "vsLastMonth": "vs last month",
     "exportCsv": "Export as CSV",
     "stats": {
-      "totalRevenue": "Total Revenue",
+      "totalRevenue": "Total Revenue (External Learners)",
       "thisMonth": "This Month",
       "totalTransactions": "Total Transactions"
     },
@@ -210,7 +335,7 @@
   },
   "salesReportPage": {
     "title": "Sales Report",
-    "subtitle": "Revenue analytics, filtered by date range",
+    "subtitle": "External-learner revenue analytics, filtered by date range — internal training is free and isn't included",
     "exportExcel": "Export Excel",
     "printSaveAsPdf": "Print / Save as PDF",
     "printHeading": "Sales Report — {{range}}",
@@ -229,7 +354,7 @@
       "custom": "Custom"
     },
     "stats": {
-      "totalRevenue": "Total Revenue",
+      "totalRevenue": "Total Revenue (External Learners)",
       "totalSales": "Total Sales",
       "averageSaleValue": "Average Sale Value"
     },
@@ -309,14 +434,136 @@
       "updatedSettings": "Updated settings"
     }
   },
+  "bulkImport": {
+    "buttonLabel": "Bulk Import",
+    "title": "Bulk Import Users",
+    "body": "Upload a CSV with name, email, role, and phone columns. Each row gets a real learner account in your department and an email invite to set their password — role defaults to \"learner\" if left blank.",
+    "downloadTemplate": "Download CSV template",
+    "chooseFile": "Click to choose a CSV file",
+    "csvOnly": "CSV files only, up to 5 MB",
+    "importCta": "Import Users",
+    "importing": "Importing…",
+    "importFailed": "Import failed — please try again",
+    "created": "Created",
+    "skipped": "Skipped",
+    "failed": "Failed",
+    "createdNote": "Invitation emails were sent to set their passwords.",
+    "rowLabel": "Row {{row}}"
+  },
+  "adminCategories": {
+    "subtitle": "Manage the category taxonomy courses are created against",
+    "createTitle": "Add Category",
+    "createSubtitle": "Categories appear in the course-creation form's category picker.",
+    "namePlaceholder": "e.g. Safety Training",
+    "nameArPlaceholder": "بالعربية (اختياري)",
+    "nameRequired": "Category name is required",
+    "descriptionPlaceholder": "Short description shown to instructors when picking a category…",
+    "addCta": "Add Category",
+    "createdToast": "Category added",
+    "updatedToast": "Category updated",
+    "deletedToast": "Category deleted",
+    "saveFailed": "Something went wrong — please try again",
+    "active": "Active",
+    "inactive": "Inactive",
+    "empty": "No categories yet.",
+    "searchPlaceholder": "Search categories…",
+    "columns": {
+      "name": "Name",
+      "nameAr": "Name (Arabic)",
+      "courseCount": "Courses",
+      "status": "Status"
+    },
+    "subCategories": {
+      "label": "Subcategories",
+      "addPlaceholder": "Add a subcategory…",
+      "addCta": "Add"
+    },
+    "suggest": {
+      "cta": "AI Suggest",
+      "nameRequired": "Enter a category name first",
+      "appliedToast": "AI suggestion applied — review before saving",
+      "failed": "Failed to generate a suggestion"
+    },
+    "editModal": {
+      "title": "Edit Category"
+    },
+    "deleteModal": {
+      "title": "Delete this category?",
+      "body": "\"{{name}}\" will be removed from the course-creation picker. This can't be undone."
+    }
+  },
+  "platformAdminsPage": {
+    "title": "Platform Admin",
+    "subtitle": "The account that runs day-to-day platform operations",
+    "addButton": "Add Platform Admin",
+    "editButton": "Edit",
+    "messageButton": "Message",
+    "resendButton": "Resend Invite",
+    "resendToast": "Invitation resent",
+    "emptyNoAdmins": "No platform admin yet — add one to get started.",
+    "blockedToast": "Platform admin blocked",
+    "unblockedToast": "Platform admin unblocked",
+    "updateFailed": "Failed to update platform admin",
+    "inviteModal": {
+      "title": "Add Platform Admin",
+      "body": "They'll receive an email with a link to set their own password. Platform admins can manage instructors, learners, notifications, and categories — but never see revenue.",
+      "emailPlaceholder": "admin@mwasalat.om",
+      "sentToast": "Invitation sent",
+      "sendFailed": "Failed to send invitation",
+      "submitButton": "Send Invitation"
+    },
+    "editModal": {
+      "title": "Edit Platform Admin",
+      "body": "Update this account's name or email address.",
+      "submitButton": "Save Changes",
+      "savedToast": "Platform admin updated",
+      "saveFailed": "Failed to update platform admin",
+      "emailChangeWarning": "Changing the email sends a new invitation — they'll need to set a password again before they can log in.",
+      "emailChangedToast": "New invitation sent to the updated email"
+    }
+  },
+  "adminChat": {
+    "title": "Admin Chat",
+    "subtitleSuperAdmin": "A direct line between Super Admin and Platform Admin",
+    "subtitleDepartmentAdmin": "A direct line between Department Admin and Platform Admin",
+    "subtitlePlatformAdmin": "A direct line with Super Admin, Department Admins, Instructors, Supervisors, and IT Support",
+    "subtitleInstructor": "A direct line with Platform Admin",
+    "subtitleSupervisor": "A direct line with Platform Admin",
+    "subtitleItSupport": "A direct line with Platform Admin",
+    "inboxTitle": "Conversations",
+    "backToInbox": "Back to conversations",
+    "noCounterparts": "No one to message yet.",
+    "sayHello": "Say hello 👋",
+    "pickCounterpart": "Select a conversation",
+    "pickCounterpartHint": "Choose someone from the list to start or continue a conversation.",
+    "sendFailed": "Failed to send message",
+    "roleLabels": {
+      "super_admin": "Super Admin",
+      "department_admin": "Department Admin",
+      "instructor": "Instructor",
+      "supervisor": "Supervisor",
+      "it_support": "IT Support"
+    }
+  },
   "announcementsPage": {
-    "subtitle": "Broadcast a message to every learner and instructor",
+    "subtitle": "Broadcast a message to any combination of learners, instructors, and staff",
     "composeTitle": "New Announcement",
-    "composeSubtitle": "Sent instantly to everyone on the platform, in-app and via the notification bell.",
+    "composeSubtitle": "Sent instantly, in-app and via the notification bell, to the audiences you choose below.",
     "titleLabel": "Title",
     "titleRequired": "Title is required",
     "messageLabel": "Message",
     "messageRequired": "Message is required",
+    "audienceLabel": "Audience",
+    "audienceHint": "Select one or more. Choose Everyone to reach all roles.",
+    "audience": {
+      "all": "Everyone",
+      "learner": "Internal students",
+      "externalLearner": "External students",
+      "instructor": "Instructors",
+      "supervisor": "Supervisors",
+      "departmentAdmin": "Department admins",
+      "itSupport": "IT support"
+    },
     "sendCta": "Send Announcement",
     "sending": "Sending…",
     "sentToast": "Announcement sent",
@@ -327,7 +574,28 @@
     "columns": {
       "title": "Title",
       "message": "Message",
+      "audience": "Audience",
       "readCount": "Read By",
+      "sentAt": "Sent"
+    }
+  },
+  "remindersPage": {
+    "subtitle": "Automated certificate-expiry and inactivity reminders sent to learners",
+    "stats": {
+      "total": "Total Reminders"
+    },
+    "last200": "Last 200 sent",
+    "types": {
+      "certificateExpiry": "Certificate Expiry",
+      "inactivityNudge": "Inactivity Nudge"
+    },
+    "allTypes": "All Types",
+    "empty": "No reminders sent yet.",
+    "searchPlaceholder": "Search by title, message, or learner…",
+    "columns": {
+      "type": "Type",
+      "recipient": "Learner",
+      "message": "Reminder",
       "sentAt": "Sent"
     }
   },
@@ -339,14 +607,42 @@
     "platformNameLabel": "Platform Name",
     "supportEmailLabel": "Support Email",
     "supportEmailPlaceholder": "support@mwasalat.om",
+    "timezoneLabel": "Platform Timezone",
+    "timezoneHint": "Used for scheduling, \"today\" boundaries, and report date ranges across the platform.",
     "savedToast": "Settings saved",
-    "saveFailed": "Failed to save settings"
+    "saveFailed": "Failed to save settings",
+    "ipRestriction": {
+      "title": "IP Restriction",
+      "subtitle": "Limit sign-in and self-registration to specific networks.",
+      "enableLabel": "Restrict platform access by IP address",
+      "allowedIpsLabel": "Allowed IPs / CIDR ranges",
+      "allowedIpsPlaceholder": "203.0.113.10\n10.0.0.0/24",
+      "allowedIpsHint": "One IP or CIDR range per line. Applies to login and registration.",
+      "enabledWarning": "Once enabled, only listed networks will be able to sign in or register. Make sure your own IP is included before saving."
+    },
+    "loginSecurity": {
+      "title": "Login Security",
+      "subtitle": "Account lockout and password expiry policy for all sign-ins.",
+      "maxAttemptsLabel": "Max failed login attempts",
+      "maxAttemptsHint": "Account locks temporarily after this many wrong passwords in a row.",
+      "lockoutMinutesLabel": "Lockout duration (minutes)",
+      "lockoutMinutesHint": "How long a locked account must wait before trying again.",
+      "passwordExpiryLabel": "Password expiry (days)",
+      "passwordExpiryHint": "Force a password change after this many days. Set to 0 to disable."
+    },
+    "maintenanceMode": {
+      "title": "Maintenance Mode",
+      "subtitle": "Temporarily block sign-in and self-registration for everyone except admins.",
+      "enableLabel": "Put the platform into maintenance mode",
+      "enabledWarning": "Once enabled, learners and instructors will be signed out of new sign-ins immediately — only super admin and platform admin accounts can still log in."
+    }
   },
   "dataTable": {
     "loading": "Loading…",
     "defaultEmpty": "Nothing here yet.",
     "defaultSearchPlaceholder": "Search…",
-    "pageInfo": "Page {{current}} of {{pages}} · {{count}} result(s)"
+    "pageInfo": "Page {{current}} of {{pages}} · {{count}} result(s)",
+    "rowsPerPage": "Rows per page"
   },
   "userTable": {
     "joined": "Joined",
@@ -355,7 +651,8 @@
     "active": "Active",
     "blocked": "Blocked",
     "block": "Block",
-    "unblock": "Unblock"
+    "unblock": "Unblock",
+    "message": "Message"
   },
   "userFilters": {
     "all": "All",

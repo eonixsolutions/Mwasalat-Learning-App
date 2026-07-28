@@ -10,6 +10,8 @@ import { useMwasalatAuthStore } from '../../store/mwasalatAuthStore.js';
 import { MWASALAT_ROLE_DASHBOARD } from '../../constants/mwasalatRoles.js';
 import MwasalatLanguageToggle from '../../components/mwasalat/MwasalatLanguageToggle.jsx';
 import MwasalatGoogleButton from '../../components/mwasalat/MwasalatGoogleButton.jsx';
+import MwasalatTwoFactorChallenge from '../../components/mwasalat/MwasalatTwoFactorChallenge.jsx';
+import MwasalatPasswordExpiredChallenge from '../../components/mwasalat/MwasalatPasswordExpiredChallenge.jsx';
 
 const QUOTE_IDS = ['safeTrip', 'skilledPeople', 'learnToday'];
 
@@ -19,6 +21,8 @@ export default function MwasalatLogin() {
   const { isAuthenticated, user } = useMwasalatAuthStore();
   const [showPassword, setShowPassword] = useState(false);
   const [quoteIdx, setQuoteIdx] = useState(0);
+  const [twoFactorChallenge, setTwoFactorChallenge] = useState(null);
+  const [passwordExpiredChallenge, setPasswordExpiredChallenge] = useState(null);
 
   useEffect(() => {
     const timer = setInterval(() => setQuoteIdx((i) => (i + 1) % QUOTE_IDS.length), 5000);
@@ -27,26 +31,32 @@ export default function MwasalatLogin() {
 
   const { register, handleSubmit, formState: { errors } } = useForm();
 
+  const goToDashboard = () => {
+    const loggedInUser = useMwasalatAuthStore.getState().user;
+    navigate(MWASALAT_ROLE_DASHBOARD[loggedInUser?.role] || '/');
+  };
+
   const { mutate, isPending } = useMutation({
     mutationFn: mwasalatAuthService.login,
-    onSuccess: () => {
-      const loggedInUser = useMwasalatAuthStore.getState().user;
-      navigate(MWASALAT_ROLE_DASHBOARD[loggedInUser?.role] || '/mwasalat');
+    onSuccess: (data) => {
+      if (data?.requiresPasswordChange) { setPasswordExpiredChallenge(data.challengeToken); return; }
+      if (data?.requires2FA) { setTwoFactorChallenge(data.challengeToken); return; }
+      goToDashboard();
     },
     onError: (err) => toast.error(err.response?.data?.message || t('auth.errors.loginFailed')),
   });
 
   const { mutate: googleMutate } = useMutation({
     mutationFn: mwasalatAuthService.googleLogin,
-    onSuccess: () => {
-      const loggedInUser = useMwasalatAuthStore.getState().user;
-      navigate(MWASALAT_ROLE_DASHBOARD[loggedInUser?.role] || '/mwasalat');
+    onSuccess: (data) => {
+      if (data?.requires2FA) { setTwoFactorChallenge(data.challengeToken); return; }
+      goToDashboard();
     },
     onError: (err) => toast.error(err.response?.data?.message || t('auth.errors.loginFailed')),
   });
 
-  if (isAuthenticated && user?.role === 'learner') {
-    return <Navigate to={MWASALAT_ROLE_DASHBOARD.learner} replace />;
+  if (isAuthenticated && ['learner', 'external_learner'].includes(user?.role)) {
+    return <Navigate to={MWASALAT_ROLE_DASHBOARD[user.role]} replace />;
   }
 
   const quoteId = QUOTE_IDS[quoteIdx];
@@ -84,8 +94,8 @@ export default function MwasalatLogin() {
             <div className="absolute end-6 bottom-10 w-3 h-3 rotate-45 bg-mwasalatRed-300/80" />
 
             <div className="relative z-10">
-              <Link to="/mwasalat" className="inline-flex bg-white rounded-xl p-2.5 shadow-sm">
-                <img src="/mwasalat-logo.png" alt="Mwasalat" className="h-9 w-auto object-contain" />
+              <Link to="/" className="inline-flex">
+                <img src="/mwasalat-logo.png" alt="Mwasalat" className="h-16 w-auto object-contain" />
               </Link>
             </div>
 
@@ -126,8 +136,8 @@ export default function MwasalatLogin() {
           <div className="flex-1 bg-white p-8 flex flex-col justify-center">
 
             <div className="md:hidden mb-6 flex items-center gap-3">
-              <Link to="/mwasalat">
-                <img src="/mwasalat-logo.png" alt="Mwasalat" className="h-10 w-auto object-contain" />
+              <Link to="/">
+                <img src="/mwasalat-logo.png" alt="Mwasalat" className="h-12 w-auto object-contain" />
               </Link>
               <span className="inline-flex items-center gap-1.5 bg-mwasalatInk-100 rounded-full px-3 py-1">
                 <ShieldCheck className="w-3 h-3 text-mwasalatInk-500" />
@@ -135,96 +145,112 @@ export default function MwasalatLogin() {
               </span>
             </div>
 
-            <div className="flex items-start justify-between mb-6">
-              <div>
-                <h2 className="text-2xl font-bold text-[#1E293B] mb-1">{t('auth.login.title')}</h2>
-                <p className="text-sm text-[#475569]">{t('auth.login.subtitle')}</p>
-              </div>
-              <div className="w-10 h-10 rounded-xl bg-mwasalatInk-100 flex items-center justify-center flex-shrink-0">
-                <ShieldCheck className="w-5 h-5 text-mwasalatInk-500" />
-              </div>
-            </div>
-
-            <form onSubmit={handleSubmit((data) => mutate({ ...data, expectedRole: 'learner' }))} className="space-y-4">
-
-              <div>
-                <label className="block text-sm font-medium text-[#1E293B] mb-1.5">{t('auth.fields.email')}</label>
-                <div className="relative">
-                  <div className="absolute start-3.5 top-1/2 -translate-y-1/2 pointer-events-none">
-                    <Mail className={`w-4 h-4 ${errors.email ? 'text-[#C22033]' : 'text-[#94A3B8]'}`} />
+            {passwordExpiredChallenge ? (
+              <MwasalatPasswordExpiredChallenge
+                challengeToken={passwordExpiredChallenge}
+                onSuccess={goToDashboard}
+                onBack={() => setPasswordExpiredChallenge(null)}
+              />
+            ) : twoFactorChallenge ? (
+              <MwasalatTwoFactorChallenge
+                challengeToken={twoFactorChallenge}
+                onSuccess={goToDashboard}
+                onBack={() => setTwoFactorChallenge(null)}
+              />
+            ) : (
+              <>
+                <div className="flex items-start justify-between mb-6">
+                  <div>
+                    <h2 className="text-2xl font-bold text-[#1E293B] mb-1">{t('auth.login.title')}</h2>
+                    <p className="text-sm text-[#475569]">{t('auth.login.subtitle')}</p>
                   </div>
-                  <input
-                    type="email"
-                    dir="ltr"
-                    placeholder={t('auth.login.emailPlaceholder')}
-                    className={`w-full ps-10 pe-4 py-2.5 rounded-xl border text-sm bg-white text-[#1E293B] placeholder:text-[#94A3B8] focus:outline-none focus:ring-2 transition-colors text-start ${
-                      errors.email ? 'border-[#C22033] focus:ring-[#C22033]/20' : 'border-[#E2E8F0] hover:border-mwasalatInk-300 focus:ring-mwasalatInk-500/20'
-                    }`}
-                    {...register('email', { required: t('auth.errors.emailRequired') })}
-                  />
+                  <div className="w-10 h-10 rounded-xl bg-mwasalatInk-100 flex items-center justify-center flex-shrink-0">
+                    <ShieldCheck className="w-5 h-5 text-mwasalatInk-500" />
+                  </div>
                 </div>
-                {errors.email && <p className="text-xs text-[#C22033] mt-1">{errors.email.message}</p>}
-              </div>
 
-              <div>
-                <label className="block text-sm font-medium text-[#1E293B] mb-1.5">{t('auth.fields.password')}</label>
-                <div className="relative">
-                  <div className="absolute start-3.5 top-1/2 -translate-y-1/2 pointer-events-none">
-                    <Lock className={`w-4 h-4 ${errors.password ? 'text-[#C22033]' : 'text-[#94A3B8]'}`} />
+                <form onSubmit={handleSubmit((data) => mutate({ ...data, expectedRole: ['external_learner'] }))} className="space-y-4">
+
+                  <div>
+                    <label className="block text-sm font-medium text-[#1E293B] mb-1.5">{t('auth.fields.email')}</label>
+                    <div className="relative">
+                      <div className="absolute start-3.5 top-1/2 -translate-y-1/2 pointer-events-none">
+                        <Mail className={`w-4 h-4 ${errors.email ? 'text-[#C22033]' : 'text-[#94A3B8]'}`} />
+                      </div>
+                      <input
+                        type="email"
+                        dir="ltr"
+                        placeholder={t('auth.login.emailPlaceholder')}
+                        className={`w-full ps-10 pe-4 py-2.5 rounded-xl border text-sm bg-white text-[#1E293B] placeholder:text-[#94A3B8] focus:outline-none focus:ring-2 transition-colors text-start ${
+                          errors.email ? 'border-[#C22033] focus:ring-[#C22033]/20' : 'border-[#E2E8F0] hover:border-mwasalatInk-300 focus:ring-mwasalatInk-500/20'
+                        }`}
+                        {...register('email', { required: t('auth.errors.emailRequired') })}
+                      />
+                    </div>
+                    {errors.email && <p className="text-xs text-[#C22033] mt-1">{errors.email.message}</p>}
                   </div>
-                  <input
-                    type={showPassword ? 'text' : 'password'}
-                    dir="ltr"
-                    placeholder="••••••••"
-                    className={`w-full ps-10 pe-10 py-2.5 rounded-xl border text-sm bg-white text-[#1E293B] placeholder:text-[#94A3B8] focus:outline-none focus:ring-2 transition-colors text-start ${
-                      errors.password ? 'border-[#C22033] focus:ring-[#C22033]/20' : 'border-[#E2E8F0] hover:border-mwasalatInk-300 focus:ring-mwasalatInk-500/20'
-                    }`}
-                    {...register('password', { required: t('auth.errors.passwordRequired') })}
-                  />
+
+                  <div>
+                    <label className="block text-sm font-medium text-[#1E293B] mb-1.5">{t('auth.fields.password')}</label>
+                    <div className="relative">
+                      <div className="absolute start-3.5 top-1/2 -translate-y-1/2 pointer-events-none">
+                        <Lock className={`w-4 h-4 ${errors.password ? 'text-[#C22033]' : 'text-[#94A3B8]'}`} />
+                      </div>
+                      <input
+                        type={showPassword ? 'text' : 'password'}
+                        dir="ltr"
+                        placeholder="••••••••"
+                        className={`w-full ps-10 pe-10 py-2.5 rounded-xl border text-sm bg-white text-[#1E293B] placeholder:text-[#94A3B8] focus:outline-none focus:ring-2 transition-colors text-start ${
+                          errors.password ? 'border-[#C22033] focus:ring-[#C22033]/20' : 'border-[#E2E8F0] hover:border-mwasalatInk-300 focus:ring-mwasalatInk-500/20'
+                        }`}
+                        {...register('password', { required: t('auth.errors.passwordRequired') })}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword((v) => !v)}
+                        className="absolute end-3.5 top-1/2 -translate-y-1/2 text-[#94A3B8] hover:text-[#475569] transition-colors"
+                        tabIndex={-1}
+                      >
+                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
+                    {errors.password && <p className="text-xs text-[#C22033] mt-1">{errors.password.message}</p>}
+                    <div className="text-end mt-1.5">
+                      <a href="/forgot-password" className="text-xs text-mwasalatInk-500 hover:underline font-medium">{t('auth.forgotPasswordLink')}</a>
+                    </div>
+                  </div>
+
                   <button
-                    type="button"
-                    onClick={() => setShowPassword((v) => !v)}
-                    className="absolute end-3.5 top-1/2 -translate-y-1/2 text-[#94A3B8] hover:text-[#475569] transition-colors"
-                    tabIndex={-1}
+                    type="submit"
+                    disabled={isPending}
+                    className="w-full flex items-center justify-center gap-2 bg-mwasalatInk-500 hover:bg-mwasalatInk-400 disabled:opacity-60 text-white font-semibold px-6 py-3 rounded-xl transition-colors text-sm"
                   >
-                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    {isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <ShieldCheck className="w-4 h-4" />}
+                    {isPending ? t('auth.login.submitPending') : t('auth.login.submitIdle')}
                   </button>
+                </form>
+
+                <div className="flex items-center gap-3 my-5">
+                  <div className="flex-1 h-px bg-[#E2E8F0]" />
+                  <span className="text-xs text-[#94A3B8] font-medium">{t('auth.orDivider')}</span>
+                  <div className="flex-1 h-px bg-[#E2E8F0]" />
                 </div>
-                {errors.password && <p className="text-xs text-[#C22033] mt-1">{errors.password.message}</p>}
-                <div className="text-end mt-1.5">
-                  <a href="/mwasalat/forgot-password" className="text-xs text-mwasalatInk-500 hover:underline font-medium">{t('auth.forgotPasswordLink')}</a>
-                </div>
-              </div>
 
-              <button
-                type="submit"
-                disabled={isPending}
-                className="w-full flex items-center justify-center gap-2 bg-mwasalatInk-500 hover:bg-mwasalatInk-400 disabled:opacity-60 text-white font-semibold px-6 py-3 rounded-xl transition-colors text-sm"
-              >
-                {isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <ShieldCheck className="w-4 h-4" />}
-                {isPending ? t('auth.login.submitPending') : t('auth.login.submitIdle')}
-              </button>
-            </form>
+                <MwasalatGoogleButton
+                  onCredential={(idToken) => googleMutate({ idToken, expectedRole: ['external_learner'] })}
+                  onError={() => toast.error(t('auth.errors.loginFailed'))}
+                />
 
-            <div className="flex items-center gap-3 my-5">
-              <div className="flex-1 h-px bg-[#E2E8F0]" />
-              <span className="text-xs text-[#94A3B8] font-medium">{t('auth.orDivider')}</span>
-              <div className="flex-1 h-px bg-[#E2E8F0]" />
-            </div>
-
-            <MwasalatGoogleButton
-              onCredential={(idToken) => googleMutate({ idToken, expectedRole: 'learner' })}
-              onError={() => toast.error(t('auth.errors.loginFailed'))}
-            />
-
-            <p className="text-center text-xs text-[#94A3B8] mt-4">
-              {t('auth.login.newHere')}{' '}
-              <a href="/mwasalat/register" className="text-mwasalatInk-500 hover:underline font-medium">{t('auth.login.createAccount')}</a>
-            </p>
-            <p className="text-center text-xs text-[#94A3B8] mt-3">
-              {t('auth.login.backTo')}{' '}
-              <a href="/mwasalat" className="text-mwasalatInk-500 hover:underline font-medium">{t('auth.login.mwasalatHome')}</a>
-            </p>
+                <p className="text-center text-xs text-[#94A3B8] mt-4">
+                  {t('auth.login.newHere')}{' '}
+                  <a href="/register/external" className="text-mwasalatInk-500 hover:underline font-medium">{t('auth.login.createAccount')}</a>
+                </p>
+                <p className="text-center text-xs text-[#94A3B8] mt-3">
+                  {t('auth.login.backTo')}{' '}
+                  <a href="/" className="text-mwasalatInk-500 hover:underline font-medium">{t('auth.login.mwasalatHome')}</a>
+                </p>
+              </>
+            )}
           </div>
         </div>
 

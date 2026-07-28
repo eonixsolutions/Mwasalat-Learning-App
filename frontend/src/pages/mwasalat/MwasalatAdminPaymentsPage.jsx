@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Wallet, TrendingUp, Receipt, Download } from 'lucide-react';
+import { Wallet, TrendingUp, Receipt } from 'lucide-react';
 import MwasalatAdminLayout from '../../layouts/MwasalatAdminLayout.jsx';
 import MwasalatDataTable from '../../components/mwasalat/MwasalatDataTable.jsx';
 import MwasalatStatCard from '../../components/mwasalat/MwasalatStatCard.jsx';
@@ -40,33 +40,6 @@ export default function MwasalatAdminPaymentsPage() {
   const thisMonth = monthly[monthly.length - 1];
   const revenueGrowthPct = lastMonth?.value ? Math.round(((thisMonth.value - lastMonth.value) / lastMonth.value) * 100) : null;
   const transactionsGrowthPct = lastMonth?.count ? Math.round(((thisMonth.count - lastMonth.count) / lastMonth.count) * 100) : null;
-
-  const handleExportCsv = () => {
-    const header = ['Date', 'Time', 'Learner', 'Email', 'Program', 'Category', 'Amount', 'Currency', 'Status'];
-    const csvRows = rows.map((tx) => [
-      new Date(tx.paidAt).toISOString().slice(0, 10),
-      new Date(tx.paidAt).toISOString().slice(11, 16),
-      tx.learner?.name ?? '',
-      tx.learner?.email ?? '',
-      tx.program?.title ?? '',
-      tx.program?.category ?? '',
-      tx.amount.toFixed(2),
-      tx.currency,
-      tx.status,
-    ]);
-    const csv = [header, ...csvRows]
-      .map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(','))
-      .join('\n');
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'mwasalat-payments.csv';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  };
 
   const COLUMNS = [
     {
@@ -133,17 +106,6 @@ export default function MwasalatAdminPaymentsPage() {
     <MwasalatAdminLayout
       title={t('admin.nav.payments')}
       subtitle={t('paymentsPage.subtitle')}
-      actions={(
-        <button
-          type="button"
-          onClick={handleExportCsv}
-          disabled={!rows.length}
-          aria-label={t('paymentsPage.exportCsv')}
-          className="w-9 h-9 rounded-full flex items-center justify-center text-[#475569] hover:bg-[#F1F5F9] hover:text-mwasalatInk-500 disabled:opacity-40 transition-colors flex-shrink-0"
-        >
-          <Download className="w-4 h-4" />
-        </button>
-      )}
     >
       <div className="max-w-6xl mx-auto">
         <div className="grid sm:grid-cols-3 gap-5 mb-6">

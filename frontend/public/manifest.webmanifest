@@ -1,0 +1,13 @@
+{
+  "name": "Mwasalat Learning Platform",
+  "short_name": "Mwasalat",
+  "description": "Courses, certificates, and live classes for Mwasalat Oman.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#F6EFEF",
+  "theme_color": "#7A1420",
+  "icons": [
+    { "src": "/mwasalat-logo.png", "sizes": "182x150", "type": "image/png", "purpose": "any" }
+  ]
+}

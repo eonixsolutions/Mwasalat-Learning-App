@@ -2,15 +2,19 @@ import { Router } from 'express';
 import rateLimit from 'express-rate-limit';
 import { mwasalatAiController } from './mwasalatAi.controller.js';
 import { mwasalatAuthMiddleware } from '../mwasalatAuth/mwasalatAuth.middleware.js';
-import { MWASALAT_ROLES } from '../mwasalatUser/mwasalatUser.constants.js';
+import { MWASALAT_ROLES, MWASALAT_LEARNER_ROLES } from '../mwasalatUser/mwasalatUser.constants.js';
 
 const router = Router();
 
-// All three roles get an assistant, each scoped to their own data —
-// mwasalatAi.service.js picks the tool set/system instruction per role.
+// All four roles get an assistant, each scoped to their own data —
+// mwasalatAi.service.js picks the tool set/system instruction per role
+// (Platform Admin gets the same operational tools as Super Admin minus
+// revenue/sales/transaction data, matching the finance nav restriction).
 router.use(
   mwasalatAuthMiddleware.authenticate,
-  mwasalatAuthMiddleware.authorize(MWASALAT_ROLES.SUPER_ADMIN, MWASALAT_ROLES.INSTRUCTOR, MWASALAT_ROLES.LEARNER)
+  mwasalatAuthMiddleware.authorize(
+    MWASALAT_ROLES.SUPER_ADMIN, MWASALAT_ROLES.PLATFORM_ADMIN, MWASALAT_ROLES.INSTRUCTOR, ...MWASALAT_LEARNER_ROLES
+  )
 );
 
 // Costs real Gemini tokens per call, so this gets a much tighter cap than the

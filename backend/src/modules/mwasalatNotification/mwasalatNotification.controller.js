@@ -8,7 +8,7 @@ const create = asyncHandler(async (req, res) => {
 });
 
 const list = asyncHandler(async (req, res) => {
-  const notifications = await mwasalatNotificationService.list(req.mwasalatUser._id);
+  const notifications = await mwasalatNotificationService.list(req.mwasalatUser._id, req.mwasalatUser.role);
   successResponse(res, 'Notifications fetched', notifications);
 });
 
@@ -18,7 +18,7 @@ const markRead = asyncHandler(async (req, res) => {
 });
 
 const markAllRead = asyncHandler(async (req, res) => {
-  await mwasalatNotificationService.markAllRead(req.mwasalatUser._id);
+  await mwasalatNotificationService.markAllRead(req.mwasalatUser._id, req.mwasalatUser.role);
   successResponse(res, 'All marked as read');
 });
 
@@ -27,9 +27,34 @@ const listSent = asyncHandler(async (req, res) => {
   successResponse(res, 'Sent notifications fetched', notifications);
 });
 
+const listReminders = asyncHandler(async (req, res) => {
+  const notifications = await mwasalatNotificationService.listReminders({ type: req.query.type });
+  successResponse(res, 'Reminders fetched', notifications);
+});
+
 const sendFromInstructor = asyncHandler(async (req, res) => {
   const result = await mwasalatNotificationService.sendFromInstructor(req.mwasalatUser, req.body, req.mwasalatUser);
   successResponse(res, 'Notification sent', result, 201);
 });
 
-export const mwasalatNotificationController = { create, list, markRead, markAllRead, listSent, sendFromInstructor };
+const subscribePush = asyncHandler(async (req, res) => {
+  await mwasalatNotificationService.subscribePush(req.mwasalatUser, req.body.subscription, req.headers['user-agent']);
+  successResponse(res, 'Push subscription saved');
+});
+
+const unsubscribePush = asyncHandler(async (req, res) => {
+  await mwasalatNotificationService.unsubscribePush(req.body.endpoint);
+  successResponse(res, 'Push subscription removed');
+});
+
+export const mwasalatNotificationController = {
+  create,
+  list,
+  markRead,
+  markAllRead,
+  listSent,
+  listReminders,
+  sendFromInstructor,
+  subscribePush,
+  unsubscribePush,
+};

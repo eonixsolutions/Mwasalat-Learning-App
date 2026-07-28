@@ -345,7 +345,7 @@ export default function MwasalatAdminSalesReportPage() {
               <div className="card p-5">
                 <div className="flex items-center justify-between mb-4">
                   <p className="text-sm font-semibold text-[#1E293B]">{t('salesReportPage.charts.topProgramsByRevenue')}</p>
-                  <Link to="/mwasalat/admin/programs" className="inline-flex items-center gap-0.5 text-xs font-medium text-mwasalatInk-500 hover:text-mwasalatInk-400 transition-colors flex-shrink-0">
+                  <Link to="/admin/programs" className="inline-flex items-center gap-0.5 text-xs font-medium text-mwasalatInk-500 hover:text-mwasalatInk-400 transition-colors flex-shrink-0">
                     {t('adminDashboard.activity.viewAll')} <ArrowRight className="w-3 h-3 rtl:rotate-180" />
                   </Link>
                 </div>

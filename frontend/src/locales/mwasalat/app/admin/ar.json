@@ -1,4 +1,63 @@
 {
+  "supervisor": {
+    "defaultName": "المشرف",
+    "nav": {
+      "tagline": "المشرف",
+      "section": "المشرف",
+      "myTeam": "فريقي",
+      "adminChat": "محادثة الإدارة"
+    },
+    "dashboard": {
+      "title": "فريقي",
+      "subtitle": "التقارير المباشرة وتقدّمهم في الدورات — للعرض فقط",
+      "loading": "جارٍ تحميل فريقك…",
+      "noReports": "لا يوجد حاليًا من يُدرجك كمشرف له.",
+      "directReports": "التقارير المباشرة",
+      "totalEnrollments": "إجمالي التسجيلات",
+      "totalCompletions": "إجمالي الإكمالات",
+      "rosterTitle": "قائمة الفريق",
+      "blocked": "محظور",
+      "enrolledLabel": "مسجَّل",
+      "completedLabel": "مكتمل",
+      "lastLoginLabel": "آخر تسجيل دخول",
+      "neverLoggedIn": "أبدًا",
+      "overdue": {
+        "title": "الدورات الإلزامية المتأخرة ({{count}})",
+        "dueOn": "كان موعدها {{date}}",
+        "escalateCta": "الإبلاغ للمسؤول",
+        "escalated": "تم الإبلاغ",
+        "escalateSuccess": "تم إشعار مسؤول المنصة",
+        "escalateFailed": "تعذّر إشعار مسؤول المنصة"
+      }
+    }
+  },
+  "itSupport": {
+    "defaultName": "الدعم الفني",
+    "nav": {
+      "tagline": "الدعم الفني",
+      "section": "الدعم الفني",
+      "dashboard": "لوحة التحكم",
+      "adminChat": "محادثة الإدارة",
+      "activityLog": "سجل النشاط"
+    },
+    "dashboard": {
+      "title": "الدعم الفني",
+      "subtitle": "سلامة المنصة وحالة الحسابات — للعرض فقط",
+      "loading": "جارٍ تحميل النظرة العامة…",
+      "healthOk": "جميع الأنظمة تعمل بشكل طبيعي",
+      "healthDegraded": "المنصة متدهورة — تعذّر الوصول إلى قاعدة البيانات",
+      "uptimeLabel": "مدة التشغيل: {{uptime}}",
+      "activeUsers": "المستخدمون النشطون",
+      "blockedUsers": "المستخدمون المحظورون",
+      "invitedUsers": "مدعوّون ولم يُفعِّلوا الحساب",
+      "recentLockoutsTitle": "حالات القفل الأخيرة",
+      "noLockouts": "لا توجد حسابات مقفلة حاليًا.",
+      "lockedUntil": "مقفل حتى {{date}}",
+      "failedAttempts": "{{count}} محاولات فاشلة",
+      "activityLogCta": "عرض سجل النشاط",
+      "activityLogCtaBody": "سجل تدقيق كامل للإجراءات عبر المنصة"
+    }
+  },
   "adminDashboard": {
     "welcomeTitle": "مرحبًا بعودتك، {{name}}",
     "greetings": {
@@ -8,11 +67,12 @@
     },
     "defaultAdminName": "المسؤول",
     "subtitle": "إليك ما يحدث في منصتك التعليمية اليوم.",
+    "departmentContext": "القسم: {{name}}",
     "loadingOverview": "جارٍ تحميل النظرة العامة…",
     "untitledProgram": "برنامج بلا عنوان",
     "generateReport": "إنشاء تقرير",
     "stats": {
-      "totalRevenue": "إجمالي الإيرادات",
+      "totalRevenue": "إجمالي الإيرادات (المتعلمون الخارجيون)",
       "totalLearners": "إجمالي المتعلمين",
       "instructors": "المدربون",
       "activePrograms": "البرامج النشطة",
@@ -24,20 +84,10 @@
       "draftPrograms": "{{count}} برنامج مسودة"
     },
     "notifyModal": {
-      "title": "إرسال إشعار",
-      "body": "سيصل هذا الإشعار فورًا إلى كل متعلم ومدرب على المنصة حاليًا.",
-      "titleLabel": "العنوان",
-      "titlePlaceholder": "مثال: صيانة مجدولة الليلة",
-      "messageLabel": "الرسالة",
-      "messagePlaceholder": "ما الذي يحتاجون معرفته؟",
-      "sending": "جارٍ الإرسال…",
-      "sendButton": "إرسال إلى الجميع",
-      "validationError": "العنوان والرسالة مطلوبان",
-      "sentToast": "تم إرسال الإشعار إلى الجميع",
-      "sendFailed": "فشل إرسال الإشعار"
+      "title": "إرسال إشعار"
     },
     "charts": {
-      "monthlyRevenueTitle": "نظرة عامة على الإيرادات",
+      "monthlyRevenueTitle": "إيرادات المتعلمين الخارجيين",
       "monthlyRevenueSubtitle": "آخر 6 أشهر، بالريال العُماني",
       "weeklyLearnersTitle": "المتعلمون الجدد",
       "weeklyLearnersSubtitle": "التسجيلات خلال آخر 8 أسابيع",
@@ -94,7 +144,13 @@
     "blockedToast": "تم حظر المتعلم",
     "unblockedToast": "تم إلغاء حظر المتعلم",
     "updateFailed": "فشل تحديث بيانات المتعلم",
+    "allRoles": "الكل",
+    "roles": {
+      "learner": "متعلم",
+      "external_learner": "متعلم خارجي"
+    },
     "columns": {
+      "role": "النوع",
       "lastActive": "آخر نشاط",
       "neverLoggedIn": "لم يسجّل الدخول قط"
     }
@@ -143,6 +199,75 @@
       "submitButton": "إرسال الدعوة"
     }
   },
+  "adminStaff": {
+    "subtitle": "حسابات مديري الأقسام والمشرفين والدعم الفني",
+    "inviteButton": "دعوة موظف",
+    "searchPlaceholder": "البحث بالاسم أو البريد الإلكتروني…",
+    "allRoles": "كل الأدوار",
+    "emptyNoStaff": "لا توجد حسابات موظفين بعد — أرسل دعوة للبدء.",
+    "emptyNoMatch": "لا يوجد موظفون مطابقون لهذا الفلتر.",
+    "blockedToast": "تم حظر الحساب",
+    "unblockedToast": "تم إلغاء حظر الحساب",
+    "updateFailed": "فشل تحديث الحساب",
+    "columns": { "role": "الدور" },
+    "roles": {
+      "department_admin": "مدير قسم",
+      "supervisor": "مشرف",
+      "it_support": "الدعم الفني"
+    },
+    "inviteModal": {
+      "title": "دعوة موظف",
+      "roleLabel": "الدور",
+      "selectDepartment": "اختر قسمًا",
+      "sentToast": "تم إرسال الدعوة",
+      "sendFailed": "فشل إرسال الدعوة",
+      "submitButton": "إرسال الدعوة"
+    }
+  },
+  "adminDepartments": {
+    "subtitle": "الهيكل التنظيمي المستخدم لتحديد نطاق الوصول والتقارير",
+    "createTitle": "إضافة قسم",
+    "createSubtitle": "الأقسام تحدد ما يمكن لمديري الأقسام والتقارير رؤيته.",
+    "namePlaceholder": "اسم القسم",
+    "nameArPlaceholder": "الاسم بالعربية (اختياري)",
+    "nameRequired": "اسم القسم مطلوب",
+    "descriptionPlaceholder": "الوصف (اختياري)",
+    "addCta": "إضافة قسم",
+    "createdToast": "تم إنشاء القسم",
+    "updatedToast": "تم تحديث القسم",
+    "deletedToast": "تم حذف القسم",
+    "saveFailed": "فشل حفظ القسم",
+    "empty": "لا توجد أقسام بعد.",
+    "searchPlaceholder": "البحث في الأقسام…",
+    "active": "نشط",
+    "inactive": "غير نشط",
+    "columns": { "name": "الاسم", "nameAr": "الاسم بالعربية", "members": "الأعضاء", "status": "الحالة" },
+    "editModal": { "title": "تعديل القسم" },
+    "deleteModal": { "title": "حذف القسم؟", "body": "سيؤدي هذا إلى حذف \"{{name}}\" نهائيًا. لا يمكن التراجع عن هذا الإجراء." }
+  },
+  "adminCohorts": {
+    "subtitle": "قوائم مخصصة تُستخدم لاستهداف تكليفات التدريب الإلزامي",
+    "createTitle": "إنشاء مجموعة",
+    "namePlaceholder": "اسم المجموعة",
+    "nameArPlaceholder": "الاسم بالعربية (اختياري)",
+    "descriptionPlaceholder": "الوصف (اختياري)",
+    "departmentLabel": "القسم",
+    "noDepartment": "بدون قسم",
+    "membersLabel": "الأعضاء",
+    "selected": "محدد",
+    "memberSearchPlaceholder": "البحث عن متعلمين بالاسم أو البريد الإلكتروني…",
+    "noLearners": "لم يتم العثور على متعلمين.",
+    "addCta": "إنشاء مجموعة",
+    "createdToast": "تم إنشاء المجموعة",
+    "updatedToast": "تم تحديث المجموعة",
+    "deletedToast": "تم حذف المجموعة",
+    "saveFailed": "فشل حفظ المجموعة",
+    "empty": "لا توجد مجموعات بعد.",
+    "searchPlaceholder": "البحث في المجموعات…",
+    "columns": { "name": "الاسم", "members": "الأعضاء" },
+    "editModal": { "title": "تعديل المجموعة" },
+    "deleteModal": { "title": "حذف المجموعة؟", "body": "سيؤدي هذا إلى حذف \"{{name}}\" نهائيًا. لا يمكن التراجع عن هذا الإجراء." }
+  },
   "instructorDetail": {
     "defaultTitle": "مدرب",
     "defaultSubtitle": "البرامج والأداء",
@@ -189,7 +314,7 @@
     }
   },
   "paymentsPage": {
-    "subtitle": "الإيرادات وسجل المعاملات عبر المنصة",
+    "subtitle": "إيرادات وسجل معاملات المتعلمين الخارجيين — التدريب الداخلي مجاني ولا يظهر هنا",
     "empty": "لم تُسجَّل أي مدفوعات بعد.",
     "searchPlaceholder": "ابحث بالمتعلم أو البرنامج…",
     "statusPaid": "مدفوع",
@@ -199,7 +324,7 @@
     "vsLastMonth": "مقارنة بالشهر الماضي",
     "exportCsv": "تصدير كملف CSV",
     "stats": {
-      "totalRevenue": "إجمالي الإيرادات",
+      "totalRevenue": "إجمالي الإيرادات (المتعلمون الخارجيون)",
       "thisMonth": "هذا الشهر",
       "totalTransactions": "إجمالي المعاملات"
     },
@@ -210,7 +335,7 @@
   },
   "salesReportPage": {
     "title": "تقرير المبيعات",
-    "subtitle": "تحليلات الإيرادات، مُصفّاة حسب نطاق التاريخ",
+    "subtitle": "تحليلات إيرادات المتعلمين الخارجيين، مُصفّاة حسب نطاق التاريخ — لا يشمل التدريب الداخلي المجاني",
     "exportExcel": "تصدير إلى Excel",
     "printSaveAsPdf": "طباعة / حفظ كـ PDF",
     "printHeading": "تقرير المبيعات — {{range}}",
@@ -229,7 +354,7 @@
       "custom": "مخصص"
     },
     "stats": {
-      "totalRevenue": "إجمالي الإيرادات",
+      "totalRevenue": "إجمالي الإيرادات (المتعلمون الخارجيون)",
       "totalSales": "إجمالي المبيعات",
       "averageSaleValue": "متوسط قيمة البيع"
     },
@@ -309,14 +434,136 @@
       "updatedSettings": "تحديث الإعدادات"
     }
   },
+  "bulkImport": {
+    "buttonLabel": "استيراد جماعي",
+    "title": "استيراد المستخدمين بشكل جماعي",
+    "body": "ارفع ملف CSV يحتوي على أعمدة name وemail وrole وphone. سيحصل كل صف على حساب متعلم حقيقي في قسمك ودعوة عبر البريد الإلكتروني لتعيين كلمة المرور — يكون الدور \"learner\" افتراضيًا إذا تُرك فارغًا.",
+    "downloadTemplate": "تحميل نموذج CSV",
+    "chooseFile": "انقر لاختيار ملف CSV",
+    "csvOnly": "ملفات CSV فقط، بحد أقصى 5 ميغابايت",
+    "importCta": "استيراد المستخدمين",
+    "importing": "جارٍ الاستيراد…",
+    "importFailed": "فشل الاستيراد — يرجى المحاولة مرة أخرى",
+    "created": "تم الإنشاء",
+    "skipped": "تم التخطي",
+    "failed": "فشل",
+    "createdNote": "تم إرسال رسائل الدعوة لتعيين كلمات المرور.",
+    "rowLabel": "الصف {{row}}"
+  },
+  "adminCategories": {
+    "subtitle": "إدارة تصنيف الفئات الذي يُنشأ بموجبه الدورات",
+    "createTitle": "إضافة فئة",
+    "createSubtitle": "تظهر الفئات في قائمة اختيار الفئة عند إنشاء الدورة.",
+    "namePlaceholder": "مثال: التدريب على السلامة",
+    "nameArPlaceholder": "بالعربية (اختياري)",
+    "nameRequired": "اسم الفئة مطلوب",
+    "descriptionPlaceholder": "وصف قصير يظهر للمدربين عند اختيار الفئة…",
+    "addCta": "إضافة فئة",
+    "createdToast": "تمت إضافة الفئة",
+    "updatedToast": "تم تحديث الفئة",
+    "deletedToast": "تم حذف الفئة",
+    "saveFailed": "حدث خطأ ما — يرجى المحاولة مرة أخرى",
+    "active": "مفعّلة",
+    "inactive": "غير مفعّلة",
+    "empty": "لا توجد فئات بعد.",
+    "searchPlaceholder": "ابحث عن فئة…",
+    "columns": {
+      "name": "الاسم",
+      "nameAr": "الاسم (بالعربية)",
+      "courseCount": "الدورات",
+      "status": "الحالة"
+    },
+    "subCategories": {
+      "label": "الفئات الفرعية",
+      "addPlaceholder": "أضف فئة فرعية…",
+      "addCta": "إضافة"
+    },
+    "suggest": {
+      "cta": "اقتراح بالذكاء الاصطناعي",
+      "nameRequired": "أدخل اسم الفئة أولاً",
+      "appliedToast": "تم تطبيق اقتراح الذكاء الاصطناعي — راجعه قبل الحفظ",
+      "failed": "فشل إنشاء الاقتراح"
+    },
+    "editModal": {
+      "title": "تعديل الفئة"
+    },
+    "deleteModal": {
+      "title": "حذف هذه الفئة؟",
+      "body": "سيتم إزالة \"{{name}}\" من قائمة اختيار الفئة عند إنشاء الدورة. لا يمكن التراجع عن هذا الإجراء."
+    }
+  },
+  "platformAdminsPage": {
+    "title": "مدير المنصة",
+    "subtitle": "الحساب الذي يدير العمليات اليومية للمنصة",
+    "addButton": "إضافة مدير منصة",
+    "editButton": "تعديل",
+    "messageButton": "مراسلة",
+    "resendButton": "إعادة إرسال الدعوة",
+    "resendToast": "تم إعادة إرسال الدعوة",
+    "emptyNoAdmins": "لا يوجد مدير منصة بعد — أضف واحدًا للبدء.",
+    "blockedToast": "تم حظر مدير المنصة",
+    "unblockedToast": "تم إلغاء حظر مدير المنصة",
+    "updateFailed": "فشل تحديث مدير المنصة",
+    "inviteModal": {
+      "title": "إضافة مدير منصة",
+      "body": "سيتلقون بريدًا إلكترونيًا يحتوي على رابط لتعيين كلمة المرور الخاصة بهم. يمكن لمديري المنصة إدارة المدربين والمتعلمين والإشعارات والفئات — لكن لا يمكنهم رؤية الإيرادات أبدًا.",
+      "emailPlaceholder": "admin@mwasalat.om",
+      "sentToast": "تم إرسال الدعوة",
+      "sendFailed": "فشل إرسال الدعوة",
+      "submitButton": "إرسال الدعوة"
+    },
+    "editModal": {
+      "title": "تعديل مدير المنصة",
+      "body": "تحديث اسم هذا الحساب أو بريده الإلكتروني.",
+      "submitButton": "حفظ التغييرات",
+      "savedToast": "تم تحديث مدير المنصة",
+      "saveFailed": "فشل تحديث مدير المنصة",
+      "emailChangeWarning": "سيؤدي تغيير البريد الإلكتروني إلى إرسال دعوة جديدة — سيحتاجون إلى تعيين كلمة مرور جديدة قبل تسجيل الدخول.",
+      "emailChangedToast": "تم إرسال دعوة جديدة إلى البريد الإلكتروني المحدث"
+    }
+  },
+  "adminChat": {
+    "title": "محادثة الإدارة",
+    "subtitleSuperAdmin": "خط تواصل مباشر بين المدير العام ومدير المنصة",
+    "subtitleDepartmentAdmin": "خط تواصل مباشر بين مدير القسم ومدير المنصة",
+    "subtitlePlatformAdmin": "خط تواصل مباشر مع المدير العام ومديري الأقسام والمدربين والمشرفين والدعم الفني",
+    "subtitleInstructor": "خط تواصل مباشر مع مدير المنصة",
+    "subtitleSupervisor": "خط تواصل مباشر مع مدير المنصة",
+    "subtitleItSupport": "خط تواصل مباشر مع مدير المنصة",
+    "inboxTitle": "المحادثات",
+    "backToInbox": "العودة إلى المحادثات",
+    "noCounterparts": "لا يوجد أحد لمراسلته بعد.",
+    "sayHello": "قل مرحبًا 👋",
+    "pickCounterpart": "اختر محادثة",
+    "pickCounterpartHint": "اختر شخصًا من القائمة لبدء محادثة أو متابعتها.",
+    "sendFailed": "فشل إرسال الرسالة",
+    "roleLabels": {
+      "super_admin": "المدير العام",
+      "department_admin": "مدير القسم",
+      "instructor": "مدرب",
+      "supervisor": "مشرف",
+      "it_support": "الدعم الفني"
+    }
+  },
   "announcementsPage": {
-    "subtitle": "أرسل رسالة إلى جميع المتعلمين والمدربين",
+    "subtitle": "أرسل رسالة إلى أي مجموعة من المتعلمين والمدربين والموظفين",
     "composeTitle": "إعلان جديد",
-    "composeSubtitle": "يُرسل فورًا إلى الجميع على المنصة، داخل التطبيق وعبر جرس الإشعارات.",
+    "composeSubtitle": "يُرسل فورًا، داخل التطبيق وعبر جرس الإشعارات، إلى الفئات التي تحددها أدناه.",
     "titleLabel": "العنوان",
     "titleRequired": "العنوان مطلوب",
     "messageLabel": "الرسالة",
     "messageRequired": "الرسالة مطلوبة",
+    "audienceLabel": "الفئة المستهدفة",
+    "audienceHint": "يمكنك اختيار أكثر من فئة. اختر \"الجميع\" للوصول إلى جميع الأدوار.",
+    "audience": {
+      "all": "الجميع",
+      "learner": "المتعلمون الداخليون",
+      "externalLearner": "المتعلمون الخارجيون",
+      "instructor": "المدربون",
+      "supervisor": "المشرفون",
+      "departmentAdmin": "مسؤولو الأقسام",
+      "itSupport": "الدعم الفني"
+    },
     "sendCta": "إرسال الإعلان",
     "sending": "جارٍ الإرسال…",
     "sentToast": "تم إرسال الإعلان",
@@ -327,7 +574,28 @@
     "columns": {
       "title": "العنوان",
       "message": "الرسالة",
-      "readCount": "عدد من قرأها",
+      "audience": "الفئة المستهدفة",
+      "readCount": "قرأها",
+      "sentAt": "تاريخ الإرسال"
+    }
+  },
+  "remindersPage": {
+    "subtitle": "تذكيرات تلقائية بانتهاء صلاحية الشهادات وعدم النشاط تُرسل للمتعلمين",
+    "stats": {
+      "total": "إجمالي التذكيرات"
+    },
+    "last200": "آخر 200 تذكير",
+    "types": {
+      "certificateExpiry": "انتهاء صلاحية الشهادة",
+      "inactivityNudge": "تنبيه عدم النشاط"
+    },
+    "allTypes": "جميع الأنواع",
+    "empty": "لم يتم إرسال أي تذكيرات بعد.",
+    "searchPlaceholder": "ابحث بالعنوان أو الرسالة أو المتعلم…",
+    "columns": {
+      "type": "النوع",
+      "recipient": "المتعلم",
+      "message": "التذكير",
       "sentAt": "تاريخ الإرسال"
     }
   },
@@ -339,14 +607,42 @@
     "platformNameLabel": "اسم المنصة",
     "supportEmailLabel": "البريد الإلكتروني للدعم",
     "supportEmailPlaceholder": "support@mwasalat.om",
+    "timezoneLabel": "المنطقة الزمنية للمنصة",
+    "timezoneHint": "تُستخدم للجدولة، وحدود \"اليوم\"، ونطاقات التواريخ في التقارير عبر المنصة.",
     "savedToast": "تم حفظ الإعدادات",
-    "saveFailed": "فشل حفظ الإعدادات"
+    "saveFailed": "فشل حفظ الإعدادات",
+    "ipRestriction": {
+      "title": "تقييد عنوان IP",
+      "subtitle": "قصر تسجيل الدخول والتسجيل الذاتي على شبكات محددة.",
+      "enableLabel": "تقييد الوصول إلى المنصة حسب عنوان IP",
+      "allowedIpsLabel": "عناوين IP / نطاقات CIDR المسموح بها",
+      "allowedIpsPlaceholder": "203.0.113.10\n10.0.0.0/24",
+      "allowedIpsHint": "عنوان IP أو نطاق CIDR واحد في كل سطر. ينطبق على تسجيل الدخول والتسجيل.",
+      "enabledWarning": "بمجرد التفعيل، لن يتمكن من تسجيل الدخول أو التسجيل سوى الشبكات المدرجة. تأكد من إدراج عنوان IP الخاص بك قبل الحفظ."
+    },
+    "loginSecurity": {
+      "title": "أمان تسجيل الدخول",
+      "subtitle": "سياسة قفل الحساب وانتهاء صلاحية كلمة المرور لجميع عمليات تسجيل الدخول.",
+      "maxAttemptsLabel": "الحد الأقصى لمحاولات تسجيل الدخول الفاشلة",
+      "maxAttemptsHint": "يُقفل الحساب مؤقتًا بعد هذا العدد من كلمات المرور الخاطئة المتتالية.",
+      "lockoutMinutesLabel": "مدة القفل (بالدقائق)",
+      "lockoutMinutesHint": "المدة التي يجب أن ينتظرها الحساب المقفل قبل المحاولة مرة أخرى.",
+      "passwordExpiryLabel": "انتهاء صلاحية كلمة المرور (بالأيام)",
+      "passwordExpiryHint": "فرض تغيير كلمة المرور بعد هذا العدد من الأيام. اضبط على 0 للتعطيل."
+    },
+    "maintenanceMode": {
+      "title": "وضع الصيانة",
+      "subtitle": "تعطيل تسجيل الدخول والتسجيل الذاتي مؤقتًا للجميع باستثناء المسؤولين.",
+      "enableLabel": "وضع المنصة في وضع الصيانة",
+      "enabledWarning": "بمجرد التفعيل، لن يتمكن المتعلمون والمدربون من تسجيل الدخول من جديد فورًا — يبقى الوصول متاحًا فقط لحسابات المسؤول العام ومسؤول المنصة."
+    }
   },
   "dataTable": {
     "loading": "جارٍ التحميل…",
     "defaultEmpty": "لا يوجد شيء هنا بعد.",
     "defaultSearchPlaceholder": "بحث…",
-    "pageInfo": "الصفحة {{current}} من {{pages}} · {{count}} نتيجة"
+    "pageInfo": "الصفحة {{current}} من {{pages}} · {{count}} نتيجة",
+    "rowsPerPage": "صفوف لكل صفحة"
   },
   "userTable": {
     "joined": "تاريخ الانضمام",
@@ -355,7 +651,8 @@
     "active": "نشط",
     "blocked": "محظور",
     "block": "حظر",
-    "unblock": "إلغاء الحظر"
+    "unblock": "إلغاء الحظر",
+    "message": "مراسلة"
   },
   "userFilters": {
     "all": "الكل",

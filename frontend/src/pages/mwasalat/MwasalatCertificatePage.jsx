@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { QRCodeSVG } from 'qrcode.react';
-import { ArrowLeft, Loader2, Printer, Award } from 'lucide-react';
+import { ArrowLeft, Loader2, Printer, Award, RefreshCw, HelpCircle } from 'lucide-react';
 import { mwasalatProgramService } from '../../services/mwasalatProgram.service.js';
 import { localizeNumber } from '../../utils/mwasalatLocalize.js';
 
@@ -67,7 +67,7 @@ export default function MwasalatCertificatePage() {
   const issuedDate = dateFmt(cert.issuedAt);
   const expiresDate = cert.expiresAt ? dateFmt(cert.expiresAt) : null;
   const courseTitle = (i18n.language.startsWith('ar') && cert.courseTitleAr?.trim()) || cert.courseTitle;
-  const verifyUrl = cert._id ? `${window.location.origin}/mwasalat/verify/${cert._id}` : null;
+  const verifyUrl = cert._id ? `${window.location.origin}/verify/${cert._id}` : null;
 
   return (
     <div className="min-h-screen bg-[#F1F5F9]">
@@ -82,7 +82,7 @@ export default function MwasalatCertificatePage() {
 
       <div className="no-print h-16 bg-white border-b border-[#E2E8F0] flex items-center justify-between px-8">
         <button
-          onClick={() => navigate('/mwasalat/learner/dashboard')}
+          onClick={() => navigate('/learner/dashboard')}
           className="inline-flex items-center gap-2 text-sm font-medium text-[#475569] hover:text-mwasalatInk-500 transition-colors"
         >
           <ArrowLeft className="w-4 h-4 rtl:rotate-180" /> {t('learnerCertificate.backToDashboard')}
@@ -94,6 +94,36 @@ export default function MwasalatCertificatePage() {
           <Printer className="w-4 h-4" /> {t('learnerCertificate.printSavePdf')}
         </button>
       </div>
+
+      {(cert.canRenewViaRetest || (cert.autoRenewCertificate && cert.isDueForRenewal)) && (
+        <div className="no-print max-w-3xl mx-auto mt-6 px-4 sm:px-0">
+          {cert.canRenewViaRetest ? (
+            <div className="flex items-start gap-3 p-4 rounded-xl bg-mwasalatRed-100 border border-mwasalatRed-300/40">
+              <HelpCircle className="w-5 h-5 text-mwasalatRed-600 flex-shrink-0 mt-0.5" />
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-[#1E293B]">
+                  {cert.isExpired ? t('learnerCertificate.renewal.expiredTitle') : t('learnerCertificate.renewal.dueTitle')}
+                </p>
+                <p className="text-xs text-[#475569] mt-1">{t('learnerCertificate.renewal.retestBody')}</p>
+                <Link
+                  to={`/learner/programs/${id}/quiz`}
+                  className="inline-flex items-center gap-1.5 mt-3 bg-mwasalatInk-500 hover:bg-mwasalatInk-400 text-white font-semibold px-3.5 py-2 rounded-lg transition-colors text-xs"
+                >
+                  <RefreshCw className="w-3.5 h-3.5" /> {t('learnerCertificate.renewal.retakeCta')}
+                </Link>
+              </div>
+            </div>
+          ) : (
+            <div className="flex items-start gap-3 p-4 rounded-xl bg-mwasalatInk-100 border border-mwasalatInk-300/40">
+              <RefreshCw className="w-5 h-5 text-mwasalatInk-500 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="text-sm font-semibold text-[#1E293B]">{t('learnerCertificate.renewal.autoRenewTitle')}</p>
+                <p className="text-xs text-[#475569] mt-1">{t('learnerCertificate.renewal.autoRenewBody')}</p>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       <div className="cert-page p-4 sm:p-10 flex items-center justify-center">
         <div
@@ -123,7 +153,7 @@ export default function MwasalatCertificatePage() {
           )}
 
           <div className="relative flex flex-col items-center justify-center text-center px-5 sm:px-16 py-8">
-            <Link to="/mwasalat">
+            <Link to="/">
               <img src="/mwasalat-logo.png" alt="Mwasalat" className="h-11 w-auto object-contain mb-5" />
             </Link>
 

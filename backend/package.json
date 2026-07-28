@@ -7,7 +7,23 @@
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js",
-    "seed:mwasalat-admin": "node src/scripts/seedMwasalatSuperAdmin.js"
+    "seed:mwasalat-admin": "node src/scripts/seedMwasalatSuperAdmin.js",
+    "seed:mwasalat-departments": "node src/scripts/seedMwasalatDepartments.js",
+    "seed:mwasalat-department-admins": "node src/scripts/seedMwasalatDepartmentAdmins.js",
+    "seed:mwasalat-persons": "node src/scripts/seedMwasalatPersons.js",
+    "seed:mwasalat-reset": "node src/scripts/resetMwasalatSeedData.js",
+    "seed:mwasalat-instructors": "node src/scripts/seedMwasalatInstructors.js",
+    "seed:mwasalat-supervisors": "node src/scripts/seedMwasalatSupervisors.js",
+    "seed:mwasalat-internal-learners": "node src/scripts/seedMwasalatInternalLearners.js",
+    "seed:mwasalat-external-learners": "node src/scripts/seedMwasalatExternalLearners.js",
+    "seed:mwasalat-program-catalog": "node src/scripts/seedMwasalatProgramCatalog.js",
+    "seed:mwasalat-delete-old-programs": "node src/scripts/deleteMwasalatOldPrograms.js",
+    "seed:mwasalat-program-catalog-2": "node src/scripts/seedMwasalatProgramCatalogBatch2.js",
+    "seed:mwasalat-external-programs": "node src/scripts/seedMwasalatExternalPrograms.js",
+    "seed:mwasalat-external-programs-2": "node src/scripts/seedMwasalatExternalProgramsBatch2.js",
+    "seed:mwasalat-enrollments": "node src/scripts/seedMwasalatEnrollments.js",
+    "seed:mwasalat-purchases": "node src/scripts/seedMwasalatPurchases.js",
+    "seed:mwasalat-engagement": "node src/scripts/seedMwasalatLearnerEngagement.js"
   },
   "dependencies": {
     "@google/genai": "^2.13.0",
@@ -26,9 +42,12 @@
     "multer": "^1.4.5-lts.1",
     "node-cron": "^4.5.0",
     "nodemailer": "^6.9.7",
+    "otplib": "^13.4.1",
     "socket.io": "^4.6.2",
     "stripe": "^22.1.1",
-    "winston": "^3.11.0"
+    "web-push": "^3.6.7",
+    "winston": "^3.11.0",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "nodemon": "^3.0.2"

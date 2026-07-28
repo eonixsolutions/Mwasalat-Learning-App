@@ -3,8 +3,15 @@ import { successResponse } from '../../utils/response.js';
 import { mwasalatPaymentService } from './mwasalatPayment.service.js';
 
 const createCheckoutSession = asyncHandler(async (req, res) => {
-  const result = await mwasalatPaymentService.createCheckoutSession(req.mwasalatUser._id, req.params.programId);
+  const result = await mwasalatPaymentService.createCheckoutSession(req.mwasalatUser._id, req.mwasalatUser.role, req.params.programId);
   successResponse(res, 'Checkout session created', result);
+});
+
+const createReactivationCheckoutSession = asyncHandler(async (req, res) => {
+  const result = await mwasalatPaymentService.createReactivationCheckoutSession(
+    req.mwasalatUser._id, req.mwasalatUser.role, req.params.enrollmentId
+  );
+  successResponse(res, 'Reactivation checkout session created', result);
 });
 
 const webhook = asyncHandler(async (req, res) => {
@@ -43,6 +50,6 @@ const listReportTransactions = asyncHandler(async (req, res) => {
 });
 
 export const mwasalatPaymentController = {
-  createCheckoutSession, webhook, confirmSession, listTransactions, getRevenueSummary,
-  getSalesReport, listReportTransactions,
+  createCheckoutSession, createReactivationCheckoutSession, webhook, confirmSession, listTransactions,
+  getRevenueSummary, getSalesReport, listReportTransactions,
 };

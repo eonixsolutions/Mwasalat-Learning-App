@@ -15,6 +15,7 @@ export default function MwasalatQuizPage() {
   const navigate = useNavigate();
   const [quiz, setQuiz] = useState(null);
   const [contentOpened, setContentOpened] = useState(true);
+  const [sessionCompleted, setSessionCompleted] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState([]);
@@ -29,6 +30,7 @@ export default function MwasalatQuizPage() {
       .then(([q, c]) => {
         setQuiz(q);
         setContentOpened(Boolean(c?.contentOpened));
+        setSessionCompleted(Boolean(c?.sessionCompleted));
         if (q) setAnswers(new Array(q.questions.length).fill(null));
       })
       .finally(() => setIsLoading(false));
@@ -69,7 +71,7 @@ export default function MwasalatQuizPage() {
     );
   }
 
-  if (quiz && !contentOpened) {
+  if (quiz && (!contentOpened || !sessionCompleted)) {
     return (
       <div className="min-h-screen bg-[#F8F9FB] flex items-center justify-center p-4">
         <div className="bg-white rounded-2xl p-8 max-w-sm w-full text-center">
@@ -77,8 +79,10 @@ export default function MwasalatQuizPage() {
             <Lock className="w-5 h-5 text-[#94A3B8]" />
           </div>
           <p className="text-sm font-semibold text-[#1E293B] mb-1.5">{t('learnerQuiz.lockedTitle')}</p>
-          <p className="text-sm text-[#475569] mb-4">{t('learnerQuiz.lockedBody')}</p>
-          <Link to="/mwasalat/learner/dashboard" className="text-sm font-medium text-mwasalatInk-500 hover:underline">{t('learnerQuiz.backToDashboardLink')}</Link>
+          <p className="text-sm text-[#475569] mb-4">
+            {t(!contentOpened ? 'learnerQuiz.lockedBody' : 'learnerQuiz.awaitingClassCompletionBody')}
+          </p>
+          <Link to="/learner/dashboard" className="text-sm font-medium text-mwasalatInk-500 hover:underline">{t('learnerQuiz.backToDashboardLink')}</Link>
         </div>
       </div>
     );
@@ -89,7 +93,7 @@ export default function MwasalatQuizPage() {
       <div className="min-h-screen bg-[#F8F9FB] flex items-center justify-center p-4">
         <div className="bg-white rounded-2xl p-8 max-w-sm w-full text-center">
           <p className="text-sm text-[#475569] mb-4">{t('learnerQuiz.noQuizYet')}</p>
-          <Link to="/mwasalat/learner/dashboard" className="text-sm font-medium text-mwasalatInk-500 hover:underline">{t('learnerQuiz.backToDashboardLink')}</Link>
+          <Link to="/learner/dashboard" className="text-sm font-medium text-mwasalatInk-500 hover:underline">{t('learnerQuiz.backToDashboardLink')}</Link>
         </div>
       </div>
     );
@@ -155,7 +159,7 @@ export default function MwasalatQuizPage() {
               </button>
             )}
             <Link
-              to={result.passed ? `/mwasalat/learner/programs/${id}/feedback` : '/mwasalat/learner/dashboard'}
+              to={result.passed ? `/learner/programs/${id}` : '/learner/dashboard'}
               onClick={() => {
                 if (result.passed && result.pointsAwarded > 0) {
                   // Picked up by the dashboard on mount to fly a car icon from

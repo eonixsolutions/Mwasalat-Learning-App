@@ -1,10 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import {
   Loader2, Compass, BookOpen, GraduationCap, Flame, Trophy, Clock, Star, ArrowRight, Table2,
-  PlayCircle, Award, Target, Radio, MapPin, CreditCard,
+  PlayCircle, Award, Target, Radio, MapPin,
 } from 'lucide-react';
 import { mwasalatProgramService } from '../../services/mwasalatProgram.service.js';
 import { mwasalatPaymentService } from '../../services/mwasalatPayment.service.js';
@@ -142,7 +142,7 @@ function ContinueLearningCard({ enrollment, completion, t, i18n }) {
           </div>
         </div>
         <Link
-          to={`/mwasalat/learner/programs/${enrollment.program?._id}`}
+          to={`/learner/programs/${enrollment.program?._id}`}
           data-card-id={enrollment.program?._id}
           className="inline-flex items-center justify-center gap-2 bg-mwasalatRed-600 hover:bg-mwasalatRed-700 text-white font-semibold px-4 py-2.5 rounded-xl transition-colors text-sm flex-shrink-0"
         >
@@ -171,7 +171,7 @@ function UpcomingSessionRow({ session, i18n, t }) {
 
   return (
     <Link
-      to={`/mwasalat/learner/programs/${session.program._id}`}
+      to={`/learner/programs/${session.program._id}`}
       className="flex items-center gap-2.5 py-2 -mx-1.5 px-1.5 rounded-lg hover:bg-[#F8F9FB] transition-colors"
     >
       <div className="w-9 h-9 rounded-lg bg-mwasalatInk-100 flex flex-col items-center justify-center flex-shrink-0 text-mwasalatInk-500 leading-none">
@@ -194,35 +194,43 @@ function UpcomingSessionRow({ session, i18n, t }) {
   );
 }
 
-function RecommendedCard({ program, onEnroll, onPurchase, busy, t, i18n }) {
+function RecommendedCard({ program, onEnroll, busy, t, i18n, isExternalLearner }) {
   const theme = themeForCategory(program.category);
   const title = getLocalizedProgramField(program, 'title', i18n.language);
   const category = getLocalizedProgramField(program, 'category', i18n.language);
+  // Internal learners are free regardless of a course's listed price — only
+  // the paying external-learner audience ever sees a real price/checkout.
+  const requiresPayment = isExternalLearner && program.price > 0;
 
   return (
-    <div className="card overflow-hidden flex flex-col">
-      <div className="h-1" style={{ background: `linear-gradient(90deg, ${theme.solid}, ${theme.solid}99)` }} />
+    <Link to={`/learner/programs/${program._id}`} className="card card-hover overflow-hidden flex flex-col">
       <div className="p-3 flex flex-col flex-1">
         <span className={`self-start inline-flex items-center px-1.5 py-0.5 rounded-full text-[10.5px] font-medium capitalize mb-1.5 ${theme.bg} ${theme.text}`}>
           {category || t('programCard.generalCategory')}
         </span>
         <h3 className="text-[13px] font-semibold text-[#1E293B] leading-snug mb-2 line-clamp-2">{title}</h3>
         <div className="mt-auto flex items-center justify-between gap-2">
-          <span dir="ltr" className={`text-[11px] font-bold ${program.price ? 'text-mwasalatRed-600' : 'text-[#22C55E]'}`}>
-            {program.price ? `OMR ${localizeNumber(program.price, i18n.language)}` : t('learner.courses.freeLabel')}
+          <span dir="ltr" className={`text-[11px] font-bold ${requiresPayment ? 'text-mwasalatRed-600' : 'text-[#22C55E]'}`}>
+            {requiresPayment ? `OMR ${localizeNumber(program.price, i18n.language)}` : t('learner.courses.freeLabel')}
           </span>
-          <button
-            type="button"
-            onClick={() => (program.price > 0 ? onPurchase(program) : onEnroll(program))}
-            disabled={busy}
-            className="inline-flex items-center gap-1 bg-mwasalatInk-500 hover:bg-mwasalatInk-400 disabled:opacity-60 text-white font-semibold px-2.5 py-1.5 rounded-lg transition-colors text-[11px] flex-shrink-0"
-          >
-            {busy ? <Loader2 className="w-3 h-3 animate-spin" /> : program.price > 0 ? <CreditCard className="w-3 h-3" /> : null}
-            {program.price > 0 ? t('learner.courses.purchase') : t('learner.courses.enrollNow')}
-          </button>
+          {requiresPayment ? (
+            <span className="inline-flex items-center gap-1 bg-mwasalatInk-500 text-white font-semibold px-2.5 py-1.5 rounded-lg text-[11px] flex-shrink-0">
+              {t('learner.courses.viewCourse')}
+            </span>
+          ) : (
+            <button
+              type="button"
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); onEnroll(program); }}
+              disabled={busy}
+              className="inline-flex items-center gap-1 bg-mwasalatInk-500 hover:bg-mwasalatInk-400 disabled:opacity-60 text-white font-semibold px-2.5 py-1.5 rounded-lg transition-colors text-[11px] flex-shrink-0"
+            >
+              {busy ? <Loader2 className="w-3 h-3 animate-spin" /> : null}
+              {t('learner.courses.enrollNow')}
+            </button>
+          )}
         </div>
       </div>
-    </div>
+    </Link>
   );
 }
 
@@ -238,6 +246,7 @@ export default function MwasalatLearnerDashboard() {
   const [enrollingId, setEnrollingId] = useState(null);
   const [flight, setFlight] = useState(null);
   const { user } = useMwasalatAuthStore();
+  const processedPurchaseRef = useRef(null);
 
   const load = () => {
     setIsLoading(true);
@@ -263,13 +272,24 @@ export default function MwasalatLearnerDashboard() {
 
   useEffect(() => {
     const purchase = searchParams.get('purchase');
+    const reactivate = searchParams.get('reactivate');
     const sessionId = searchParams.get('session_id');
+    if (!purchase && !reactivate) return;
+
+    // Guard against double-firing: React.StrictMode (main.jsx) intentionally
+    // double-invokes effects in dev, and setSearchParams' state update isn't
+    // synchronous, so without this both invocations would see the same
+    // ?purchase=success and each show its own toast / call confirmSession.
+    const key = `${purchase || reactivate}:${sessionId || ''}`;
+    if (processedPurchaseRef.current === key) return;
+    processedPurchaseRef.current = key;
+
+    setSearchParams({}, { replace: true });
 
     if (purchase === 'success' && sessionId) {
       // Confirm the session ourselves instead of trusting the redirect alone —
       // this enrolls the learner immediately even if the Stripe webhook (which
       // needs `stripe listen` locally) hasn't fired yet.
-      setSearchParams({}, { replace: true });
       mwasalatPaymentService.confirmSession(sessionId)
         .then(() => {
           toast.success(t('learner.dashboard.paymentSuccess'));
@@ -278,11 +298,21 @@ export default function MwasalatLearnerDashboard() {
         .catch((err) => toast.error(err.response?.data?.message || t('learner.dashboard.paymentConfirmFailed')));
     } else if (purchase === 'success') {
       toast.success(t('learner.dashboard.paymentSuccess'));
-      setSearchParams({}, { replace: true });
       load();
     } else if (purchase === 'cancelled') {
       toast(t('learner.dashboard.checkoutCancelled'), { icon: 'ℹ️' });
-      setSearchParams({}, { replace: true });
+    } else if (reactivate === 'success' && sessionId) {
+      mwasalatPaymentService.confirmSession(sessionId)
+        .then(() => {
+          toast.success(t('learner.dashboard.reactivationSuccess'));
+          load();
+        })
+        .catch((err) => toast.error(err.response?.data?.message || t('learner.dashboard.paymentConfirmFailed')));
+    } else if (reactivate === 'success') {
+      toast.success(t('learner.dashboard.reactivationSuccess'));
+      load();
+    } else if (reactivate === 'cancelled') {
+      toast(t('learner.dashboard.checkoutCancelled'), { icon: 'ℹ️' });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
@@ -340,23 +370,19 @@ export default function MwasalatLearnerDashboard() {
   const handleRecommendedEnroll = async (program) => {
     setEnrollingId(program._id);
     try {
-      await mwasalatProgramService.enroll(program._id);
-      toast.success(t('learner.courses.enrolledToast', { title: getLocalizedProgramField(program, 'title', i18n.language) }));
+      const enrollment = await mwasalatProgramService.enroll(program._id);
+      const title = getLocalizedProgramField(program, 'title', i18n.language);
+      if (enrollment.status === 'waitlisted') {
+        toast(t('learner.courses.waitlistedToast', { title }));
+      } else if (enrollment.status === 'pending_approval') {
+        toast(t('learner.courses.pendingApprovalToast', { title }));
+      } else {
+        toast.success(t('learner.courses.enrolledToast', { title }));
+      }
       load();
     } catch (err) {
       toast.error(err.response?.data?.message || t('learner.courses.enrollFailed'));
     } finally {
-      setEnrollingId(null);
-    }
-  };
-
-  const handleRecommendedPurchase = async (program) => {
-    setEnrollingId(program._id);
-    try {
-      const { url } = await mwasalatPaymentService.createCheckoutSession(program._id);
-      window.location.href = url;
-    } catch (err) {
-      toast.error(err.response?.data?.message || t('learner.courses.checkoutFailed'));
       setEnrollingId(null);
     }
   };
@@ -399,7 +425,7 @@ export default function MwasalatLearnerDashboard() {
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-4">
         <StatTile icon={BookOpen} label={t('learner.dashboard.statsEnrolled')} value={localizeNumber(enrollments.length, i18n.language)} tone={{ bg: 'bg-mwasalatInk-100', text: 'text-mwasalatInk-500' }} />
         <StatTile icon={Clock} label={t('learner.dashboard.statsInProgress')} value={localizeNumber(inProgressEnrollments.length, i18n.language)} tone={{ bg: 'bg-mwasalatInk-100', text: 'text-mwasalatInk-500' }} />
-        <Link to="/mwasalat/learner/completed">
+        <Link to="/learner/completed">
           <StatTile icon={GraduationCap} label={t('learner.dashboard.statsCompleted')} value={localizeNumber(completedEnrollments.length, i18n.language)} tone={{ bg: 'bg-[#DCFCE7]', text: 'text-[#22C55E]' }} />
         </Link>
         <StatTile icon={Trophy} label={t('learner.dashboard.statsPoints')} value={localizeNumber(user?.points ?? 0, i18n.language)} tone={{ bg: 'bg-mwasalatRed-100', text: 'text-mwasalatRed-600' }} />
@@ -418,7 +444,7 @@ export default function MwasalatLearnerDashboard() {
           <h2 className="text-xl font-bold text-[#1E293B] mb-2">{t('learner.dashboard.emptyTitle')}</h2>
           <p className="text-sm text-[#475569] mb-6 leading-relaxed">{t('learner.dashboard.emptyBody')}</p>
           <Link
-            to="/mwasalat/learner/courses"
+            to="/learner/courses"
             className="inline-flex items-center gap-2 bg-mwasalatRed-600 hover:bg-mwasalatRed-700 text-white font-semibold px-6 py-3 rounded-xl transition-colors text-sm shadow-sm"
           >
             <Compass className="w-4 h-4" /> {t('learner.dashboard.browseCourses')}
@@ -463,14 +489,14 @@ export default function MwasalatLearnerDashboard() {
               <div className="card p-10 text-center mb-6">
                 <GraduationCap className="w-8 h-8 text-[#22C55E] mx-auto mb-3" />
                 <p className="text-sm font-medium text-[#1E293B] mb-1">{t('learner.dashboard.allCompleteTitle')}</p>
-                <Link to="/mwasalat/learner/completed" className="text-sm font-medium text-mwasalatInk-500 hover:underline">
+                <Link to="/learner/completed" className="text-sm font-medium text-mwasalatInk-500 hover:underline">
                   {t('learner.dashboard.viewCompleted')}
                 </Link>
               </div>
             )}
 
             <Link
-              to="/mwasalat/learner/all-courses"
+              to="/learner/all-courses"
               className="card card-hover flex items-center justify-between gap-3 p-3 mb-5"
             >
               <span className="flex items-center gap-2.5">
@@ -494,10 +520,10 @@ export default function MwasalatLearnerDashboard() {
                       key={program._id}
                       program={program}
                       onEnroll={handleRecommendedEnroll}
-                      onPurchase={handleRecommendedPurchase}
                       busy={enrollingId === program._id}
                       t={t}
                       i18n={i18n}
+                      isExternalLearner={user?.role === 'external_learner'}
                     />
                   ))}
                 </div>
@@ -524,7 +550,7 @@ export default function MwasalatLearnerDashboard() {
             <div className="card p-3.5">
               <div className="flex items-center justify-between mb-3">
                 <h2 className="text-[13px] font-semibold text-[#1E293B]">{t('learner.dashboard.achievementsHeading')}</h2>
-                <Link to="/mwasalat/learner/achievements" className="text-[11px] font-medium text-mwasalatInk-500 hover:underline">
+                <Link to="/learner/achievements" className="text-[11px] font-medium text-mwasalatInk-500 hover:underline">
                   {t('learner.dashboard.viewAll')}
                 </Link>
               </div>
@@ -562,7 +588,7 @@ export default function MwasalatLearnerDashboard() {
                   </div>
                 </div>
                 <Link
-                  to={`/mwasalat/learner/programs/${latestCertificate.program?._id}/certificate`}
+                  to={`/learner/programs/${latestCertificate.program?._id}/certificate`}
                   className="mt-3 inline-flex items-center justify-center gap-1.5 w-full bg-mwasalatInk-100 hover:bg-mwasalatInk-200 text-mwasalatInk-500 font-semibold px-3 py-2 rounded-lg transition-colors text-[12px]"
                 >
                   {t('allCoursesPage.viewCertificate')} <ArrowRight className="w-3 h-3 rtl:rotate-180" />

@@ -23,7 +23,7 @@ export default function MwasalatNeedsAttentionRow({ entry, programId, onEncourag
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2 flex-wrap">
           <p className="text-sm font-medium text-[#1E293B] truncate">{entry.learner?.name}</p>
-          <MwasalatRiskBadge level={entry.riskLevel} returned={entry.returned} />
+          <MwasalatRiskBadge level={entry.riskLevel} returned={entry.returned} overdue={entry.overdue} />
           {showProgram && entry.program && (
             <span className="px-2 py-0.5 rounded-full text-[10.5px] font-medium bg-[#F1F5F9] text-[#475569] truncate max-w-[160px]">
               {getLocalizedProgramField(entry.program, 'title', i18n.language)}
@@ -67,7 +67,7 @@ export default function MwasalatNeedsAttentionRow({ entry, programId, onEncourag
           )}
         </div>
         <Link
-          to={`/mwasalat/instructor/programs/${programId}/chat/${entry.learner?._id}`}
+          to={`/instructor/programs/${programId}/chat/${entry.learner?._id}`}
           className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-white bg-mwasalatInk-500 hover:bg-mwasalatInk-400 transition-colors whitespace-nowrap"
         >
           <MessageCircle className="w-3.5 h-3.5" /> {t('programDetail.chatNowBtn')}

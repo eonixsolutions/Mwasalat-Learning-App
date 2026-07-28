@@ -2,12 +2,16 @@ import { useState, useEffect, useMemo } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
-import { ArrowLeft, Star, Loader2, Users, FileText, Video, Radio, ExternalLink, MapPin, QrCode, HelpCircle, ChevronDown, ChevronUp, Search, MessageCircle, MessagesSquare, UserCheck, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, Star, Loader2, Users, FileText, Video, Radio, ExternalLink, MapPin, QrCode, HelpCircle, ClipboardCheck, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, Search, MessageCircle, MessagesSquare, UserCheck, AlertTriangle, Layers, CheckCircle2 } from 'lucide-react';
 import { mwasalatProgramService } from '../../services/mwasalatProgram.service.js';
 import MwasalatQuizBuilder from '../../components/mwasalat/MwasalatQuizBuilder.jsx';
+import MwasalatAssignmentBuilder from '../../components/mwasalat/MwasalatAssignmentBuilder.jsx';
+import MwasalatModuleBuilder from '../../components/mwasalat/MwasalatModuleBuilder.jsx';
 import MwasalatRiskBadge from '../../components/mwasalat/MwasalatRiskBadge.jsx';
 import MwasalatStreakBadge from '../../components/mwasalat/MwasalatStreakBadge.jsx';
 import MwasalatNeedsAttentionRow from '../../components/mwasalat/MwasalatNeedsAttentionRow.jsx';
+import MwasalatEnrollmentStatusBadge from '../../components/mwasalat/MwasalatEnrollmentStatusBadge.jsx';
+import { TABLE_PAGE_SIZE_OPTIONS } from '../../components/mwasalat/MwasalatDataTable.jsx';
 import { useMwasalatChatStore } from '../../store/mwasalatChatStore.js';
 import { getLocalizedProgramField, localizeNumber } from '../../utils/mwasalatLocalize.js';
 
@@ -73,11 +77,15 @@ export default function MwasalatProgramDetailPage() {
   const [attendance, setAttendance] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isQuizOpen, setIsQuizOpen] = useState(false);
+  const [isAssignmentOpen, setIsAssignmentOpen] = useState(false);
   const [learnerQuery, setLearnerQuery] = useState('');
   const [learnerSortKey, setLearnerSortKey] = useState(null);
   const [learnerSortDir, setLearnerSortDir] = useState('asc');
+  const [learnerPage, setLearnerPage] = useState(1);
+  const [learnerPageSize, setLearnerPageSize] = useState(TABLE_PAGE_SIZE_OPTIONS[0]);
   const [pendingAttendanceId, setPendingAttendanceId] = useState(null);
   const [encouragingId, setEncouragingId] = useState(null);
+  const [completingType, setCompletingType] = useState(null);
   const chatConversations = useMwasalatChatStore((s) => s.conversations);
 
   useEffect(() => {
@@ -110,7 +118,7 @@ export default function MwasalatProgramDetailPage() {
     }
   };
 
-  const checkInUrl = `${window.location.origin}/mwasalat/learner/check-in/${id}`;
+  const checkInUrl = `${window.location.origin}/learner/check-in/${id}`;
   const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(checkInUrl)}`;
 
   const notCheckedIn = learners.filter((e) => !attendance.some((a) => a.learner?._id === e.learner?._id));
@@ -129,6 +137,19 @@ export default function MwasalatProgramDetailPage() {
     }
   };
 
+  const handleCompleteClass = async (contentType) => {
+    setCompletingType(contentType);
+    try {
+      const updated = await mwasalatProgramService.completeClass(id, contentType);
+      setProgram(updated);
+      toast.success(t('programDetail.toastClassCompleted'));
+    } catch (err) {
+      toast.error(err.response?.data?.message || t('programDetail.toastClassCompleteFailed'));
+    } finally {
+      setCompletingType(null);
+    }
+  };
+
   const toggleLearnerSort = (key) => {
     if (learnerSortKey === key) {
       setLearnerSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
@@ -136,6 +157,7 @@ export default function MwasalatProgramDetailPage() {
       setLearnerSortKey(key);
       setLearnerSortDir('asc');
     }
+    setLearnerPage(1);
   };
 
   const visibleLearners = useMemo(() => {
@@ -155,6 +177,10 @@ export default function MwasalatProgramDetailPage() {
     });
   }, [learners, learnerQuery, learnerSortKey, learnerSortDir]);
 
+  const learnerPages = Math.max(1, Math.ceil(visibleLearners.length / learnerPageSize));
+  const learnerCurrentPage = Math.min(learnerPage, learnerPages);
+  const pageLearners = visibleLearners.slice((learnerCurrentPage - 1) * learnerPageSize, learnerCurrentPage * learnerPageSize);
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-[#F8F9FB] flex items-center justify-center text-[#94A3B8]">
@@ -167,7 +193,7 @@ export default function MwasalatProgramDetailPage() {
     <div className="min-h-screen bg-[#F8F9FB]">
       <header className="h-16 bg-white border-b border-[#E2E8F0] flex items-center justify-between px-8">
         <div className="flex items-center gap-4">
-          <Link to="/mwasalat/instructor/dashboard" className="w-9 h-9 rounded-xl border border-[#E2E8F0] flex items-center justify-center text-[#475569] hover:bg-[#F1F5F9] transition-colors">
+          <Link to="/instructor/dashboard" className="w-9 h-9 rounded-xl border border-[#E2E8F0] flex items-center justify-center text-[#475569] hover:bg-[#F1F5F9] transition-colors">
             <ArrowLeft className="w-4 h-4 rtl:rotate-180" />
           </Link>
           <div>
@@ -180,13 +206,13 @@ export default function MwasalatProgramDetailPage() {
         </div>
         <div className="flex items-center gap-4">
           <Link
-            to={`/mwasalat/instructor/programs/${id}/discussion`}
+            to={`/instructor/programs/${id}/discussion`}
             className="inline-flex items-center gap-1.5 text-sm font-medium text-mwasalatInk-500 hover:text-mwasalatInk-400 transition-colors"
           >
             <MessagesSquare className="w-4 h-4" /> {t('programDetail.discussionLink')}
           </Link>
           <Link
-            to={`/mwasalat/instructor/programs/${id}/edit`}
+            to={`/instructor/programs/${id}/edit`}
             className="inline-flex items-center gap-1.5 text-sm font-medium text-mwasalatInk-500 hover:text-mwasalatInk-400 transition-colors"
           >
             {t('programDetail.editCourseLink')}
@@ -254,12 +280,39 @@ export default function MwasalatProgramDetailPage() {
           )}
         </div>
 
+        {program?.contentTypes?.includes('modular') && (
+          <div className="card overflow-hidden">
+            <div className="px-5 py-4 border-b border-[#F1F5F9] flex items-center gap-2">
+              <Layers className="w-4 h-4 text-mwasalatInk-500 flex-shrink-0" />
+              <div>
+                <p className="text-sm font-semibold text-[#1E293B]">{t('programDetail.courseModulesHeading')}</p>
+                <p className="text-xs text-[#94A3B8]">{t('programDetail.courseModulesSubtitle')}</p>
+              </div>
+            </div>
+            <MwasalatModuleBuilder programId={id} />
+          </div>
+        )}
+
+        {!program?.contentTypes?.includes('modular') && (
         <div className="card overflow-hidden">
           <div className="px-5 py-4 border-b border-[#F1F5F9]">
             <p className="text-sm font-semibold text-[#1E293B]">{t('programDetail.courseContentHeading')}</p>
           </div>
           <div className="p-5 space-y-3">
-            {program?.contentTypes?.includes('pdf') && program?.pdfUrl && (
+            {program?.contentTypes?.includes('pdf') && program?.documents?.length > 0 ? (
+              program.documents.map((doc) => (
+                <a key={doc._id} href={doc.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 p-3 rounded-xl border border-[#E2E8F0] hover:border-mwasalatInk-300 transition-colors">
+                  <div className="w-9 h-9 rounded-lg bg-mwasalatInk-100 flex items-center justify-center flex-shrink-0">
+                    <FileText className="w-4 h-4 text-mwasalatInk-500" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-[#1E293B] truncate">{doc.name}</p>
+                    <p className="text-xs text-[#94A3B8]">{t('programDetail.clickToView')}</p>
+                  </div>
+                  <ExternalLink className="w-4 h-4 text-[#94A3B8]" />
+                </a>
+              ))
+            ) : program?.contentTypes?.includes('pdf') && program?.pdfUrl && (
               <a href={program.pdfUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 p-3 rounded-xl border border-[#E2E8F0] hover:border-mwasalatInk-300 transition-colors">
                 <div className="w-9 h-9 rounded-lg bg-mwasalatInk-100 flex items-center justify-center flex-shrink-0">
                   <FileText className="w-4 h-4 text-mwasalatInk-500" />
@@ -272,7 +325,7 @@ export default function MwasalatProgramDetailPage() {
               </a>
             )}
             {program?.contentTypes?.includes('recording') && program?.recordingVideoPublicId && (
-              <Link to={`/mwasalat/instructor/programs/${program._id}/watch`} className="flex items-center gap-3 p-3 rounded-xl border border-[#E2E8F0] hover:border-mwasalatInk-300 transition-colors">
+              <Link to={`/instructor/programs/${program._id}/watch`} className="flex items-center gap-3 p-3 rounded-xl border border-[#E2E8F0] hover:border-mwasalatInk-300 transition-colors">
                 <div className="w-9 h-9 rounded-lg bg-mwasalatInk-100 flex items-center justify-center flex-shrink-0">
                   <Video className="w-4 h-4 text-mwasalatInk-500" />
                 </div>
@@ -296,27 +349,49 @@ export default function MwasalatProgramDetailPage() {
               </a>
             )}
             {program?.contentTypes?.includes('live') && program?.liveMeetingLink && (
-              <a
-                href={program.liveMeetingStartUrl || program.liveMeetingLink}
-                onClick={(e) => {
-                  e.preventDefault();
-                  window.open(program.liveMeetingStartUrl || program.liveMeetingLink, 'mwasalat-live-class', 'noopener,noreferrer,width=1100,height=720');
-                }}
-                className="flex items-center gap-3 p-3 rounded-xl border border-[#E2E8F0] hover:border-mwasalatInk-300 transition-colors"
-              >
-                <div className="w-9 h-9 rounded-lg bg-mwasalatInk-100 flex items-center justify-center flex-shrink-0">
-                  <Radio className="w-4 h-4 text-mwasalatInk-500" />
+              <div className="rounded-xl border border-[#E2E8F0] overflow-hidden">
+                <a
+                  href={program.liveMeetingStartUrl || program.liveMeetingLink}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    window.open(program.liveMeetingStartUrl || program.liveMeetingLink, 'mwasalat-live-class', 'noopener,noreferrer,width=1100,height=720');
+                  }}
+                  className="flex items-center gap-3 p-3 hover:bg-[#F8F9FB] transition-colors"
+                >
+                  <div className="w-9 h-9 rounded-lg bg-mwasalatInk-100 flex items-center justify-center flex-shrink-0">
+                    <Radio className="w-4 h-4 text-mwasalatInk-500" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-[#1E293B]">
+                      {program.liveMeetingStartUrl ? t('programDetail.startLiveClassLabel') : t('programDetail.liveClassLabel')}
+                    </p>
+                    <p className="text-xs text-[#94A3B8]">
+                      {program.liveScheduledAt ? fmtDateTime(program.liveScheduledAt) : t('programDetail.noTimeSet')}
+                    </p>
+                  </div>
+                  <ExternalLink className="w-4 h-4 text-[#94A3B8]" />
+                </a>
+                <div className="flex items-center justify-between gap-2 px-3 py-2 border-t border-[#F1F5F9] bg-[#F8F9FB]">
+                  {program.liveClassCompletedAt ? (
+                    <span className="inline-flex items-center gap-1.5 text-xs font-medium text-[#22C55E]">
+                      <CheckCircle2 className="w-3.5 h-3.5" /> {t('programDetail.classCompletedOn', { date: fmtDateTime(program.liveClassCompletedAt) })}
+                    </span>
+                  ) : (
+                    <>
+                      <span className="text-xs text-[#94A3B8]">{t('programDetail.classNotCompletedYet')}</span>
+                      <button
+                        type="button"
+                        onClick={() => handleCompleteClass('live')}
+                        disabled={completingType === 'live'}
+                        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold text-mwasalatInk-500 bg-mwasalatInk-100 hover:bg-mwasalatInk-200 disabled:opacity-50 transition-colors flex-shrink-0"
+                      >
+                        {completingType === 'live' ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <CheckCircle2 className="w-3.5 h-3.5" />}
+                        {t('programDetail.markClassCompletedBtn')}
+                      </button>
+                    </>
+                  )}
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-[#1E293B]">
-                    {program.liveMeetingStartUrl ? t('programDetail.startLiveClassLabel') : t('programDetail.liveClassLabel')}
-                  </p>
-                  <p className="text-xs text-[#94A3B8]">
-                    {program.liveScheduledAt ? fmtDateTime(program.liveScheduledAt) : t('programDetail.noTimeSet')}
-                  </p>
-                </div>
-                <ExternalLink className="w-4 h-4 text-[#94A3B8]" />
-              </a>
+              </div>
             )}
             {program?.contentTypes?.includes('ilt') && program?.iltVenue && (
               <div className="flex items-center gap-3 p-3 rounded-xl border border-[#E2E8F0]">
@@ -336,12 +411,30 @@ export default function MwasalatProgramDetailPage() {
             )}
           </div>
         </div>
+        )}
 
         {program?.contentTypes?.includes('ilt') && (
           <div className="card overflow-hidden">
-            <div className="px-5 py-4 border-b border-[#F1F5F9] flex items-center gap-2">
-              <QrCode className="w-4 h-4 text-mwasalatInk-500" />
-              <p className="text-sm font-semibold text-[#1E293B]">{t('programDetail.checkInHeading')}</p>
+            <div className="px-5 py-4 border-b border-[#F1F5F9] flex items-center justify-between gap-2 flex-wrap">
+              <div className="flex items-center gap-2">
+                <QrCode className="w-4 h-4 text-mwasalatInk-500" />
+                <p className="text-sm font-semibold text-[#1E293B]">{t('programDetail.checkInHeading')}</p>
+              </div>
+              {program.iltClassCompletedAt ? (
+                <span className="inline-flex items-center gap-1.5 text-xs font-medium text-[#22C55E]">
+                  <CheckCircle2 className="w-3.5 h-3.5" /> {t('programDetail.classCompletedOn', { date: fmtDateTime(program.iltClassCompletedAt) })}
+                </span>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => handleCompleteClass('ilt')}
+                  disabled={completingType === 'ilt'}
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold text-mwasalatInk-500 bg-mwasalatInk-100 hover:bg-mwasalatInk-200 disabled:opacity-50 transition-colors"
+                >
+                  {completingType === 'ilt' ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <CheckCircle2 className="w-3.5 h-3.5" />}
+                  {t('programDetail.markClassCompletedBtn')}
+                </button>
+              )}
             </div>
             <div className="p-5 grid sm:grid-cols-[auto_1fr] gap-6">
               <div className="flex flex-col items-center gap-2">
@@ -392,6 +485,7 @@ export default function MwasalatProgramDetailPage() {
           </div>
         )}
 
+        {!program?.contentTypes?.includes('modular') && (
         <div className="card overflow-hidden">
           <button
             type="button"
@@ -412,6 +506,30 @@ export default function MwasalatProgramDetailPage() {
           </button>
           {isQuizOpen && <MwasalatQuizBuilder programId={id} />}
         </div>
+        )}
+
+        {!program?.contentTypes?.includes('modular') && (
+        <div className="card overflow-hidden">
+          <button
+            type="button"
+            onClick={() => setIsAssignmentOpen((v) => !v)}
+            className="w-full px-5 py-4 border-b border-[#F1F5F9] flex items-center justify-between gap-2 hover:bg-[#F8F9FB] transition-colors text-start"
+          >
+            <div className="flex items-center gap-2">
+              <ClipboardCheck className="w-4 h-4 text-mwasalatInk-500 flex-shrink-0" />
+              <div>
+                <p className="text-sm font-semibold text-[#1E293B]">{t('programDetail.assessmentAssignmentHeading')}</p>
+                <p className="text-xs text-[#94A3B8]">{t('programDetail.assessmentAssignmentSubtitle')}</p>
+              </div>
+            </div>
+            <span className="inline-flex items-center gap-1.5 text-sm font-medium text-mwasalatInk-500 flex-shrink-0">
+              {isAssignmentOpen ? t('programDetail.closeBtn') : t('programDetail.openBtn')}
+              {isAssignmentOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+            </span>
+          </button>
+          {isAssignmentOpen && <MwasalatAssignmentBuilder programId={id} />}
+        </div>
+        )}
 
         <div className="card overflow-hidden">
           <div className="px-5 py-4 border-b border-[#F1F5F9] flex items-center justify-between gap-3 flex-wrap">
@@ -424,7 +542,7 @@ export default function MwasalatProgramDetailPage() {
                 <Search className="w-4 h-4 text-[#94A3B8] absolute start-3 top-1/2 -translate-y-1/2" />
                 <input
                   value={learnerQuery}
-                  onChange={(e) => setLearnerQuery(e.target.value)}
+                  onChange={(e) => { setLearnerQuery(e.target.value); setLearnerPage(1); }}
                   placeholder={t('programDetail.searchLearnersPlaceholder')}
                   className="w-full ps-9 pe-3 py-2 rounded-lg border border-[#E2E8F0] text-sm bg-white text-[#1E293B] placeholder:text-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-mwasalatInk-500/20 hover:border-mwasalatInk-300 transition-colors"
                 />
@@ -452,14 +570,12 @@ export default function MwasalatProgramDetailPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {visibleLearners.map((e) => (
+                  {pageLearners.map((e) => (
                     <tr key={e._id} className="border-b border-[#F1F5F9] last:border-0">
                       <td className="px-5 py-3.5 font-medium text-[#1E293B] whitespace-nowrap">{e.learner?.name}</td>
                       <td className="px-5 py-3.5 text-[#475569] whitespace-nowrap" dir="ltr">{e.learner?.email}</td>
                       <td className="px-5 py-3.5">
-                        <span className="inline-flex px-2.5 py-1 rounded-full text-xs font-medium bg-mwasalatInk-100 text-mwasalatInk-500 capitalize whitespace-nowrap">
-                          {e.status.replace('_', ' ')}
-                        </span>
+                        <MwasalatEnrollmentStatusBadge status={e.status} />
                       </td>
                       <td className="px-5 py-3.5 text-[#94A3B8] whitespace-nowrap">{fmtDate(e.purchasedAt)}</td>
                       <td className="px-5 py-3.5 text-[#475569] whitespace-nowrap">{localizeNumber(e.progress, i18n.language)}%</td>
@@ -469,10 +585,10 @@ export default function MwasalatProgramDetailPage() {
                           ? localizeNumber(t('programDetail.lastActiveDaysAgo', { count: e.daysSinceActivity }), i18n.language)
                           : t('programDetail.lastActiveNever')}
                       </td>
-                      <td className="px-5 py-3.5 whitespace-nowrap"><MwasalatRiskBadge level={e.riskLevel} returned={e.returned} /></td>
+                      <td className="px-5 py-3.5 whitespace-nowrap"><MwasalatRiskBadge level={e.riskLevel} returned={e.returned} overdue={e.overdue} /></td>
                       <td className="px-5 py-3.5 text-end">
                         <Link
-                          to={`/mwasalat/instructor/programs/${id}/chat/${e.learner?._id}`}
+                          to={`/instructor/programs/${id}/chat/${e.learner?._id}`}
                           className="relative inline-flex items-center justify-center w-8 h-8 rounded-lg text-mwasalatInk-500 border border-[#E2E8F0] hover:border-mwasalatInk-300 hover:bg-mwasalatInk-100 transition-colors"
                           title={t('programDetail.chatWithTooltip', { name: e.learner?.name })}
                         >
@@ -486,6 +602,43 @@ export default function MwasalatProgramDetailPage() {
                   ))}
                 </tbody>
               </table>
+            </div>
+          )}
+          {visibleLearners.length > 0 && (
+            <div className="flex flex-wrap items-center justify-between gap-2.5 px-5 py-3 border-t border-[#F1F5F9]">
+              <div className="flex items-center gap-3">
+                <p className="text-[11px] text-[#94A3B8]">
+                  {localizeNumber(t('dataTable.pageInfo', { current: learnerCurrentPage, pages: learnerPages, count: visibleLearners.length }), i18n.language)}
+                </p>
+                <label className="flex items-center gap-1.5 text-[11px] text-[#94A3B8]">
+                  {t('dataTable.rowsPerPage')}
+                  <select
+                    value={learnerPageSize}
+                    onChange={(e) => { setLearnerPageSize(Number(e.target.value)); setLearnerPage(1); }}
+                    className="border border-[#E2E8F0] rounded-md bg-white text-[#1E293B] text-[11px] px-1.5 py-1 focus:outline-none focus:ring-2 focus:ring-mwasalatInk-500/20 hover:border-mwasalatInk-300 transition-colors"
+                  >
+                    {TABLE_PAGE_SIZE_OPTIONS.map((size) => (
+                      <option key={size} value={size}>{localizeNumber(size, i18n.language)}</option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <button
+                  onClick={() => setLearnerPage((p) => Math.max(1, p - 1))}
+                  disabled={learnerCurrentPage === 1}
+                  className="w-7 h-7 rounded-lg border border-[#E2E8F0] flex items-center justify-center text-[#475569] hover:bg-[#F1F5F9] disabled:opacity-40 disabled:hover:bg-transparent transition-colors"
+                >
+                  <ChevronLeft className="w-3.5 h-3.5 rtl:rotate-180" />
+                </button>
+                <button
+                  onClick={() => setLearnerPage((p) => Math.min(learnerPages, p + 1))}
+                  disabled={learnerCurrentPage === learnerPages}
+                  className="w-7 h-7 rounded-lg border border-[#E2E8F0] flex items-center justify-center text-[#475569] hover:bg-[#F1F5F9] disabled:opacity-40 disabled:hover:bg-transparent transition-colors"
+                >
+                  <ChevronRight className="w-3.5 h-3.5 rtl:rotate-180" />
+                </button>
+              </div>
             </div>
           )}
         </div>

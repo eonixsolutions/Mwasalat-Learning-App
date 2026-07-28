@@ -13,26 +13,40 @@ import { themeForCategory } from '../../utils/mwasalatCategoryTheme.js';
 import { getLocalizedProgramField, localizeNumber } from '../../utils/mwasalatLocalize.js';
 
 const NEEDS_ATTENTION_PREVIEW_SIZE = 5;
+const PROGRAMS_PREVIEW_SIZE = 5;
 
 // Same modal shape as the admin's broadcast-to-everyone one (MwasalatAdminDashboard),
-// but scoped to one course's learners or every learner across the instructor's
-// own courses — never platform-wide, since that's the admin-only action.
+// but scoped to one or more of the instructor's own courses (or every learner
+// they teach) — never platform-wide, since that's the admin-only action.
 function MwasalatInstructorNotifyModal({ programs, onClose }) {
   const { t, i18n } = useTranslation('mwasalatApp');
   const [title, setTitle] = useState('');
   const [message, setMessage] = useState('');
-  const [targetProgramId, setTargetProgramId] = useState('');
+  const [sendToAll, setSendToAll] = useState(true);
+  const [selectedProgramIds, setSelectedProgramIds] = useState([]);
   const [isSending, setIsSending] = useState(false);
+
+  const allSelected = programs.length > 0 && selectedProgramIds.length === programs.length;
+  const toggleProgram = (id) => {
+    setSelectedProgramIds((prev) => (prev.includes(id) ? prev.filter((p) => p !== id) : [...prev, id]));
+  };
+  const toggleSelectAll = () => {
+    setSelectedProgramIds(allSelected ? [] : programs.map((p) => p._id));
+  };
 
   const handleSend = async () => {
     if (!title.trim() || !message.trim()) {
       toast.error(t('instructorDashboard.notifyModal.validationError'));
       return;
     }
+    if (!sendToAll && selectedProgramIds.length === 0) {
+      toast.error(t('instructorDashboard.notifyModal.selectCourseError'));
+      return;
+    }
     setIsSending(true);
     try {
       const { recipientCount } = await mwasalatNotificationService.sendFromInstructor({
-        title: title.trim(), message: message.trim(), programId: targetProgramId || undefined,
+        title: title.trim(), message: message.trim(), programIds: sendToAll ? undefined : selectedProgramIds,
       });
       toast.success(localizeNumber(t('instructorDashboard.notifyModal.sentToast', { count: recipientCount }), i18n.language));
       onClose();
@@ -54,16 +68,51 @@ function MwasalatInstructorNotifyModal({ programs, onClose }) {
         <p className="text-sm text-[#475569] mb-4">{t('instructorDashboard.notifyModal.body')}</p>
 
         <label className="block text-sm font-medium text-[#1E293B] mb-1.5">{t('instructorDashboard.notifyModal.sendToLabel')}</label>
-        <select
-          value={targetProgramId}
-          onChange={(e) => setTargetProgramId(e.target.value)}
-          className="w-full px-3.5 py-2.5 rounded-xl border border-[#E2E8F0] text-sm bg-white text-[#1E293B] focus:outline-none focus:ring-2 focus:ring-mwasalatInk-500/20 hover:border-mwasalatInk-300 transition-colors mb-4"
-        >
-          <option value="">{t('instructorDashboard.notifyModal.allMyLearners')}</option>
-          {programs.map((p) => (
-            <option key={p._id} value={p._id}>{getLocalizedProgramField(p, 'title', i18n.language)}</option>
-          ))}
-        </select>
+        <div className="flex rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] p-1 mb-3">
+          <button
+            type="button"
+            onClick={() => setSendToAll(true)}
+            className={`flex-1 text-center px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${sendToAll ? 'bg-white text-mwasalatInk-500 shadow-sm' : 'text-[#64748B]'}`}
+          >
+            {t('instructorDashboard.notifyModal.allMyLearners')}
+          </button>
+          <button
+            type="button"
+            onClick={() => setSendToAll(false)}
+            className={`flex-1 text-center px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${!sendToAll ? 'bg-white text-mwasalatInk-500 shadow-sm' : 'text-[#64748B]'}`}
+          >
+            {t('instructorDashboard.notifyModal.selectCourses')}
+          </button>
+        </div>
+
+        {!sendToAll && (
+          programs.length === 0 ? (
+            <p className="text-xs text-[#94A3B8] mb-4">{t('instructorDashboard.notifyModal.noCourses')}</p>
+          ) : (
+            <div className="mb-4 max-h-40 overflow-y-auto rounded-xl border border-[#E2E8F0] divide-y divide-[#F1F5F9]">
+              <label className="flex items-center gap-2.5 px-3.5 py-2 text-xs font-medium text-[#1E293B] cursor-pointer hover:bg-[#F8FAFC] transition-colors">
+                <input
+                  type="checkbox"
+                  checked={allSelected}
+                  onChange={toggleSelectAll}
+                  className="accent-mwasalatInk-500 w-3.5 h-3.5"
+                />
+                {t('instructorDashboard.notifyModal.selectAll')}
+              </label>
+              {programs.map((p) => (
+                <label key={p._id} className="flex items-center gap-2.5 px-3.5 py-2 text-sm text-[#1E293B] cursor-pointer hover:bg-[#F8FAFC] transition-colors">
+                  <input
+                    type="checkbox"
+                    checked={selectedProgramIds.includes(p._id)}
+                    onChange={() => toggleProgram(p._id)}
+                    className="accent-mwasalatInk-500 w-3.5 h-3.5"
+                  />
+                  {getLocalizedProgramField(p, 'title', i18n.language)}
+                </label>
+              ))}
+            </div>
+          )
+        )}
 
         <label className="block text-sm font-medium text-[#1E293B] mb-1.5">{t('instructorDashboard.notifyModal.titleLabel')}</label>
         <input
@@ -305,7 +354,7 @@ export default function MwasalatInstructorDashboard() {
             </div>
             {needsAttention.length > NEEDS_ATTENTION_PREVIEW_SIZE && (
               <Link
-                to="/mwasalat/instructor/at-risk"
+                to="/instructor/at-risk"
                 className="inline-flex items-center gap-1 text-xs font-medium text-mwasalatInk-500 hover:text-mwasalatInk-400 transition-colors"
               >
                 {t('instructorDashboard.viewAllAtRisk')} <ArrowRight className="w-3 h-3 rtl:rotate-180" />
@@ -325,7 +374,17 @@ export default function MwasalatInstructorDashboard() {
         </div>
       )}
 
-      <h2 className="text-[13px] font-semibold text-[#1E293B] mb-2.5">{t('instructorDashboard.yourPrograms')}</h2>
+      <div className="flex items-center justify-between gap-3 mb-2.5">
+        <h2 className="text-[13px] font-semibold text-[#1E293B]">{t('instructorDashboard.yourPrograms')}</h2>
+        {!isLoading && programs.length > 0 && (
+          <Link
+            to="/instructor/programs"
+            className="inline-flex items-center gap-1 text-xs font-medium text-mwasalatInk-500 hover:text-mwasalatInk-400 transition-colors"
+          >
+            {t('instructorDashboard.viewAllPrograms')} <ArrowRight className="w-3 h-3 rtl:rotate-180" />
+          </Link>
+        )}
+      </div>
 
       {isLoading ? (
         <div className="p-8 flex items-center justify-center text-[#94A3B8] text-[13px]">
@@ -337,7 +396,7 @@ export default function MwasalatInstructorDashboard() {
           <p className="text-[13px] font-medium text-[#1E293B] mb-1">{t('instructorDashboard.emptyTitle')}</p>
           <p className="text-xs text-[#94A3B8] mb-3.5">{t('instructorDashboard.emptyBody')}</p>
           <Link
-            to="/mwasalat/instructor/programs/new"
+            to="/instructor/programs/new"
             className="inline-flex items-center gap-2 bg-mwasalatInk-500 hover:bg-mwasalatInk-400 text-white font-semibold px-3.5 py-2 rounded-lg transition-colors text-[13px]"
           >
             <Plus className="w-3.5 h-3.5" /> {t('instructor.nav.addCourse')}
@@ -345,11 +404,10 @@ export default function MwasalatInstructorDashboard() {
         </div>
       ) : (
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-3.5">
-          {programs.map((program) => {
+          {programs.slice(0, PROGRAMS_PREVIEW_SIZE).map((program) => {
             const theme = themeForCategory(program.category);
             return (
               <div key={program._id} className="card card-hover overflow-hidden flex flex-col">
-                <div className="h-1.5" style={{ background: `linear-gradient(90deg, ${theme.solid}, ${theme.solid}99)` }} />
                 <div className="p-3.5 flex flex-col flex-1">
                   <div className="flex flex-wrap gap-1 mb-2">
                     {(program.contentTypes ?? []).map((type) => (
@@ -375,13 +433,13 @@ export default function MwasalatInstructorDashboard() {
                   <p className="text-[11px] text-[#94A3B8] mb-3">{getLocalizedProgramField(program, 'subCategory', i18n.language) || ' '}</p>
                   <div className="mt-auto flex items-center gap-1.5">
                     <Link
-                      to={`/mwasalat/instructor/programs/${program._id}`}
+                      to={`/instructor/programs/${program._id}`}
                       className="flex-1 inline-flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11.5px] font-semibold text-mwasalatInk-500 border border-[#E2E8F0] hover:border-mwasalatInk-300 transition-colors"
                     >
                       {t('common.view')} <ChevronRight className="w-3 h-3 rtl:rotate-180" />
                     </Link>
                     <Link
-                      to={`/mwasalat/instructor/programs/${program._id}/edit`}
+                      to={`/instructor/programs/${program._id}/edit`}
                       className="inline-flex items-center justify-center w-7 h-7 rounded-lg text-[#475569] border border-[#E2E8F0] hover:border-mwasalatInk-300 hover:text-mwasalatInk-500 transition-colors flex-shrink-0"
                       title={t('instructorDashboard.editCourseTooltip')}
                       aria-label={t('instructorDashboard.editCourseTooltip')}

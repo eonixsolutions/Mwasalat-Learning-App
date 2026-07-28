@@ -299,3 +299,18 @@ const ADMIN_DATA_TOOL_DECLARATIONS = [
 ];
 
 export const ADMIN_TOOL_DECLARATIONS = [...ADMIN_DATA_TOOL_DECLARATIONS, ...RENDER_TOOL_DECLARATIONS];
+
+// Platform Admin is an operational role, not a financial one — the finance
+// nav group (payments, sales-report) is already super_admin-only in
+// MwasalatAdminLayout.jsx, so the assistant mirrors that: same tool set as
+// Super Admin minus revenue/sales/transaction data.
+const PLATFORM_ADMIN_EXCLUDED_TOOLS = new Set(['getRevenueSummary', 'getSalesReport', 'listRecentTransactions']);
+
+export const PLATFORM_ADMIN_TOOL_DECLARATIONS = [
+  ...ADMIN_DATA_TOOL_DECLARATIONS.filter((tool) => !PLATFORM_ADMIN_EXCLUDED_TOOLS.has(tool.name)),
+  ...RENDER_TOOL_DECLARATIONS,
+];
+
+export const PLATFORM_ADMIN_TOOL_EXECUTORS = Object.fromEntries(
+  Object.entries(ADMIN_TOOL_EXECUTORS).filter(([name]) => !PLATFORM_ADMIN_EXCLUDED_TOOLS.has(name))
+);

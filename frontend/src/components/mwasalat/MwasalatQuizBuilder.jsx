@@ -35,7 +35,7 @@ const parseBulkQuestions = (raw) => {
   return parsed;
 };
 
-export default function MwasalatQuizBuilder({ programId, onSaved }) {
+export default function MwasalatQuizBuilder({ programId, moduleId, onSaved }) {
   const { t, i18n } = useTranslation('mwasalatApp');
   const [questions, setQuestions] = useState([]);
   const [passPercentage, setPassPercentage] = useState(70);
@@ -46,7 +46,7 @@ export default function MwasalatQuizBuilder({ programId, onSaved }) {
   const [bulkText, setBulkText] = useState('');
 
   useEffect(() => {
-    mwasalatQuizService.getQuizForInstructor(programId)
+    mwasalatQuizService.getQuizForInstructor(programId, moduleId)
       .then((quiz) => {
         if (quiz) {
           setQuestions(quiz.questions);
@@ -57,7 +57,7 @@ export default function MwasalatQuizBuilder({ programId, onSaved }) {
       })
       .catch(() => setQuestions([emptyQuestion()]))
       .finally(() => setIsLoading(false));
-  }, [programId]);
+  }, [programId, moduleId]);
 
   const updateQuestion = (i, patch) => {
     setQuestions((prev) => prev.map((q, idx) => (idx === i ? { ...q, ...patch } : q)));
@@ -105,6 +105,7 @@ export default function MwasalatQuizBuilder({ programId, onSaved }) {
     setIsGenerating(true);
     try {
       const { questions: generated } = await mwasalatQuizService.generateQuestions(programId);
+      // Note: AI generation is always whole-course-title-based, not module-scoped — reused as-is.
       setQuestions((prev) => (isBlankDraft(prev) ? generated : [...prev, ...generated]));
       toast.success(localizeNumber(t('quizBuilder.toastGenerated', { count: generated.length }), i18n.language));
     } catch (err) {
@@ -127,7 +128,7 @@ export default function MwasalatQuizBuilder({ programId, onSaved }) {
     }
     setIsSaving(true);
     try {
-      await mwasalatQuizService.upsertQuiz(programId, { questions, passPercentage });
+      await mwasalatQuizService.upsertQuiz(programId, { questions, passPercentage }, moduleId);
       toast.success(t('quizBuilder.toastSaved'));
       onSaved?.();
     } catch (err) {

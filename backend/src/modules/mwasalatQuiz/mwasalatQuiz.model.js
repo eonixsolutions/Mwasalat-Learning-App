@@ -14,7 +14,12 @@ const quizQuestionSchema = new mongoose.Schema(
 
 const mwasalatQuizSchema = new mongoose.Schema(
   {
-    program: { type: mongoose.Schema.Types.ObjectId, ref: 'MwasalatProgram', required: true, unique: true },
+    program: { type: mongoose.Schema.Types.ObjectId, ref: 'MwasalatProgram', required: true },
+    // null for a legacy course-level quiz; set to a program.modules[]._id for
+    // a modular course's per-module gating quiz. See mwasalatQuiz.service.js —
+    // every lookup is keyed on {program, moduleId} together, so legacy
+    // (moduleId: null) and modular quizzes never collide.
+    moduleId: { type: mongoose.Schema.Types.ObjectId, default: null },
     questions: {
       type: [quizQuestionSchema],
       validate: { validator: (arr) => arr.length > 0, message: 'At least one question is required' },
@@ -23,6 +28,8 @@ const mwasalatQuizSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+mwasalatQuizSchema.index({ program: 1, moduleId: 1 }, { unique: true });
 
 const MwasalatQuiz = mongoose.model('MwasalatQuiz', mwasalatQuizSchema);
 export default MwasalatQuiz;

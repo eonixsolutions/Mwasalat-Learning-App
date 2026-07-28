@@ -5,16 +5,43 @@
     "notFound": "الدورة غير موجودة.",
     "backToMyLearning": "العودة إلى تعلّمي",
     "categoryFallback": "عام",
+    "scheduledFor": "موعدها {{date}}",
     "progressLabel": "التقدّم",
     "longestStreak": "الأطول: {{count}} يومًا",
     "viewCertificate": "عرض الشهادة",
     "takeAssessment": "بدء التقييم",
     "lockedNote": "أكمل محتوى الدورة لفتح التقييم",
+    "awaitingClassCompletionNote": "بانتظار أن يضع المدرب علامة اكتمال الحصة",
     "assessmentPassed": "تم اجتياز التقييم",
+    "submitAssignment": "تسليم الواجب",
+    "assignmentPassed": "تم اجتياز الواجب",
     "giveFeedback": "أضف ملاحظاتك للحصول على الشهادة",
+    "modulesSummary": "اكتمل {{completed}} من {{total}} وحدات",
+    "continueLearning": "متابعة التعلّم",
+    "startCourse": "بدء الدورة",
     "chatWithInstructor": "التحدث مع المدرب",
     "chatStartFailed": "فشل بدء المحادثة",
-    "courseDiscussion": "نقاش الدورة"
+    "courseDiscussion": "نقاش الدورة",
+    "pendingApproval": {
+      "title": "بانتظار الموافقة",
+      "body": "طلبك للانضمام إلى هذه الدورة بانتظار موافقة المدرب (أو المشرف). ستحصل على وصول كامل بمجرد الموافقة عليه."
+    },
+    "waitlisted": {
+      "title": "أنت في قائمة الانتظار",
+      "titleWithPosition": "أنت رقم {{position}} في قائمة الانتظار",
+      "body": "اكتمل عدد المقاعد في هذه الجلسة. ستتم إضافتك تلقائيًا وسيتم إشعارك فور توفر مقعد."
+    },
+    "rejected": {
+      "title": "تم رفض طلب التسجيل",
+      "body": "لم تتم الموافقة على طلبك للانضمام إلى هذه الدورة. يمكنك طلب الانضمام مرة أخرى من كتالوج الدورات."
+    },
+    "locked": {
+      "title": "هذه الدورة مقفلة",
+      "body": "لقد فاتك الموعد النهائي للإكمال والمهلة الإضافية التي تلته. ادفع نصف سعر الدورة لإلغاء القفل ومتابعة الدورة من حيث توقفت.",
+      "reactivateCta": "ادفع لإلغاء القفل",
+      "reactivating": "جارٍ التحويل إلى صفحة الدفع…",
+      "reactivateFailed": "تعذّر بدء عملية دفع إعادة التفعيل"
+    }
   },
   "learnerChat": {
     "titleFallback": "محادثة",
@@ -31,6 +58,7 @@
     "loading": "جارٍ تحميل الاختبار…",
     "lockedTitle": "التقييم مُقفل",
     "lockedBody": "أنهِ مشاهدة محتوى الدورة قبل إجراء التقييم.",
+    "awaitingClassCompletionBody": "لم يضع المدرب بعد علامة اكتمال هذه الحصة — يرجى التحقق مرة أخرى بعد انتهاء الجلسة.",
     "backToDashboardLink": "العودة إلى لوحة التحكم",
     "noQuizYet": "لا يحتوي هذا المقرر على اختبار بعد.",
     "submitFailed": "فشل إرسال التقييم",
@@ -47,7 +75,29 @@
     "questionOf": "السؤال {{current}} من {{total}}",
     "submitting": "جارٍ الإرسال…",
     "submitQuiz": "إرسال الاختبار",
-    "nextQuestion": "السؤال التالي"
+    "nextQuestion": "السؤال التالي",
+    "answerAllRequired": "يرجى الإجابة عن جميع الأسئلة قبل الإرسال",
+    "assessmentHeading": "اختبار الوحدة",
+    "passScoreNote": "تحتاج إلى {{percent}}% للنجاح وفتح الوحدة التالية"
+  },
+  "learnerAssignment": {
+    "loading": "جارٍ تحميل الواجب…",
+    "lockedTitle": "الواجب مقفل",
+    "lockedBody": "أكمل مشاهدة محتوى الدورة قبل تسليم واجبك.",
+    "backToDashboardLink": "العودة إلى لوحة التحكم",
+    "noAssignmentYet": "لا يوجد واجب لهذه الدورة بعد.",
+    "chooseFileFirst": "اختر ملفًا أولاً",
+    "submittedToast": "تم تسليم الواجب",
+    "submitFailed": "فشل تسليم الواجب",
+    "pendingReview": "تم التسليم — بانتظار المراجعة",
+    "gradedPassed": "التقييم: ناجح",
+    "gradedFailed": "التقييم: راسب",
+    "submittedOn": "تم التسليم في {{date}}",
+    "chooseFileCta": "انقر لاختيار ملف",
+    "fileTypesHint": "PDF أو DOC أو DOCX أو ZIP، بحد أقصى 20 ميجابايت",
+    "submitting": "جارٍ الإرسال…",
+    "submitBtn": "تسليم الواجب",
+    "resubmitBtn": "تسليم نسخة جديدة"
   },
   "learnerFeedback": {
     "pageTitle": "ملاحظات الدورة",
@@ -78,7 +128,15 @@
     "instructorLabel": "المدرب",
     "instructorFallback": "أكاديمية مواصلات",
     "certificateNoLabel": "رقم الشهادة",
-    "scanToVerify": "امسح للتحقق"
+    "scanToVerify": "امسح للتحقق",
+    "renewal": {
+      "dueTitle": "شهادتك بحاجة إلى تجديد",
+      "expiredTitle": "انتهت صلاحية شهادتك",
+      "retestBody": "أعد الاختبار واجتزه لإعادة إصدار الشهادة بتاريخ انتهاء صلاحية جديد.",
+      "retakeCta": "إعادة الاختبار",
+      "autoRenewTitle": "هذه الشهادة تتجدد تلقائيًا",
+      "autoRenewBody": "اقتربت من تاريخ انتهاء صلاحيتها لكن سيتم تمديدها تلقائيًا قبل ذلك — لا حاجة لأي إجراء."
+    }
   },
   "contentAccess": {
     "viewPdf": "عرض ملف PDF",
@@ -87,8 +145,10 @@
     "pdfDayProgress": "تمت قراءة اليوم {{done}} من {{total}}",
     "markedToday": "تم تسجيل قراءة اليوم — عد غدًا",
     "markTodayDone": "تعليم قراءة اليوم كمكتملة",
+    "completeFullPdf": "إتمام قراءة الملف بالكامل",
     "watchRecording": "مشاهدة التسجيل",
     "joinLiveClass": "الانضمام إلى الحصة المباشرة",
+    "liveClassLocked": "يفتح بتاريخ {{date}}",
     "scheduledCheckInNote": "{{date}} · امسح رمز QR في الحصة لتسجيل الحضور"
   },
   "controlledVideoPlayer": {
@@ -108,5 +168,38 @@
     "startConversationWith": "ابدأ المحادثة مع {{name}} — أسئلتك حول الدورة مرحّب بها هنا.",
     "otherFallback": "هذا الشخص",
     "sendFailed": "فشل إرسال الرسالة"
+  },
+  "coursePlayer": {
+    "titleFallback": "الدورة",
+    "loading": "جارٍ تحميل الدورة…",
+    "notFound": "الدورة غير موجودة.",
+    "backToOverview": "العودة إلى نظرة عامة على الدورة",
+    "progressLabel": "التقدّم",
+    "reviewNavLabel": "تقييم الدورة",
+    "selectLessonPrompt": "اختر درسًا للبدء",
+    "continueBtn": "متابعة",
+    "markAsDoneBtn": "تعليم كمكتمل",
+    "markedDone": "تم التعليم كمكتمل",
+    "viewFile": "عرض الملف",
+    "opensNewTab": "يفتح في تبويب جديد",
+    "markOpenedFailed": "فشل تحديث التقدّم"
+  },
+  "courseReview": {
+    "heading": "كيف كانت هذه الدورة؟",
+    "subheading": "خطوة أخيرة قبل شهادتك — ملاحظاتك تساعدنا على التحسّن.",
+    "usefulnessLabel": "ما مدى فائدة هذا التدريب؟",
+    "trainerClearLabel": "هل كان المدرب واضحًا؟",
+    "yes": "نعم",
+    "no": "لا",
+    "trainerRatingLabel": "قيّم المدرب",
+    "commentsLabel": "تعليقاتك",
+    "commentsPlaceholder": "ما الذي أعجبك؟ وما الذي يمكن تحسينه؟",
+    "submitting": "جارٍ الإرسال…",
+    "submitBtn": "إرسال التقييم",
+    "ratingRequiredToast": "يرجى الإجابة عن جميع الأسئلة أعلاه",
+    "errorToast": "فشل إرسال تقييمك",
+    "thanksTitle": "شكرًا لك!",
+    "thanksBody": "اكتملت دورتك وشهادتك جاهزة.",
+    "viewCertificateBtn": "عرض الشهادة"
   }
 }

@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, forwardRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { useMutation } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
@@ -7,16 +7,17 @@ import { User, KeyRound, Loader2, Save, Eye, EyeOff, Mail, Phone, ShieldCheck, C
 import { mwasalatAuthService } from '../../services/mwasalatAuth.service.js';
 import { useMwasalatAuthStore } from '../../store/mwasalatAuthStore.js';
 import { STRONG_PASSWORD_REGEX } from '../../utils/passwordPolicy.js';
+import MwasalatTwoFactorSettings from './MwasalatTwoFactorSettings.jsx';
 
 const ALLOWED_AVATAR_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 const MAX_AVATAR_BYTES = 5 * 1024 * 1024;
 
 const inputClass = 'w-full px-3.5 py-2.5 rounded-xl border border-[#E2E8F0] text-sm bg-white text-[#1E293B] placeholder:text-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-mwasalatInk-500/20 hover:border-mwasalatInk-300 transition-colors';
 
-function PasswordField({ show, setShow, error, ...props }) {
+const PasswordField = forwardRef(function PasswordField({ show, setShow, ...props }, ref) {
   return (
     <div className="relative">
-      <input type={show ? 'text' : 'password'} dir="ltr" className={`${inputClass} text-start`} {...props} />
+      <input ref={ref} type={show ? 'text' : 'password'} dir="ltr" className={`${inputClass} text-start`} {...props} />
       <button
         type="button"
         onClick={() => setShow((v) => !v)}
@@ -27,7 +28,7 @@ function PasswordField({ show, setShow, error, ...props }) {
       </button>
     </div>
   );
-}
+});
 
 export default function MwasalatProfileCard() {
   const { t } = useTranslation('mwasalatApp');
@@ -208,6 +209,7 @@ export default function MwasalatProfileCard() {
               show={showCurrent}
               setShow={setShowCurrent}
               placeholder="••••••••"
+              autoComplete="current-password"
               {...passwordForm.register('currentPassword', { required: t('profile.currentPasswordRequired') })}
             />
             {passwordForm.formState.errors.currentPassword && (
@@ -221,6 +223,7 @@ export default function MwasalatProfileCard() {
               show={showNew}
               setShow={setShowNew}
               placeholder={t('auth.placeholders.passwordMin')}
+              autoComplete="new-password"
               {...passwordForm.register('newPassword', {
                 required: t('profile.newPasswordRequired'),
                 minLength: { value: 8, message: t('profile.newPasswordMinLength') },
@@ -238,6 +241,7 @@ export default function MwasalatProfileCard() {
               type="password"
               dir="ltr"
               placeholder="••••••••"
+              autoComplete="new-password"
               className={`${inputClass} text-start`}
               {...passwordForm.register('confirmPassword', {
                 required: t('profile.confirmPasswordRequired'),
@@ -258,6 +262,11 @@ export default function MwasalatProfileCard() {
             {isSavingPassword ? t('profile.updating') : t('profile.changePasswordBtn')}
           </button>
         </form>
+      </div>
+
+      {/* Two-factor authentication */}
+      <div className="mt-5">
+        <MwasalatTwoFactorSettings />
       </div>
     </div>
   );

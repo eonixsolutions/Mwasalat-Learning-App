@@ -81,9 +81,21 @@ export default {
           '0%, 100%': { transform: 'translateY(0) rotate(0deg)' },
           '50%': { transform: 'translateY(-2px) rotate(-6deg)' },
         },
+        // Breathing halo behind the floating AI trigger button.
+        aiGlowPulse: {
+          '0%, 100%': { boxShadow: '0 0 0 0 rgba(214, 41, 60, 0.38)' },
+          '50%': { boxShadow: '0 0 0 12px rgba(214, 41, 60, 0)' },
+        },
+        // Springy pop-in when the FAB first mounts / reappears after the panel closes.
+        aiFabIn: {
+          '0%': { transform: 'scale(0.4) rotate(-20deg)', opacity: '0' },
+          '100%': { transform: 'scale(1) rotate(0deg)', opacity: '1' },
+        },
       },
       animation: {
         'ai-bot-float': 'aiBotFloat 2.4s ease-in-out infinite',
+        'ai-glow-pulse': 'aiGlowPulse 2.6s ease-in-out infinite',
+        'ai-fab-in': 'aiFabIn 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both',
       },
     },
   },

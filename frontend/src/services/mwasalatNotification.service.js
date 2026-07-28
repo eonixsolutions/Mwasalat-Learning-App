@@ -32,4 +32,29 @@ const listSent = async () => {
   return res.data.data;
 };
 
-export const mwasalatNotificationService = { list, send, sendFromInstructor, markRead, markAllRead, listSent };
+const listReminders = async (type) => {
+  const res = await notificationsApi.get('/admin/reminders', { params: type && type !== 'all' ? { type } : {} });
+  return res.data.data;
+};
+
+const subscribePush = async (subscription) => {
+  const res = await notificationsApi.post('/push/subscribe', { subscription });
+  return res.data;
+};
+
+const unsubscribePush = async (endpoint) => {
+  const res = await notificationsApi.post('/push/unsubscribe', { endpoint });
+  return res.data;
+};
+
+export const mwasalatNotificationService = {
+  list,
+  send,
+  sendFromInstructor,
+  markRead,
+  markAllRead,
+  listSent,
+  listReminders,
+  subscribePush,
+  unsubscribePush,
+};

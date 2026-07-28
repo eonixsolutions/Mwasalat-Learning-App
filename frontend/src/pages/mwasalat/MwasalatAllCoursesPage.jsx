@@ -78,7 +78,7 @@ export default function MwasalatAllCoursesPage() {
       render: (r) => {
         const theme = themeForCategory(r.program?.category);
         return (
-          <Link to={`/mwasalat/learner/programs/${r.program?._id}`} className="group flex items-center gap-3 min-w-0">
+          <Link to={`/learner/programs/${r.program?._id}`} className="group flex items-center gap-3 min-w-0">
             <span className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 ${theme.bg} ${theme.text}`}>
               <BookOpen className="w-4 h-4" />
             </span>
@@ -132,7 +132,7 @@ export default function MwasalatAllCoursesPage() {
         <div className="flex items-center gap-1.5 justify-end">
           {r.isCompleted && (
             <Link
-              to={`/mwasalat/learner/programs/${r.program?._id}/certificate`}
+              to={`/learner/programs/${r.program?._id}/certificate`}
               title={t('allCoursesPage.viewCertificate')}
               className="w-8 h-8 rounded-lg flex items-center justify-center text-mwasalatInk-500 hover:bg-mwasalatInk-100 transition-colors flex-shrink-0"
             >
@@ -140,7 +140,7 @@ export default function MwasalatAllCoursesPage() {
             </Link>
           )}
           <Link
-            to={`/mwasalat/learner/programs/${r.program?._id}`}
+            to={`/learner/programs/${r.program?._id}`}
             title={t('common.view')}
             className="w-8 h-8 rounded-lg flex items-center justify-center text-[#475569] hover:bg-[#F1F5F9] transition-colors flex-shrink-0"
           >

@@ -1,10 +1,12 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Search } from 'lucide-react';
+import { Search, Upload } from 'lucide-react';
 import toast from 'react-hot-toast';
 import MwasalatAdminLayout from '../../layouts/MwasalatAdminLayout.jsx';
 import { mwasalatUserService } from '../../services/mwasalatUser.service.js';
 import MwasalatUserTable from '../../components/mwasalat/MwasalatUserTable.jsx';
+import MwasalatBulkImportModal from '../../components/mwasalat/MwasalatBulkImportModal.jsx';
+import { useMwasalatAuthStore } from '../../store/mwasalatAuthStore.js';
 import { localizeNumber } from '../../utils/mwasalatLocalize.js';
 
 const statusOf = (u) => (!u.passwordSet ? 'invited' : u.isActive ? 'active' : 'blocked');
@@ -18,6 +20,12 @@ const isDormant = (u) => u.isActive && (
 
 export default function MwasalatLearnersPage() {
   const { t, i18n } = useTranslation('mwasalatApp');
+  const { user } = useMwasalatAuthStore();
+  const canManage = user?.role === 'platform_admin';
+  // Bulk import is Department Admin's alone — each row lands in their own
+  // department (see bulkImport in the backend service), so it doesn't belong
+  // to canManage (Platform Admin's block/unblock authority).
+  const canBulkImport = user?.role === 'department_admin';
   const dateLocale = i18n.language.startsWith('ar') ? 'ar-OM' : 'en-GB';
   const STATUS_FILTERS = [
     { value: 'all', label: t('userFilters.all') },
@@ -25,8 +33,14 @@ export default function MwasalatLearnersPage() {
     { value: 'blocked', label: t('userFilters.blocked') },
     { value: 'dormant', label: t('userFilters.dormant') },
   ];
+  const ROLE_FILTERS = [
+    { value: 'all', label: t('learnersPage.allRoles') },
+    { value: 'learner', label: t('learnersPage.roles.learner') },
+    { value: 'external_learner', label: t('learnersPage.roles.external_learner') },
+  ];
 
   const learnerColumns = [
+    { key: 'role', label: t('learnersPage.columns.role'), render: (u) => <span className="text-[#475569]">{t(`learnersPage.roles.${u.role}`)}</span> },
     { key: 'email', label: t('common.email'), sortValue: (u) => u.email ?? '', render: (u) => u.email },
     {
       key: 'lastActive',
@@ -47,12 +61,14 @@ export default function MwasalatLearnersPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [pendingId, setPendingId] = useState(null);
   const [statusFilter, setStatusFilter] = useState('all');
+  const [roleFilter, setRoleFilter] = useState('all');
   const [query, setQuery] = useState('');
+  const [showBulkImportModal, setShowBulkImportModal] = useState(false);
 
   const load = () => {
     setIsLoading(true);
-    mwasalatUserService.listByRole('learner')
-      .then(setLearners)
+    Promise.all(['learner', 'external_learner'].map((role) => mwasalatUserService.listByRole(role)))
+      .then((lists) => setLearners(lists.flat()))
       .finally(() => setIsLoading(false));
   };
 
@@ -74,19 +90,44 @@ export default function MwasalatLearnersPage() {
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     return learners.filter((u) => {
+      const matchesRole = roleFilter === 'all' || u.role === roleFilter;
       const matchesStatus = statusFilter === 'all'
         ? true
         : statusFilter === 'dormant'
           ? isDormant(u)
           : statusOf(u) === statusFilter;
       const matchesQuery = !q || u.name?.toLowerCase().includes(q) || u.email?.toLowerCase().includes(q);
-      return matchesStatus && matchesQuery;
+      return matchesRole && matchesStatus && matchesQuery;
     });
-  }, [learners, statusFilter, query]);
+  }, [learners, roleFilter, statusFilter, query]);
 
   return (
-    <MwasalatAdminLayout title={t('admin.nav.learners')} subtitle={t('learnersPage.subtitle')}>
+    <MwasalatAdminLayout
+      title={t('admin.nav.learners')}
+      subtitle={t('learnersPage.subtitle')}
+      actions={canBulkImport ? (
+        <button
+          onClick={() => setShowBulkImportModal(true)}
+          className="inline-flex items-center gap-2 border border-mwasalatInk-300 hover:bg-mwasalatInk-100 text-mwasalatInk-500 font-semibold px-3.5 py-2 rounded-xl transition-colors text-xs"
+        >
+          <Upload className="w-3.5 h-3.5" /> {t('bulkImport.buttonLabel')}
+        </button>
+      ) : null}
+    >
       <div className="max-w-5xl mx-auto">
+        <div className="flex flex-wrap items-center gap-1.5 mb-3">
+          {ROLE_FILTERS.map(({ value, label }) => (
+            <button
+              key={value}
+              onClick={() => setRoleFilter(value)}
+              className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+                roleFilter === value ? 'bg-mwasalatInk-500 text-white' : 'bg-[#F1F5F9] text-[#475569] hover:bg-mwasalatInk-100'
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
         <div className="flex flex-wrap items-center gap-3 mb-5">
           <div className="flex items-center gap-1.5 flex-wrap">
             {STATUS_FILTERS.map(({ value, label }) => (
@@ -119,11 +160,19 @@ export default function MwasalatLearnersPage() {
             pendingId={pendingId}
             onToggle={handleToggle}
             emptyLabel={learners.length === 0 ? t('learnersPage.emptyNoAccounts') : t('learnersPage.emptyNoMatch')}
-            linkTo={(u) => `/mwasalat/admin/learners/${u._id}`}
+            linkTo={(u) => `/admin/learners/${u._id}`}
             columns={learnerColumns}
+            readOnly={!canManage}
           />
         </div>
       </div>
+
+      {showBulkImportModal && (
+        <MwasalatBulkImportModal
+          onClose={() => setShowBulkImportModal(false)}
+          onImported={load}
+        />
+      )}
     </MwasalatAdminLayout>
   );
 }

@@ -3,6 +3,7 @@ import MwasalatConversation from './mwasalatConversation.model.js';
 import MwasalatMessage from './mwasalatMessage.model.js';
 import MwasalatProgram from '../mwasalatProgram/mwasalatProgram.model.js';
 import MwasalatEnrollment from '../mwasalatProgram/mwasalatEnrollment.model.js';
+import { PROGRAM_STATUS } from '../mwasalatProgram/mwasalatProgram.constants.js';
 import { AppError } from '../../utils/AppError.js';
 import { emitToMwasalatUser } from '../../sockets/socket.js';
 
@@ -99,9 +100,13 @@ const sendMessage = async (conversationId, sender, text) => {
   if (!text?.trim()) throw new AppError('Message cannot be empty', 400);
   const userId = sender._id;
 
-  const conversation = await MwasalatConversation.findById(conversationId).populate('program', 'title titleAr');
+  const conversation = await MwasalatConversation.findById(conversationId).populate('program', 'title titleAr status');
   if (!conversation) throw new AppError('Conversation not found', 404);
   assertParticipant(conversation, userId);
+
+  if (conversation.program?.status === PROGRAM_STATUS.ARCHIVED) {
+    throw new AppError('This course has been archived — messaging is closed', 403);
+  }
 
   const senderRole = String(conversation.learner) === String(userId) ? 'learner' : 'instructor';
   const message = await MwasalatMessage.create({

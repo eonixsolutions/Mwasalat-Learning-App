@@ -5,16 +5,43 @@
     "notFound": "Course not found.",
     "backToMyLearning": "Back to My Learning",
     "categoryFallback": "General",
+    "scheduledFor": "Scheduled for {{date}}",
     "progressLabel": "Progress",
     "longestStreak": "Longest: {{count}} days",
     "viewCertificate": "View Certificate",
     "takeAssessment": "Take Assessment",
     "lockedNote": "Finish the course content to unlock the assessment",
+    "awaitingClassCompletionNote": "Waiting for your instructor to mark the class as completed",
     "assessmentPassed": "Assessment passed",
+    "submitAssignment": "Submit Assignment",
+    "assignmentPassed": "Assignment passed",
     "giveFeedback": "Give Feedback to Get Certificate",
+    "modulesSummary": "{{completed}} of {{total}} modules complete",
+    "continueLearning": "Continue Learning",
+    "startCourse": "Start Course",
     "chatWithInstructor": "Chat with Instructor",
     "chatStartFailed": "Failed to start chat",
-    "courseDiscussion": "Course Discussion"
+    "courseDiscussion": "Course Discussion",
+    "pendingApproval": {
+      "title": "Awaiting approval",
+      "body": "Your request to join this course is waiting for the instructor (or an admin) to approve it. You'll get full access as soon as it's approved."
+    },
+    "waitlisted": {
+      "title": "You're on the waitlist",
+      "titleWithPosition": "You're #{{position}} on the waitlist",
+      "body": "This session is full. You'll be added automatically and notified as soon as a seat opens up."
+    },
+    "rejected": {
+      "title": "Enrollment request declined",
+      "body": "Your request to join this course wasn't approved. You can request to join again from the course catalog."
+    },
+    "locked": {
+      "title": "This course is locked",
+      "body": "You missed the completion deadline and the grace period that followed. Pay half the course price to unlock it and pick up right where you left off.",
+      "reactivateCta": "Pay to Unlock",
+      "reactivating": "Redirecting to payment…",
+      "reactivateFailed": "Could not start the reactivation payment"
+    }
   },
   "learnerChat": {
     "titleFallback": "Chat",
@@ -31,6 +58,7 @@
     "loading": "Loading quiz…",
     "lockedTitle": "Assessment locked",
     "lockedBody": "Finish viewing the course content before taking the assessment.",
+    "awaitingClassCompletionBody": "Your instructor hasn't marked this class as completed yet — check back after your session.",
     "backToDashboardLink": "Back to dashboard",
     "noQuizYet": "This course doesn't have a quiz yet.",
     "submitFailed": "Failed to submit the assessment",
@@ -47,7 +75,29 @@
     "questionOf": "Question {{current}} of {{total}}",
     "submitting": "Submitting…",
     "submitQuiz": "Submit Quiz",
-    "nextQuestion": "Next Question"
+    "nextQuestion": "Next Question",
+    "answerAllRequired": "Please answer every question before submitting",
+    "assessmentHeading": "Module Assessment",
+    "passScoreNote": "You need {{percent}}% to pass and unlock the next module"
+  },
+  "learnerAssignment": {
+    "loading": "Loading assignment…",
+    "lockedTitle": "Assignment locked",
+    "lockedBody": "Finish viewing the course content before submitting your assignment.",
+    "backToDashboardLink": "Back to dashboard",
+    "noAssignmentYet": "This course doesn't have an assignment yet.",
+    "chooseFileFirst": "Choose a file first",
+    "submittedToast": "Assignment submitted",
+    "submitFailed": "Failed to submit the assignment",
+    "pendingReview": "Submitted — pending review",
+    "gradedPassed": "Graded: Passed",
+    "gradedFailed": "Graded: Not passed",
+    "submittedOn": "Submitted {{date}}",
+    "chooseFileCta": "Click to choose a file",
+    "fileTypesHint": "PDF, DOC, DOCX, or ZIP, up to 20 MB",
+    "submitting": "Submitting…",
+    "submitBtn": "Submit Assignment",
+    "resubmitBtn": "Submit New Version"
   },
   "learnerFeedback": {
     "pageTitle": "Course Feedback",
@@ -78,7 +128,15 @@
     "instructorLabel": "Instructor",
     "instructorFallback": "Mwasalat Academy",
     "certificateNoLabel": "Certificate No.",
-    "scanToVerify": "Scan to verify"
+    "scanToVerify": "Scan to verify",
+    "renewal": {
+      "dueTitle": "Your certificate is due for renewal",
+      "expiredTitle": "Your certificate has expired",
+      "retestBody": "Retake and pass the course assessment to have it reissued with a new expiry date.",
+      "retakeCta": "Retake Assessment",
+      "autoRenewTitle": "This certificate renews automatically",
+      "autoRenewBody": "It's close to its expiry date but will be extended automatically before then — no action needed."
+    }
   },
   "contentAccess": {
     "viewPdf": "View PDF",
@@ -87,8 +145,10 @@
     "pdfDayProgress": "Day {{done}} of {{total}} read",
     "markedToday": "Today's reading marked — come back tomorrow",
     "markTodayDone": "Mark Today's Reading as Done",
+    "completeFullPdf": "Complete Full PDF",
     "watchRecording": "Watch Recording",
     "joinLiveClass": "Join Live Class",
+    "liveClassLocked": "Opens on {{date}}",
     "scheduledCheckInNote": "{{date}} · scan QR in class to check in"
   },
   "controlledVideoPlayer": {
@@ -108,5 +168,38 @@
     "startConversationWith": "Start the conversation with {{name}} — questions about the course are welcome here.",
     "otherFallback": "them",
     "sendFailed": "Failed to send message"
+  },
+  "coursePlayer": {
+    "titleFallback": "Course",
+    "loading": "Loading course…",
+    "notFound": "Course not found.",
+    "backToOverview": "Back to course overview",
+    "progressLabel": "Progress",
+    "reviewNavLabel": "Course Review",
+    "selectLessonPrompt": "Select a lesson to get started",
+    "continueBtn": "Continue",
+    "markAsDoneBtn": "Mark as Done",
+    "markedDone": "Marked as done",
+    "viewFile": "View File",
+    "opensNewTab": "Opens in a new tab",
+    "markOpenedFailed": "Failed to update progress"
+  },
+  "courseReview": {
+    "heading": "How was this course?",
+    "subheading": "One last step before your certificate — your feedback helps us improve.",
+    "usefulnessLabel": "How useful was this training?",
+    "trainerClearLabel": "Was the trainer clear?",
+    "yes": "Yes",
+    "no": "No",
+    "trainerRatingLabel": "Rate the trainer",
+    "commentsLabel": "Your comments",
+    "commentsPlaceholder": "What did you like? What could be better?",
+    "submitting": "Submitting…",
+    "submitBtn": "Submit Review",
+    "ratingRequiredToast": "Please answer every question above",
+    "errorToast": "Failed to submit your review",
+    "thanksTitle": "Thank you!",
+    "thanksBody": "Your course is complete and your certificate is ready.",
+    "viewCertificateBtn": "View Certificate"
   }
 }

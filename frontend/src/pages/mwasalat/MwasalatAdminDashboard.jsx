@@ -2,94 +2,18 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
-  Users, GraduationCap, BookOpen, Award, Loader2, Megaphone, Send, Wallet, ClipboardCheck,
+  Users, GraduationCap, BookOpen, Award, Loader2, Megaphone, Wallet, ClipboardCheck,
   ArrowRight, FileBarChart, Trophy, UserPlus, ShieldCheck, Download, Settings, History,
 } from 'lucide-react';
-import toast from 'react-hot-toast';
 import MwasalatAdminLayout from '../../layouts/MwasalatAdminLayout.jsx';
 import { PyramidFunnelChart, StatSparkline, LabeledAreaChart } from '../../components/mwasalat/MwasalatCharts.jsx';
 import { useMwasalatAuthStore } from '../../store/mwasalatAuthStore.js';
 import { mwasalatProgramService } from '../../services/mwasalatProgram.service.js';
-import { mwasalatNotificationService } from '../../services/mwasalatNotification.service.js';
 import { mwasalatPaymentService } from '../../services/mwasalatPayment.service.js';
 import { mwasalatQuizService } from '../../services/mwasalatQuiz.service.js';
+import { mwasalatDepartmentService } from '../../services/mwasalatDepartment.service.js';
 import { getLocalizedProgramField, localizeNumber } from '../../utils/mwasalatLocalize.js';
 import { MWASALAT_ACTIVITY_ACTION_KEYS } from '../../utils/mwasalatActivityLabels.js';
-
-function SendNotificationModal({ onClose }) {
-  const { t } = useTranslation('mwasalatApp');
-  const [title, setTitle] = useState('');
-  const [message, setMessage] = useState('');
-  const [isSending, setIsSending] = useState(false);
-
-  const handleSend = async () => {
-    if (!title.trim() || !message.trim()) {
-      toast.error(t('adminDashboard.notifyModal.validationError'));
-      return;
-    }
-    setIsSending(true);
-    try {
-      await mwasalatNotificationService.send({ title: title.trim(), message: message.trim() });
-      toast.success(t('adminDashboard.notifyModal.sentToast'));
-      onClose();
-    } catch (err) {
-      toast.error(err.response?.data?.message || t('adminDashboard.notifyModal.sendFailed'));
-    } finally {
-      setIsSending(false);
-    }
-  };
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="fixed inset-0 bg-black/40" onClick={onClose} />
-      <div className="relative bg-white rounded-2xl w-full max-w-md p-6" style={{ boxShadow: '0 8px 40px rgba(0,0,0,0.15)' }}>
-        <div className="w-11 h-11 rounded-2xl bg-mwasalatInk-100 flex items-center justify-center mb-4">
-          <Megaphone className="w-5 h-5 text-mwasalatInk-500" />
-        </div>
-        <h3 className="text-base font-bold text-[#1E293B] mb-1">{t('adminDashboard.notifyModal.title')}</h3>
-        <p className="text-sm text-[#475569] mb-4">
-          {t('adminDashboard.notifyModal.body')}
-        </p>
-
-        <label className="block text-sm font-medium text-[#1E293B] mb-1.5">{t('adminDashboard.notifyModal.titleLabel')}</label>
-        <input
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          placeholder={t('adminDashboard.notifyModal.titlePlaceholder')}
-          className="w-full px-3.5 py-2.5 rounded-xl border border-[#E2E8F0] text-sm bg-white text-[#1E293B] placeholder:text-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-mwasalatInk-500/20 hover:border-mwasalatInk-300 transition-colors mb-4"
-        />
-
-        <label className="block text-sm font-medium text-[#1E293B] mb-1.5">{t('adminDashboard.notifyModal.messageLabel')}</label>
-        <textarea
-          rows={3}
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
-          placeholder={t('adminDashboard.notifyModal.messagePlaceholder')}
-          className="w-full px-3.5 py-2.5 rounded-xl border border-[#E2E8F0] text-sm bg-white text-[#1E293B] placeholder:text-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-mwasalatInk-500/20 hover:border-mwasalatInk-300 transition-colors resize-none"
-        />
-
-        <div className="flex gap-3 mt-5">
-          <button
-            type="button"
-            onClick={onClose}
-            className="flex-1 px-4 py-2.5 rounded-xl border border-[#E2E8F0] text-sm font-medium text-[#475569] hover:bg-[#F1F5F9] transition-colors"
-          >
-            {t('common.cancel')}
-          </button>
-          <button
-            type="button"
-            onClick={handleSend}
-            disabled={isSending}
-            className="flex-1 flex items-center justify-center gap-2 bg-mwasalatInk-500 hover:bg-mwasalatInk-400 disabled:opacity-60 text-white font-semibold px-4 py-2.5 rounded-xl transition-colors text-sm"
-          >
-            {isSending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-            {isSending ? t('adminDashboard.notifyModal.sending') : t('adminDashboard.notifyModal.sendButton')}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 const TEAL = '#23181A';
 
@@ -110,21 +34,21 @@ function StatCard({ icon: Icon, theme, label, value, delta, deltaTone = 'positiv
   const th = STAT_THEMES[theme];
   return (
     <Link to={to} className="card overflow-hidden flex flex-col hover:shadow-md transition-all cursor-pointer">
-      <div className="p-4 pb-2 flex-1">
-        <div className="flex items-center gap-2.5 mb-3">
-          <span className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 ${th.iconBg}`}>
-            <Icon className="w-4 h-4 text-white" />
+      <div className="p-3 pb-1.5 flex-1">
+        <div className="flex items-center gap-2 mb-2">
+          <span className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 ${th.iconBg}`}>
+            <Icon className="w-3.5 h-3.5 text-white" />
           </span>
-          <p className="text-xs text-[#475569]">{label}</p>
+          <p className="text-[11px] text-[#475569] truncate">{label}</p>
         </div>
-        <p className="text-xl font-bold text-[#1E293B] leading-tight" dir="ltr">{value}</p>
+        <p className="text-base font-bold text-[#1E293B] leading-tight" dir="ltr">{value}</p>
         {delta && (
-          <p className={`text-[11px] font-medium mt-1 ${deltaTone === 'positive' ? 'text-green-600' : 'text-[#94A3B8]'}`}>
+          <p className={`text-[10px] font-medium mt-0.5 ${deltaTone === 'positive' ? 'text-green-600' : 'text-[#94A3B8]'}`}>
             {delta}
           </p>
         )}
       </div>
-      {sparkline?.length > 1 && <StatSparkline data={sparkline} color={th.spark} />}
+      {sparkline?.length > 1 && <StatSparkline data={sparkline} color={th.spark} className="w-full h-7 block" />}
     </Link>
   );
 }
@@ -325,7 +249,7 @@ function TodaysActivitiesCard({ items }) {
           <p className="text-sm font-semibold text-[#1E293B]">{t('adminDashboard.activity.title')}</p>
           <p className="text-xs text-[#94A3B8]">{t('adminDashboard.activity.subtitle')}</p>
         </div>
-        <Link to="/mwasalat/admin/activity-log" className="inline-flex items-center gap-0.5 text-xs font-medium text-mwasalatInk-500 hover:text-mwasalatInk-400 transition-colors flex-shrink-0">
+        <Link to="/admin/activity-log" className="inline-flex items-center gap-0.5 text-xs font-medium text-mwasalatInk-500 hover:text-mwasalatInk-400 transition-colors flex-shrink-0">
           {t('adminDashboard.activity.viewAll')} <ArrowRight className="w-3 h-3 rtl:rotate-180" />
         </Link>
       </div>
@@ -348,7 +272,7 @@ function UpcomingClassesCard({ classes }) {
     <div className="card p-3.5">
       <div className="flex items-center justify-between mb-2.5">
         <p className="text-sm font-semibold text-[#1E293B]">{t('adminDashboard.upcomingClasses.title')}</p>
-        <Link to="/mwasalat/admin/programs?view=classes" className="inline-flex items-center gap-0.5 text-xs font-medium text-mwasalatInk-500 hover:text-mwasalatInk-400 transition-colors flex-shrink-0">
+        <Link to="/admin/programs?view=classes" className="inline-flex items-center gap-0.5 text-xs font-medium text-mwasalatInk-500 hover:text-mwasalatInk-400 transition-colors flex-shrink-0">
           {t('adminDashboard.upcomingClasses.viewAll')} <ArrowRight className="w-3 h-3 rtl:rotate-180" />
         </Link>
       </div>
@@ -439,7 +363,7 @@ function RecentPaymentsCard({ transactions }) {
           <p className="text-xs text-[#94A3B8]">{t('adminDashboard.recentPayments.subtitle')}</p>
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
-          <Link to="/mwasalat/admin/payments" className="inline-flex items-center gap-0.5 text-xs font-medium text-mwasalatInk-500 hover:text-mwasalatInk-400 transition-colors">
+          <Link to="/admin/payments" className="inline-flex items-center gap-0.5 text-xs font-medium text-mwasalatInk-500 hover:text-mwasalatInk-400 transition-colors">
             {t('adminDashboard.recentPayments.viewAll')} <ArrowRight className="w-3 h-3 rtl:rotate-180" />
           </Link>
           {transactions.length > 0 && (
@@ -498,16 +422,17 @@ function RecentPaymentsCard({ transactions }) {
   );
 }
 
-const getGreetingKey = () => {
-  const hour = new Date().getHours();
-  if (hour < 12) return 'goodMorning';
-  if (hour < 18) return 'goodAfternoon';
-  return 'goodEvening';
-};
-
 export default function MwasalatAdminDashboard() {
   const { t, i18n } = useTranslation('mwasalatApp');
   const { user } = useMwasalatAuthStore();
+  // Revenue is Super Admin's alone; Platform Admin runs day-to-day ops instead.
+  const canSeeRevenue = user?.role === 'super_admin';
+  const canManage = user?.role === 'platform_admin';
+  // Reuses this same dashboard/pages — every query above is scoped server-side
+  // to the actor's own department (see mwasalatDepartmentScope.js) rather than
+  // a separate frontend surface. No revenue/manage rights of its own.
+  const isDepartmentAdmin = user?.role === 'department_admin';
+  const [departmentName, setDepartmentName] = useState(null);
   const [overview, setOverview] = useState(null);
   const [revenue, setRevenue] = useState(null);
   const [quizResults, setQuizResults] = useState(null);
@@ -516,16 +441,15 @@ export default function MwasalatAdminDashboard() {
   const [topCourses, setTopCourses] = useState([]);
   const [upcomingClasses, setUpcomingClasses] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [showNotifyModal, setShowNotifyModal] = useState(false);
-  const [topProgramsTab, setTopProgramsTab] = useState('revenue');
+  const [topProgramsTab, setTopProgramsTab] = useState(canSeeRevenue ? 'revenue' : 'passRate');
 
   useEffect(() => {
     Promise.all([
       mwasalatProgramService.getAdminOverview(),
-      mwasalatPaymentService.getRevenueSummary(),
+      canSeeRevenue ? mwasalatPaymentService.getRevenueSummary() : Promise.resolve(null),
       mwasalatQuizService.getAdminResults(),
       mwasalatProgramService.getRecentActivityFeed(8),
-      mwasalatPaymentService.listTransactions({ page: 1, limit: 6 }),
+      canSeeRevenue ? mwasalatPaymentService.listTransactions({ page: 1, limit: 6 }) : Promise.resolve({ transactions: [] }),
       mwasalatProgramService.getTopCoursesByCompletionRate(),
       mwasalatProgramService.getUpcomingClasses(),
     ])
@@ -539,7 +463,18 @@ export default function MwasalatAdminDashboard() {
         setUpcomingClasses(upcomingData);
       })
       .finally(() => setIsLoading(false));
-  }, []);
+  }, [canSeeRevenue]);
+
+  useEffect(() => {
+    if (!isDepartmentAdmin || !user?.department) return;
+    mwasalatDepartmentService.listActive()
+      .then((departments) => {
+        const mine = departments.find((d) => d._id === user.department);
+        if (mine) setDepartmentName(i18n.language.startsWith('ar') && mine.nameAr ? mine.nameAr : mine.name);
+      })
+      .catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isDepartmentAdmin, user?.department]);
 
   const monthStart = new Date();
   monthStart.setDate(1);
@@ -573,47 +508,47 @@ export default function MwasalatAdminDashboard() {
   const learnersThisWeek = overview?.weeklySignups?.[overview.weeklySignups.length - 1] ?? 0;
 
   const statCards = [
-    {
+    ...(canSeeRevenue ? [{
       icon: Wallet, theme: 'red', label: t('adminDashboard.stats.totalRevenue'),
       value: `OMR ${localizeNumber((revenue?.totalRevenue ?? 0).toFixed(2), i18n.language)}`,
       delta: revenueGrowthPct !== null ? `${revenueGrowthPct >= 0 ? '+' : ''}${localizeNumber(revenueGrowthPct, i18n.language)}% ${t('adminDashboard.stats.thisMonth')}` : null,
       sparkline: revenue?.monthlyRevenue?.map((m) => m.value),
-      to: '/mwasalat/admin/payments',
-    },
+      to: '/admin/payments',
+    }] : []),
     {
       icon: Users, theme: 'amber', label: t('adminDashboard.stats.totalLearners'),
       value: localizeNumber(overview?.totalLearners ?? 0, i18n.language),
       delta: `+${localizeNumber(learnersThisWeek, i18n.language)} ${t('adminDashboard.stats.thisWeek')}`,
       sparkline: overview?.weeklySignups,
-      to: '/mwasalat/admin/learners',
+      to: '/admin/learners',
     },
     {
       icon: BookOpen, theme: 'purple', label: t('adminDashboard.stats.activePrograms'),
       value: localizeNumber(overview?.activePrograms ?? 0, i18n.language),
       delta: t('adminDashboard.stats.draftPrograms', { count: overview?.draftPrograms ?? 0 }),
       deltaTone: 'neutral',
-      to: '/mwasalat/admin/programs',
+      to: '/admin/programs',
     },
     {
       icon: Award, theme: 'green', label: t('adminDashboard.stats.certificatesIssued'),
       value: localizeNumber(overview?.totalCertificates ?? 0, i18n.language),
       delta: `+${localizeNumber(overview?.certificatesIssuedToday ?? 0, i18n.language)} ${t('adminDashboard.stats.issuedToday')}`,
       sparkline: overview?.weeklyCertificates,
-      to: '/mwasalat/admin/certificates',
+      to: '/admin/certificates',
     },
     {
       icon: GraduationCap, theme: 'blue', label: t('adminDashboard.stats.instructors'),
       value: localizeNumber(overview?.totalInstructors ?? 0, i18n.language),
-      to: '/mwasalat/admin/instructors',
+      to: '/admin/instructors',
     },
   ];
 
   const monthSummaryItems = [
-    {
+    ...(canSeeRevenue ? [{
       icon: Wallet, theme: 'red', label: t('adminDashboard.stats.totalRevenue'),
       value: `OMR ${localizeNumber((revenue?.thisMonthRevenue ?? 0).toFixed(2), i18n.language)}`,
       delta: revenueGrowthPct !== null ? `${revenueGrowthPct >= 0 ? '+' : ''}${localizeNumber(revenueGrowthPct, i18n.language)}%` : null,
-    },
+    }] : []),
     {
       icon: Users, theme: 'green', label: t('adminDashboard.stats.totalLearners'),
       value: localizeNumber(overview?.newLearnersThisMonth ?? 0, i18n.language),
@@ -632,8 +567,7 @@ export default function MwasalatAdminDashboard() {
 
   return (
     <MwasalatAdminLayout
-      title={t(`adminDashboard.greetings.${getGreetingKey()}`, { name: user?.name ?? t('adminDashboard.defaultAdminName') })}
-      subtitle={t('adminDashboard.subtitle')}
+      title={isDepartmentAdmin ? t('adminDashboard.departmentContext', { name: departmentName ?? '…' }) : undefined}
     >
       {isLoading ? (
         <div className="p-10 flex items-center justify-center text-[#94A3B8]">
@@ -641,22 +575,28 @@ export default function MwasalatAdminDashboard() {
         </div>
       ) : (
         <>
-          <div className="flex flex-wrap gap-2.5 mb-4">
-            <button
-              onClick={() => setShowNotifyModal(true)}
-              className="inline-flex items-center gap-2 bg-mwasalatInk-500 hover:bg-mwasalatInk-400 text-white font-semibold px-4 py-2.5 rounded-xl transition-colors text-xs"
-            >
-              <Megaphone className="w-3.5 h-3.5" /> {t('adminDashboard.notifyModal.title')}
-            </button>
-            <Link
-              to="/mwasalat/admin/sales-report"
-              className="inline-flex items-center gap-2 bg-white border border-[#E2E8F0] hover:bg-[#F8F9FB] text-[#1E293B] font-semibold px-4 py-2.5 rounded-xl transition-colors text-xs"
-            >
-              <FileBarChart className="w-3.5 h-3.5" /> {t('adminDashboard.generateReport')}
-            </Link>
-          </div>
+          {(canManage || canSeeRevenue) && (
+            <div className="flex flex-wrap gap-2.5 mb-4">
+              {canManage && (
+                <Link
+                  to="/admin/announcements"
+                  className="inline-flex items-center gap-2 bg-mwasalatInk-500 hover:bg-mwasalatInk-400 text-white font-semibold px-4 py-2.5 rounded-xl transition-colors text-xs"
+                >
+                  <Megaphone className="w-3.5 h-3.5" /> {t('adminDashboard.notifyModal.title')}
+                </Link>
+              )}
+              {canSeeRevenue && (
+                <Link
+                  to="/admin/sales-report"
+                  className="inline-flex items-center gap-2 bg-white border border-[#E2E8F0] hover:bg-[#F8F9FB] text-[#1E293B] font-semibold px-4 py-2.5 rounded-xl transition-colors text-xs"
+                >
+                  <FileBarChart className="w-3.5 h-3.5" /> {t('adminDashboard.generateReport')}
+                </Link>
+              )}
+            </div>
+          )}
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5 mb-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 mb-3.5">
             {statCards.map((card) => <StatCard key={card.label} {...card} />)}
           </div>
 
@@ -666,16 +606,18 @@ export default function MwasalatAdminDashboard() {
               instead of stacking everything in one column. */}
           <div className="grid xl:grid-cols-3 gap-3.5 items-start">
             <div className="xl:col-span-2 space-y-3.5">
-              <div className="grid sm:grid-cols-2 gap-3.5">
-                <ChartCard
-                  title={t('adminDashboard.charts.monthlyRevenueTitle')}
-                  subtitle={t('adminDashboard.charts.monthlyRevenueSubtitle')}
-                  badge={<span className="text-[10px] font-semibold text-[#475569] bg-[#F1F5F9] px-2 py-1 rounded-lg flex-shrink-0">OMR</span>}
-                >
-                  <LabeledAreaChart
-                    points={(revenue?.monthlyRevenue ?? []).map((m) => ({ label: m.label, value: m.value }))}
-                  />
-                </ChartCard>
+              <div className={canSeeRevenue ? 'grid sm:grid-cols-2 gap-3.5' : ''}>
+                {canSeeRevenue && (
+                  <ChartCard
+                    title={t('adminDashboard.charts.monthlyRevenueTitle')}
+                    subtitle={t('adminDashboard.charts.monthlyRevenueSubtitle')}
+                    badge={<span className="text-[10px] font-semibold text-[#475569] bg-[#F1F5F9] px-2 py-1 rounded-lg flex-shrink-0">OMR</span>}
+                  >
+                    <LabeledAreaChart
+                      points={(revenue?.monthlyRevenue ?? []).map((m) => ({ label: m.label, value: m.value }))}
+                    />
+                  </ChartCard>
+                )}
                 <ChartCard
                   title={t('adminDashboard.charts.weeklyLearnersTitle')}
                   subtitle={t('adminDashboard.charts.weeklyLearnersSubtitle')}
@@ -732,7 +674,7 @@ export default function MwasalatAdminDashboard() {
                 <ChartCard
                   title={t('adminDashboard.charts.topProgramsTitle')}
                   subtitle={topProgramsTab === 'revenue' ? t('adminDashboard.charts.topRevenueSubtitle') : t('adminDashboard.charts.topPassRateSubtitle')}
-                  badge={(
+                  badge={canSeeRevenue ? (
                     <div className="inline-flex items-center gap-0.5 bg-[#F1F5F9] rounded-lg p-0.5 flex-shrink-0">
                       <button
                         type="button"
@@ -753,9 +695,9 @@ export default function MwasalatAdminDashboard() {
                         {t('adminDashboard.charts.topProgramsTabPassRate')}
                       </button>
                     </div>
-                  )}
+                  ) : null}
                 >
-                  {topProgramsTab === 'revenue' ? (
+                  {canSeeRevenue && topProgramsTab === 'revenue' ? (
                     topProgramsByRevenue.length ? (
                       <div className="space-y-3.5 pt-1">
                         {topProgramsByRevenue.map((p) => (
@@ -787,7 +729,7 @@ export default function MwasalatAdminDashboard() {
                 </ChartCard>
               </div>
 
-              <RecentPaymentsCard transactions={transactions} />
+              {canSeeRevenue && <RecentPaymentsCard transactions={transactions} />}
             </div>
 
             <div className="space-y-3.5">
@@ -798,8 +740,6 @@ export default function MwasalatAdminDashboard() {
           </div>
         </>
       )}
-
-      {showNotifyModal && <SendNotificationModal onClose={() => setShowNotifyModal(false)} />}
     </MwasalatAdminLayout>
   );
 }

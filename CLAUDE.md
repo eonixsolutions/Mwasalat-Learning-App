@@ -168,3 +168,32 @@ Tailwind `teal` (primary-600 = `#0d9488`). Brand is teal/clean white. Avoid dark
 ## To Generate a New Module
 
 Use the `/new-module <name>` skill. It scaffolds all required backend + frontend files following the architecture above.
+
+---
+
+## Feature Tracker Maintenance
+
+`frontend/public/LMS_Feature_Categorized_Tracker.xlsx` is the canonical LMS feature-completion tracker
+(this file replaces the old `Client_LMS_Feature_Tracker_With_Descriptions.xlsx` — use this one only).
+It has 4 sheets: **Development**, **Hosting_DevOps**, **Client_Dependencies**, **Support_PostGoLive**.
+Each sheet has the same columns: `No.`, `Module`, `Feature`, `Description`, `Priority`, `Status`, `Remarks`.
+
+**Whenever a coding task finishes and it changes whether a tracked feature is implemented** — a new
+feature built, a `Not Started`/`Partial` row becomes usable, a gap gets closed, an integration goes from
+undocumented/conditional to fully wired — update that row's `Status` / `Remarks` (and `Description` /
+`Priority` if still blank) columns to match reality as part of finishing the task. Don't wait to be asked again.
+
+- Match rows by **(Sheet, Module, Feature)** text, not row position.
+- `Status` values: `Done`, `Partial`, `Not Started`.
+- `Client_Dependencies` and `Support_PostGoLive` rows are mostly things the client provides or pure
+  process/service deliverables (training, helpdesk, SSO/LDAP creds, etc.) rather than app code — judge
+  `Status` by whether the codebase is *built to support/consume* them, and say so explicitly in `Remarks`
+  when a row has no code surface at all (e.g. "process/service deliverable, not a code feature").
+- `Remarks` should be a short, specific, evidence-based note (what actually exists, named files/behavior,
+  and any real remaining gap) — never a generic "implemented" with no detail.
+- Write with a library that preserves existing formatting (header styling, column widths, cell colors) —
+  e.g. `exceljs` — not raw XML edits or a plain CSV re-save.
+- The file is a real `.xlsx` a human may have open in Excel at the time. If the write fails with `EBUSY`
+  (Windows file lock), tell the user to close it and retry — don't silently skip the update.
+- Skip this for trivial changes that don't map to any tracker row (typo fixes, refactors, internal
+  cleanup with no user-facing capability change).

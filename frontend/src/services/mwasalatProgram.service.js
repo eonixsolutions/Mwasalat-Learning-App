@@ -27,6 +27,11 @@ const remove = async (id) => {
   return res.data.data;
 };
 
+const cancelScheduledDeletion = async (id) => {
+  const res = await programsApi.post(`/${id}/cancel-deletion`);
+  return res.data.data;
+};
+
 const listMine = async () => {
   const res = await programsApi.get('/mine');
   return res.data.data;
@@ -44,6 +49,16 @@ const enroll = async (id) => {
 
 const listMyEnrollments = async () => {
   const res = await programsApi.get('/enrolled');
+  return res.data.data;
+};
+
+const approveEnrollment = async (id, learnerId) => {
+  const res = await programsApi.post(`/${id}/learners/${learnerId}/approve`);
+  return res.data.data;
+};
+
+const rejectEnrollment = async (id, learnerId, reason) => {
+  const res = await programsApi.post(`/${id}/learners/${learnerId}/reject`, { reason });
   return res.data.data;
 };
 
@@ -84,6 +99,11 @@ const getAttendance = async (id) => {
 
 const markAttendance = async (id, learnerId) => {
   const res = await programsApi.post(`/${id}/attendance/${learnerId}`);
+  return res.data.data;
+};
+
+const completeClass = async (id, contentType) => {
+  const res = await programsApi.post(`/${id}/complete-class`, { contentType });
   return res.data.data;
 };
 
@@ -192,12 +212,94 @@ const sendEncouragement = async (id, learnerId, templateKey) => {
   return res.data.data;
 };
 
+// --- Modular ("super course") modules/lessons ---
+
+const addModule = async (id, data) => {
+  const res = await programsApi.post(`/${id}/modules`, data);
+  return res.data.data;
+};
+
+const updateModule = async (id, moduleId, data) => {
+  const res = await programsApi.patch(`/${id}/modules/${moduleId}`, data);
+  return res.data.data;
+};
+
+const removeModule = async (id, moduleId) => {
+  const res = await programsApi.delete(`/${id}/modules/${moduleId}`);
+  return res.data.data;
+};
+
+const reorderModules = async (id, orderedModuleIds) => {
+  const res = await programsApi.patch(`/${id}/modules/reorder`, { orderedModuleIds });
+  return res.data.data;
+};
+
+// `file` is optional — only video/pdf/ppt/audio lessons carry one. Sent as
+// multipart whenever a file is present so the backend's uploadLessonFile
+// middleware can see it; plain JSON otherwise (matches the create()/pdfFile
+// convention already used for courses themselves).
+const addLesson = async (id, moduleId, data, file) => {
+  let body = data;
+  if (file) {
+    body = new FormData();
+    Object.entries(data).forEach(([key, value]) => { if (value !== undefined && value !== null) body.append(key, value); });
+    body.append('file', file);
+  }
+  const res = await programsApi.post(`/${id}/modules/${moduleId}/lessons`, body);
+  return res.data.data;
+};
+
+const updateLesson = async (id, moduleId, lessonId, data, file) => {
+  let body = data;
+  if (file) {
+    body = new FormData();
+    Object.entries(data).forEach(([key, value]) => { if (value !== undefined && value !== null) body.append(key, value); });
+    body.append('file', file);
+  }
+  const res = await programsApi.patch(`/${id}/modules/${moduleId}/lessons/${lessonId}`, body);
+  return res.data.data;
+};
+
+const removeLesson = async (id, moduleId, lessonId) => {
+  const res = await programsApi.delete(`/${id}/modules/${moduleId}/lessons/${lessonId}`);
+  return res.data.data;
+};
+
+const reorderLessons = async (id, moduleId, orderedLessonIds) => {
+  const res = await programsApi.patch(`/${id}/modules/${moduleId}/lessons/reorder`, { orderedLessonIds });
+  return res.data.data;
+};
+
+const getCourseForLearner = async (id) => {
+  const res = await programsApi.get(`/${id}/learn`);
+  return res.data.data;
+};
+
+const markLessonOpened = async (id, moduleId, lessonId) => {
+  const res = await programsApi.post(`/${id}/modules/${moduleId}/lessons/${lessonId}/open`);
+  return res.data.data;
+};
+
+const updateLessonMediaProgress = async (id, moduleId, lessonId, positionSeconds, durationSeconds) => {
+  const res = await programsApi.post(`/${id}/modules/${moduleId}/lessons/${lessonId}/media-progress`, { positionSeconds, durationSeconds });
+  return res.data.data;
+};
+
+const getLessonMediaUrl = async (id, moduleId, lessonId) => {
+  const res = await programsApi.get(`/${id}/modules/${moduleId}/lessons/${lessonId}/media-url`);
+  return res.data.data;
+};
+
 export const mwasalatProgramService = {
-  aiAutofill, createLiveMeeting, create, update, remove, listMine, listPublic, enroll, listMyEnrollments, toggleStar,
-  getById, getLearners, getFeedback, getStats, checkIn, markAttendance, getAttendance,
+  aiAutofill, createLiveMeeting, create, update, remove, cancelScheduledDeletion, listMine, listPublic, enroll, listMyEnrollments, toggleStar,
+  approveEnrollment, rejectEnrollment,
+  getById, getLearners, getFeedback, getStats, checkIn, markAttendance, getAttendance, completeClass,
   submitFeedback, getCompletionStatus, markContentOpened, getMyCertificate, verifyCertificate,
   getVideoUrl, updateVideoProgress, sendEncouragement,
   getMyAchievements, getLearnerAchievements, getAdminOverview, listAllCertificates, listAllForAdmin,
   getInstructorDetail, listInstructorSummaries, getMySummary, getMyRoster, getMyTodaySchedule,
   getTopCoursesByCompletionRate, getUpcomingClasses, getRecentActivityFeed,
+  addModule, updateModule, removeModule, reorderModules,
+  addLesson, updateLesson, removeLesson, reorderLessons,
+  getCourseForLearner, markLessonOpened, updateLessonMediaProgress, getLessonMediaUrl,
 };

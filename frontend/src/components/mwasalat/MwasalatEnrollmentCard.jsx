@@ -27,7 +27,7 @@ export default function MwasalatEnrollmentCard({ enrollment: e, completion: c, o
 
   return (
     <Link
-      to={`/mwasalat/learner/programs/${e.program?._id}`}
+      to={`/learner/programs/${e.program?._id}`}
       data-card-id={e.program?._id}
       className="card card-hover overflow-hidden flex flex-col relative"
     >
@@ -48,7 +48,6 @@ export default function MwasalatEnrollmentCard({ enrollment: e, completion: c, o
           <MessageCircle className="w-3 h-3" /> {localizeNumber(unreadCount > 9 ? '9+' : unreadCount, i18n.language)}
         </div>
       )}
-      <div className="h-1" style={{ background: `linear-gradient(90deg, ${theme.solid}, ${theme.solid}99)` }} />
       <div className="p-3 flex flex-col flex-1">
         {/* The star toggle floats top-start over this row (w-7 h-7 at top-2.5/start-2.5)
             — reserve room so it doesn't sit on top of the category pill's text. */}

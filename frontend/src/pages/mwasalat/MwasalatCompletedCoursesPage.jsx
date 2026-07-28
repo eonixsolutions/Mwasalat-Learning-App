@@ -3,8 +3,8 @@ import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import {
-  Loader2, GraduationCap, Compass, Search, Star, Clock, BookOpen, Target, Award, Download,
-  ExternalLink, Trophy, ArrowRight, BarChart3,
+  Loader2, GraduationCap, Compass, Search, Star, Clock, Target, Download,
+  ExternalLink, Trophy, ArrowRight, BarChart3, CheckCircle2,
 } from 'lucide-react';
 import { mwasalatProgramService } from '../../services/mwasalatProgram.service.js';
 import MwasalatLearnerLayout from '../../layouts/MwasalatLearnerLayout.jsx';
@@ -48,97 +48,79 @@ function CompletedCourseCard({ enrollment, certificate, attempt, onToggleStar, t
   const category = getLocalizedProgramField(enrollment.program, 'category', i18n.language);
   const duration = getLocalizedProgramField(enrollment.program, 'duration', i18n.language);
   const dateLocale = i18n.language === 'ar' ? 'ar-OM' : 'en-GB';
-  const contentTypes = enrollment.program?.contentTypes ?? [];
   const completedDate = enrollment.completedAt
-    ? localizeNumber(new Date(enrollment.completedAt).toLocaleDateString(dateLocale, { day: 'numeric', month: 'short', year: 'numeric' }), i18n.language)
-    : null;
-  const issuedDate = certificate
-    ? localizeNumber(new Date(certificate.issuedAt).toLocaleDateString(dateLocale, { day: 'numeric', month: 'short', year: 'numeric' }), i18n.language)
+    ? localizeNumber(new Date(enrollment.completedAt).toLocaleDateString(dateLocale, { day: 'numeric', month: 'short' }), i18n.language)
     : null;
 
   return (
-    <div className="card overflow-hidden mwasalat-enter" style={{ animationDelay: `${delay}ms` }}>
-      <div className="h-1.5" style={{ background: `linear-gradient(90deg, ${theme.solid}, ${theme.solid}99)` }} />
-      <div className="p-4 flex flex-col lg:flex-row lg:items-center gap-4">
-        {/* No real course imagery in the data model — a themed gradient block stands in for it. */}
-        <div
-          className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-2xl flex items-center justify-center flex-shrink-0"
-          style={{ background: `linear-gradient(135deg, ${theme.solid}, ${theme.solid}cc)` }}
-        >
-          <GraduationCap className="w-7 h-7 text-white/90" />
-          <button
-            type="button"
-            onClick={() => onToggleStar(enrollment)}
-            title={t(enrollment.isStarred ? 'learner.dashboard.unstarCourse' : 'learner.dashboard.starCourse')}
-            className={`absolute -top-1.5 -end-1.5 w-6 h-6 rounded-full flex items-center justify-center shadow-sm transition-colors ${
-              enrollment.isStarred ? 'bg-[#FEF3C7] text-[#F59E0B]' : 'bg-white text-[#94A3B8] hover:text-[#F59E0B]'
-            }`}
+    <div className="card card-hover overflow-hidden flex flex-col relative mwasalat-enter" style={{ animationDelay: `${delay}ms` }}>
+      <button
+        type="button"
+        onClick={() => onToggleStar(enrollment)}
+        title={t(enrollment.isStarred ? 'learner.dashboard.unstarCourse' : 'learner.dashboard.starCourse')}
+        className={`absolute top-2.5 end-2.5 z-10 w-7 h-7 rounded-full flex items-center justify-center transition-colors ${
+          enrollment.isStarred ? 'bg-[#FEF3C7] text-[#F59E0B]' : 'bg-white/90 text-[#94A3B8] hover:text-[#F59E0B] shadow-sm'
+        }`}
+      >
+        <Star className={`w-3.5 h-3.5 ${enrollment.isStarred ? 'fill-current' : ''}`} />
+      </button>
+      <div className="p-3.5 flex flex-col flex-1">
+        <div className="flex items-center gap-2.5 mb-2.5 pe-8">
+          {/* No real course imagery in the data model — a themed gradient block stands in for it. */}
+          <div
+            className="relative w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+            style={{ background: `linear-gradient(135deg, ${theme.solid}, ${theme.solid}cc)` }}
           >
-            <Star className={`w-3 h-3 ${enrollment.isStarred ? 'fill-current' : ''}`} />
-          </button>
-        </div>
-
-        <div className="flex-1 min-w-0">
-          <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium capitalize mb-2 ${theme.bg} ${theme.text}`}>
+            <GraduationCap className="w-4.5 h-4.5 text-white/90" />
+            <span className="absolute -bottom-1 -end-1 w-4 h-4 rounded-full bg-[#22C55E] border-2 border-white flex items-center justify-center">
+              <CheckCircle2 className="w-2.5 h-2.5 text-white fill-[#22C55E]" strokeWidth={2.5} />
+            </span>
+          </div>
+          <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10.5px] font-medium capitalize ${theme.bg} ${theme.text}`}>
             {category || t('programCard.generalCategory')}
           </span>
-          <h3 className="text-base font-bold text-[#1E293B] leading-snug mb-1">{title}</h3>
-          {completedDate && <p className="text-xs text-[#94A3B8] mb-3">{t('learner.completed.completedOnLabel', { date: completedDate })}</p>}
-
-          <div className="flex flex-wrap items-center gap-x-5 gap-y-2 mb-4 text-xs">
-            <span className="inline-flex items-center gap-1.5 text-[#475569]">
-              <Clock className="w-3.5 h-3.5 text-[#94A3B8]" /> {duration || '—'}
-            </span>
-            {contentTypes.length > 0 && (
-              <span className="inline-flex items-center gap-1.5 text-[#475569]">
-                <BookOpen className="w-3.5 h-3.5 text-[#94A3B8]" />
-                {contentTypes.map((ct) => t(`addCourse.contentTypes.${ct}.label`)).join(', ')}
-              </span>
-            )}
-            {attempt && (
-              <span className="inline-flex items-center gap-1.5 text-[#475569]">
-                <Target className="w-3.5 h-3.5 text-[#94A3B8]" /> {t('learner.completed.finalScoreLabel', { score: localizeNumber(attempt.score, i18n.language) })}
-              </span>
-            )}
-          </div>
-
-          <div className="flex items-center justify-between mb-1.5">
-            <span className="text-[10.5px] font-bold tracking-wide text-[#22C55E]">{t('learner.completed.completedBadge')}</span>
-            <span className="text-[10.5px] font-semibold text-[#22C55E]">{localizeNumber(100, i18n.language)}%</span>
-          </div>
-          <div className="w-full h-2 rounded-full bg-[#F1F5F9] overflow-hidden">
-            <div className="h-full rounded-full bg-[#22C55E] w-full" />
-          </div>
         </div>
 
-        {certificate && (
-          <div className="w-full lg:w-52 flex-shrink-0 flex flex-col gap-2.5 lg:justify-center">
-            <div className="rounded-xl p-3.5 flex items-center gap-3" style={{ backgroundColor: `${theme.solid}0F` }}>
-              <div className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: `${theme.solid}22`, color: theme.solid }}>
-                <Award className="w-4.5 h-4.5" />
-              </div>
-              <div className="min-w-0">
-                <p className="text-xs font-semibold text-[#1E293B]">{t('learner.completed.certificateEarnedLabel')}</p>
-                <p className="text-[11px] text-[#94A3B8]">{issuedDate}</p>
-              </div>
+        <h3 className="text-[13px] font-semibold text-[#1E293B] leading-snug mb-1 line-clamp-2">{title}</h3>
+        {completedDate && <p className="text-[11px] text-[#94A3B8] mb-2.5">{t('learner.completed.completedOnLabel', { date: completedDate })}</p>}
+
+        <div className="flex flex-wrap items-center gap-x-3.5 gap-y-1 mb-3 text-[11px] text-[#475569]">
+          <span className="inline-flex items-center gap-1">
+            <Clock className="w-3 h-3 text-[#94A3B8]" /> {duration || '—'}
+          </span>
+          {attempt && (
+            <span className="inline-flex items-center gap-1">
+              <Target className="w-3 h-3 text-[#94A3B8]" /> {t('learner.completed.finalScoreLabel', { score: localizeNumber(attempt.score, i18n.language) })}
+            </span>
+          )}
+        </div>
+
+        <div className="mt-auto flex items-center justify-between gap-2 pt-2.5 border-t border-[#F1F5F9]">
+          <span className="inline-flex items-center gap-1 text-[10.5px] font-bold text-[#22C55E]">
+            <CheckCircle2 className="w-3.5 h-3.5" /> {t('learner.completed.completedBadge')}
+          </span>
+          {certificate && (
+            <div className="flex items-center gap-1">
+              <a
+                href={`/learner/programs/${enrollment.program?._id}/certificate?download=1`}
+                target="_blank"
+                rel="noreferrer"
+                title={t('learner.completed.downloadCertificate')}
+                className="w-7 h-7 rounded-lg flex items-center justify-center transition-colors hover:brightness-95"
+                style={{ backgroundColor: `${theme.solid}14`, color: theme.solid }}
+              >
+                <Download className="w-3.5 h-3.5" />
+              </a>
+              <Link
+                to={`/learner/programs/${enrollment.program?._id}/certificate`}
+                title={t('learner.completed.viewCertificateLink')}
+                className="w-7 h-7 rounded-lg flex items-center justify-center text-mwasalatInk-500 hover:bg-[#F1F5F9] transition-colors"
+              >
+                <ExternalLink className="w-3.5 h-3.5" />
+              </Link>
             </div>
-            <a
-              href={`/mwasalat/learner/programs/${enrollment.program?._id}/certificate?download=1`}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex items-center justify-center gap-1.5 bg-white border font-semibold px-3.5 py-2.5 rounded-xl transition-colors text-xs hover:brightness-95"
-              style={{ borderColor: theme.solid, color: theme.solid }}
-            >
-              <Download className="w-3.5 h-3.5" /> {t('learner.completed.downloadCertificate')}
-            </a>
-            <Link
-              to={`/mwasalat/learner/programs/${enrollment.program?._id}/certificate`}
-              className="inline-flex items-center justify-center gap-1.5 text-xs font-medium text-mwasalatInk-500 hover:underline"
-            >
-              {t('learner.completed.viewCertificateLink')} <ExternalLink className="w-3 h-3" />
-            </Link>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );
@@ -244,7 +226,7 @@ export default function MwasalatCompletedCoursesPage() {
           <h2 className="text-lg font-semibold text-[#1E293B] mb-1.5">{t('learner.completed.emptyTitle')}</h2>
           <p className="text-sm text-[#475569] mb-5">{t('learner.completed.emptyBody')}</p>
           <Link
-            to="/mwasalat/learner/dashboard"
+            to="/learner/dashboard"
             className="inline-flex items-center gap-2 bg-mwasalatInk-500 hover:bg-mwasalatInk-400 text-white font-semibold px-5 py-2.5 rounded-xl transition-colors text-sm"
           >
             <Compass className="w-4 h-4" /> {t('learner.completed.goToMyLearning')}
@@ -293,7 +275,7 @@ export default function MwasalatCompletedCoursesPage() {
                   <p className="text-sm text-[#475569]">{t('learner.dashboard.noSearchMatch')}</p>
                 </div>
               ) : (
-                <div className="flex flex-col gap-4 mb-6">
+                <div className="grid sm:grid-cols-2 gap-3.5 mb-6">
                   {visibleCompleted.map((e, i) => {
                     const programId = e.program?._id;
                     const certificate = achievements?.certificates?.find((c) => c.program?._id === programId);
@@ -320,7 +302,7 @@ export default function MwasalatCompletedCoursesPage() {
                     <h2 className="text-sm font-semibold text-[#1E293B]">
                       {localizeNumber(t('learner.completed.certificatesEarnedHeading', { count: achievements.certificates.length }), i18n.language)}
                     </h2>
-                    <Link to="/mwasalat/learner/achievements" className="inline-flex items-center gap-1 text-xs font-medium text-mwasalatInk-500 hover:underline">
+                    <Link to="/learner/achievements" className="inline-flex items-center gap-1 text-xs font-medium text-mwasalatInk-500 hover:underline">
                       {t('learner.completed.viewAllCertificates')}
                     </Link>
                   </div>
@@ -347,7 +329,7 @@ export default function MwasalatCompletedCoursesPage() {
                   <SummaryTile value={t('learner.achievements.bestStreakValue', { count: bestStreak })} label={t('learner.achievements.bestStreakLabel')} color="#F59E0B" />
                 </div>
                 <Link
-                  to="/mwasalat/learner/achievements"
+                  to="/learner/achievements"
                   className="inline-flex items-center gap-1.5 text-xs font-medium text-mwasalatInk-500 hover:underline"
                 >
                   {t('learner.completed.viewFullReport')} <ArrowRight className="w-3 h-3 rtl:rotate-180" />
@@ -364,7 +346,7 @@ export default function MwasalatCompletedCoursesPage() {
                     {localizeNumber(t('learner.completed.greatWorkBody', { count: completedEnrollments.length }), i18n.language)}
                   </p>
                   <Link
-                    to="/mwasalat/learner/achievements"
+                    to="/learner/achievements"
                     className="inline-flex items-center gap-1.5 text-xs font-semibold text-mwasalatRed-600 bg-mwasalatRed-100 hover:bg-mwasalatRed-100/70 px-3 py-2 rounded-lg transition-colors w-fit"
                   >
                     <Trophy className="w-3.5 h-3.5" /> {t('learner.completed.viewAchievementsCta')}
@@ -392,7 +374,7 @@ export default function MwasalatCompletedCoursesPage() {
                     : t('learner.dashboard.allCompleteTitle')}
                 </p>
                 <Link
-                  to={inProgressCount > 0 ? '/mwasalat/learner/dashboard' : '/mwasalat/learner/courses'}
+                  to={inProgressCount > 0 ? '/learner/dashboard' : '/learner/courses'}
                   className="inline-flex items-center justify-center gap-1.5 w-full bg-mwasalatInk-100 hover:bg-mwasalatInk-200 text-mwasalatInk-500 font-semibold px-3 py-2 rounded-lg transition-colors text-[12px]"
                 >
                   {inProgressCount > 0 ? t('learner.completed.keepGoingCta') : t('learner.dashboard.browseCourses')}

@@ -24,6 +24,20 @@ function contentTypeFraction(c, type) {
 }
 
 export function stageProgress(c) {
+  // Modular ("super course") — mirrors computeLearnerProgressPercent's modular
+  // branch in mwasalatProgram.service.js exactly. progressFraction is the
+  // granular per-lesson number (each module worth 1/totalModules, split
+  // across its lessons the same way a single pdf/video course splits across
+  // content types); completedModules/totalModules is kept separately by the
+  // API only for the "X of Y modules done" badge, not for this percentage.
+  if (c?.modular) {
+    const contentStep = c.modular.progressFraction
+      ?? (c.modular.totalModules ? c.modular.completedModules / c.modular.totalModules : 0);
+    const steps = [contentStep, c?.feedbackSubmitted ? 1 : 0];
+    const done = steps.reduce((sum, step) => sum + step, 0);
+    return Math.round((done / steps.length) * 100);
+  }
+
   const contentTypes = c?.contentTypes ?? [];
   const contentStep = contentTypes.length
     ? contentTypes.reduce((sum, type) => sum + contentTypeFraction(c, type), 0) / contentTypes.length

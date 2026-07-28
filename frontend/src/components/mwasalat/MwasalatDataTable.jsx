@@ -3,10 +3,10 @@ import { useTranslation } from 'react-i18next';
 import { Search, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
 import { localizeNumber } from '../../utils/mwasalatLocalize.js';
 
-const PAGE_SIZE = 15;
+export const TABLE_PAGE_SIZE_OPTIONS = [10, 25, 50, 100];
 
 // Generic admin list table: client-side search (over `searchable(row)` strings)
-// + client-side pagination. Column shape: { key, label, render(row), className }.
+// + client-side pagination with a user-selectable page size. Column shape: { key, label, render(row), className }.
 export default function MwasalatDataTable({
   columns, rows, isLoading, emptyLabel, searchPlaceholder, searchable, filters,
 }) {
@@ -15,6 +15,7 @@ export default function MwasalatDataTable({
   const resolvedSearchPlaceholder = searchPlaceholder ?? t('dataTable.defaultSearchPlaceholder');
   const [query, setQuery] = useState('');
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(TABLE_PAGE_SIZE_OPTIONS[0]);
 
   const filtered = useMemo(() => {
     if (!query.trim() || !searchable) return rows;
@@ -22,9 +23,9 @@ export default function MwasalatDataTable({
     return rows.filter((row) => searchable(row).toLowerCase().includes(q));
   }, [rows, query, searchable]);
 
-  const pages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const pages = Math.max(1, Math.ceil(filtered.length / pageSize));
   const currentPage = Math.min(page, pages);
-  const pageRows = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+  const pageRows = filtered.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
   return (
     <div>
@@ -78,11 +79,25 @@ export default function MwasalatDataTable({
         )}
       </div>
 
-      {!isLoading && pages > 1 && (
-        <div className="flex items-center justify-between mt-3">
-          <p className="text-[11px] text-[#94A3B8]">
-            {localizeNumber(t('dataTable.pageInfo', { current: currentPage, pages, count: filtered.length }), i18n.language)}
-          </p>
+      {!isLoading && filtered.length > 0 && (
+        <div className="flex flex-wrap items-center justify-between gap-2.5 mt-3">
+          <div className="flex items-center gap-3">
+            <p className="text-[11px] text-[#94A3B8]">
+              {localizeNumber(t('dataTable.pageInfo', { current: currentPage, pages, count: filtered.length }), i18n.language)}
+            </p>
+            <label className="flex items-center gap-1.5 text-[11px] text-[#94A3B8]">
+              {t('dataTable.rowsPerPage')}
+              <select
+                value={pageSize}
+                onChange={(e) => { setPageSize(Number(e.target.value)); setPage(1); }}
+                className="border border-[#E2E8F0] rounded-md bg-white text-[#1E293B] text-[11px] px-1.5 py-1 focus:outline-none focus:ring-2 focus:ring-mwasalatInk-500/20 hover:border-mwasalatInk-300 transition-colors"
+              >
+                {TABLE_PAGE_SIZE_OPTIONS.map((size) => (
+                  <option key={size} value={size}>{localizeNumber(size, i18n.language)}</option>
+                ))}
+              </select>
+            </label>
+          </div>
           <div className="flex items-center gap-1.5">
             <button
               onClick={() => setPage((p) => Math.max(1, p - 1))}
