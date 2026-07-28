@@ -5,14 +5,22 @@ import { mwasalatAuthService } from './mwasalatAuth.service.js';
 const REFRESH_COOKIE_NAME = mwasalatAuthService.REFRESH_COOKIE_NAME;
 const REFRESH_COOKIE_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
 
-// httpOnly so the refresh token is never readable from JS (XSS-proof); sameSite
-// 'lax' + path scoped to this module's own routes is enough for CSRF safety on
-// top of the X-Mwasalat-Client header check (see requireSpaHeader) since the
-// frontend and API are always same-site even across dev ports.
+// httpOnly so the refresh token is never readable from JS (XSS-proof); path
+// scoped to this module's own routes. In dev, frontend and API are same-site
+// (just different localhost ports) so 'lax' + secure:false works over plain
+// http. In production the frontend (Vercel) and API (Render) are on
+// different domains — that's genuinely cross-site, so the cookie needs
+// sameSite:'none', which browsers only honor when secure:true (HTTPS, which
+// both platforms provide). CSRF safety still comes from the
+// X-Mwasalat-Client header check (see requireSpaHeader): a cross-site page
+// can trigger a cookie-bearing request but can't get a CORS preflight to
+// pass without that header, since app.js's CORS allow-list only permits the
+// configured CLIENT_URL origin(s) with credentials.
+const isProd = process.env.NODE_ENV === 'production';
 const refreshCookieOptions = () => ({
   httpOnly: true,
-  secure: process.env.NODE_ENV === 'production',
-  sameSite: 'lax',
+  secure: isProd,
+  sameSite: isProd ? 'none' : 'lax',
   path: '/api/mwasalat-auth',
 });
 

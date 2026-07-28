@@ -9,10 +9,16 @@ import { useMwasalatAuthStore } from '../store/mwasalatAuthStore.js';
 // request without a CORS preflight our API would reject).
 const SPA_HEADER = { 'X-Mwasalat-Client': 'spa' };
 
+// Empty in dev (relative paths go through the Vite proxy in vite.config.js).
+// In production the frontend (Vercel) and API (Render) are on different
+// domains, so this must be set to the deployed API's absolute origin, e.g.
+// https://eonix-academy-api.onrender.com — see frontend/.env.example.
+const API_ROOT = import.meta.env.VITE_MWASALAT_API_URL || '';
+
 // Separate, non-intercepted instance for the refresh call itself — reusing the
 // main `api` instance here would recurse back into the same 401 handler below.
 const refreshClient = axios.create({
-  baseURL: '/api/mwasalat-auth',
+  baseURL: `${API_ROOT}/api/mwasalat-auth`,
   withCredentials: true,
   headers: SPA_HEADER,
 });
@@ -44,7 +50,7 @@ const forceLogout = () => {
 };
 
 export const createMwasalatApi = (baseURL) => {
-  const api = axios.create({ baseURL, withCredentials: true, headers: SPA_HEADER });
+  const api = axios.create({ baseURL: `${API_ROOT}${baseURL}`, withCredentials: true, headers: SPA_HEADER });
 
   api.interceptors.request.use((config) => {
     const token = useMwasalatAuthStore.getState().accessToken;

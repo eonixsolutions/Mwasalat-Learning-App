@@ -14,10 +14,13 @@ const learners = summary.filter((l) => l.role === 'learner' || l.role === 'exter
 function chipsFor(l) {
   const chips = [];
   if (l.certCount > 0) chips.push(`<span class="chip chip-good">${l.certCount} certificate${l.certCount > 1 ? 's' : ''}</span>`);
+  if (l.hasLocked) chips.push('<span class="chip chip-bad">course locked</span>');
+  if (l.hasWarned) chips.push('<span class="chip chip-warn">overdue warning</span>');
   if (l.hasFailThenPass) chips.push('<span class="chip chip-accent">quiz retake</span>');
   if (l.hasAssignment) chips.push('<span class="chip chip-accent">assignment</span>');
   if (l.hasPurchase) chips.push('<span class="chip chip-accent">purchase</span>');
   if (l.hasInProgress) chips.push('<span class="chip chip-warn">in progress</span>');
+  if (l.notificationCount > 0) chips.push(`<span class="chip chip-muted">${l.notificationCount} notification${l.notificationCount > 1 ? 's' : ''}</span>`);
   if (l.enrollments.length === 0) chips.push('<span class="chip chip-muted">no activity</span>');
   return chips.join('');
 }
@@ -87,6 +90,16 @@ const QUICK_PICKS = [
     name: 'Rami Al-Kharusi', email: 'rami.alkharusi@mwasalat.om', password: 'Instructor@1234',
     why: 'Teaches "Defensive Driving" (learners already completed it) and "Public Transport Operator Licensing Renewal" — good for showing grading, completing a live class, and the instructor roster view.',
   },
+  {
+    tag: 'Course locked (overdue)', color: 'bad',
+    name: 'Khalifa Al-Maskari', email: 'khalifa.almaskari@outlook.com', password: 'eLearner21234',
+    why: 'Missed the 7-day completion deadline on "New Systems &amp; Digital Tools" by more than two weeks — access to that course is now locked (status: <em>locked</em>) and a notification was sent. Reactivating requires the half-price payment flow.',
+  },
+  {
+    tag: 'Overdue warning', color: 'warn',
+    name: 'Latifa Al-Siyabi', email: 'latifa.alsiyabi@gmail.com', password: 'eLearner21234',
+    why: 'Missed the deadline on "Traffic Law &amp; Regulatory Updates" by 12 days — still has access, but received an overdue-warning notification with 5 days left before it locks.',
+  },
 ];
 
 const quickPickCards = QUICK_PICKS.map((p) => `
@@ -105,6 +118,7 @@ const totalCerts = data.certificates.length;
 const totalEnroll = data.enrollments.length;
 const totalTxn = data.transactions.length;
 const totalRevenue = data.transactions.reduce((s, t) => s + t.amount, 0);
+const totalNotifs = data.notifications.length;
 
 const html = `<title>Mwasalat Demo Roster</title>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -182,6 +196,7 @@ h2 {
 .pick::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 4px; background: var(--pick-color, var(--accent)); }
 .pick-good { --pick-color: var(--good); } .pick-accent { --pick-color: var(--accent); }
 .pick-warn { --pick-color: var(--warn); } .pick-muted { --pick-color: var(--ink-200); }
+.pick-bad { --pick-color: var(--red-700); }
 .pick-tag {
   display: inline-block; font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;
   color: var(--pick-color, var(--accent)); margin-bottom: 8px;
@@ -228,6 +243,7 @@ tbody tr:hover { background: var(--bg); }
 .chip { display: inline-block; font-size: 0.7rem; font-weight: 600; padding: 2px 8px; border-radius: 999px; margin: 1px 3px 1px 0; }
 .chip-good { background: var(--good-bg); color: var(--good); }
 .chip-warn { background: var(--warn-bg); color: var(--warn); }
+.chip-bad { background: var(--red-700); color: #fff; }
 .chip-accent { background: var(--accent-bg); color: var(--accent); }
 .chip-muted { background: var(--ink-100); color: var(--text-muted); }
 :root[data-theme="dark"] .chip-muted { background: var(--border); }
@@ -256,6 +272,7 @@ footer { color: var(--text-muted); font-size: 0.8rem; text-align: center; margin
       <div class="stat"><b>${totalEnroll}</b><span>Enrollments</span></div>
       <div class="stat"><b>${totalCerts}</b><span>Certificates</span></div>
       <div class="stat"><b>${totalTxn}</b><span>Purchases (${totalRevenue} OMR)</span></div>
+      <div class="stat"><b>${totalNotifs}</b><span>Notifications</span></div>
     </div>
   </header>
 
