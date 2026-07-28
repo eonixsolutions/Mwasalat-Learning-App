@@ -78,6 +78,8 @@ const list = async (userId, role) => {
     message: n.message,
     createdAt: n.createdAt,
     isRead: n.readBy.some((id) => id.toString() === userId.toString()),
+    type: n.type,
+    data: n.data,
   }));
 };
 
@@ -99,7 +101,7 @@ const markAllRead = async (userId, role) => {
 // got archived. Unlike `create()` (admin broadcast, visible to everyone),
 // this only reaches the given user IDs, both in the notification list and
 // in real time over their personal socket room.
-const notifyUsers = async (actorId, userIds, { title, message, type }) => {
+const notifyUsers = async (actorId, userIds, { title, message, type, data, url }) => {
   const recipients = [...new Set((userIds ?? []).map(String))];
   if (!recipients.length) return null;
 
@@ -109,6 +111,7 @@ const notifyUsers = async (actorId, userIds, { title, message, type }) => {
     createdBy: actorId,
     recipients,
     ...(type ? { type } : {}),
+    ...(data ? { data } : {}),
   });
 
   const payload = {
@@ -116,9 +119,15 @@ const notifyUsers = async (actorId, userIds, { title, message, type }) => {
     title: notification.title,
     message: notification.message,
     createdAt: notification.createdAt,
+    type: notification.type,
+    data: notification.data,
   };
   recipients.forEach((id) => emitToMwasalatUser(id, 'mwasalat:notification', payload));
-  sendPushToUserIds(recipients, { title: notification.title, body: notification.message });
+  // `url` is what sw.js reads on notificationclick to deep-link the push
+  // notification (see MwasalatNotificationBell's resolveNotificationLink for
+  // the equivalent in-app resolution) — undefined for non-click-through
+  // types (broadcasts, reminders), which sw.js falls back to '/' for.
+  sendPushToUserIds(recipients, { title: notification.title, body: notification.message, url });
 
   return notification;
 };

@@ -22,3 +22,9 @@ Thumbs.db
 # Editor
 .vscode/
 .idea/
+
+# Office lock files
+~$*
+
+# Demo credential rosters — contain plaintext passwords, never commit or serve publicly
+*demo-roster*

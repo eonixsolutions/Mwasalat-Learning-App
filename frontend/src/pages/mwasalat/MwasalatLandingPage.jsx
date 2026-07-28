@@ -57,7 +57,29 @@ const DUMMY_PROGRAMS = [
   { id: 'workplaceSafety', delivery: 'live', price: 'OMR 20' },
 ];
 
-const MIN_PROGRAMS_SHOWN = 6;
+// The Programs section is a teaser, not the full catalog — it's both the
+// floor (pad with dummy filler below this) and the ceiling (never render
+// more real courses than this, however many are published) so the grid
+// stays a clean 2-row layout regardless of catalog size. The full list
+// lives behind the "Explore All Courses" CTA -> the real catalog page.
+const PROGRAMS_DISPLAY_COUNT = 6;
+
+// Only learner-facing roles have an access flow for /learner/* — any other
+// already-authenticated role (staff who opened the public marketing page)
+// falls back to their own dashboard instead of a course URL they can't use.
+const LEARNER_ROLES = ['learner', 'external_learner'];
+
+// Routes an "Enroll"/"Explore" click through auth: signed-in learners go
+// straight to the target, other signed-in roles fall back to their own
+// dashboard, and signed-out visitors go through /login with the intended
+// destination preserved in state so it isn't lost after sign-in.
+function goToLearnerDestination(navigate, { isAuthenticated, user }, targetPath) {
+  if (isAuthenticated && user) {
+    navigate(LEARNER_ROLES.includes(user.role) ? targetPath : (MWASALAT_ROLE_DASHBOARD[user.role] || '/'));
+    return;
+  }
+  navigate('/login', { state: { redirectTo: targetPath } });
+}
 
 // Sample learner voices, one per department — resolve through
 // `testimonials.items.<id>.*` translation keys. Auto-rotates on a timer with
@@ -396,6 +418,10 @@ function ProgramCard({ program }) {
   const meta = DELIVERY_META[program.delivery];
   const Icon = meta.icon;
   const navigate = useNavigate();
+  const { isAuthenticated, user } = useMwasalatAuthStore();
+  // Dummy filler cards carry no real programId — they route to the catalog
+  // instead of a course URL that doesn't exist.
+  const targetPath = program.programId ? `/learner/programs/${program.programId}` : '/learner/courses';
 
   return (
     <div data-reveal className="card card-hover p-5 flex flex-col">
@@ -416,7 +442,7 @@ function ProgramCard({ program }) {
         <span dir="ltr" className="font-display font-semibold text-mwasalatRed-600">{localizeNumber(program.price, i18n.language)}</span>
       </div>
       <button
-        onClick={() => navigate('/login')}
+        onClick={() => goToLearnerDestination(navigate, { isAuthenticated, user }, targetPath)}
         className="mt-4 w-full inline-flex items-center justify-center gap-1.5 bg-mwasalatRed-500 hover:bg-mwasalatRed-600 text-white font-semibold px-4 py-2.5 rounded-xl text-sm transition-colors"
       >
         {t('programs.enrollNow')}
@@ -427,6 +453,8 @@ function ProgramCard({ program }) {
 
 function ProgramsSection() {
   const { t, i18n } = useTranslation('mwasalatLanding');
+  const navigate = useNavigate();
+  const { isAuthenticated, user } = useMwasalatAuthStore();
   // Starts with the dummy set so the section isn't empty while the real
   // courses are still loading, then swaps in real ones (padded with dummy
   // filler only if there aren't enough real courses yet) once fetched.
@@ -435,16 +463,17 @@ function ProgramsSection() {
   useEffect(() => {
     mwasalatProgramService.listPublic()
       .then((realPrograms) => {
-        const mapped = realPrograms.map((p) => ({
+        const mapped = realPrograms.slice(0, PROGRAMS_DISPLAY_COUNT).map((p) => ({
           key: p._id,
+          programId: p._id,
           title: getLocalizedProgramField(p, 'title', i18n.language),
           delivery: deliveryFromContentTypes(p.contentTypes),
           duration: getLocalizedProgramField(p, 'duration', i18n.language) || '—',
           price: p.price > 0 ? `OMR ${p.price}` : t('programs.free'),
           blurb: getLocalizedProgramField(p, 'description', i18n.language) || t('programs.fallbackBlurb'),
         }));
-        const filler = mapped.length < MIN_PROGRAMS_SHOWN
-          ? DUMMY_PROGRAMS.slice(0, MIN_PROGRAMS_SHOWN - mapped.length)
+        const filler = mapped.length < PROGRAMS_DISPLAY_COUNT
+          ? DUMMY_PROGRAMS.slice(0, PROGRAMS_DISPLAY_COUNT - mapped.length)
           : [];
         setPrograms([...mapped, ...filler]);
       })
@@ -487,6 +516,15 @@ function ProgramsSection() {
           {displayPrograms.map((program) => (
             <ProgramCard key={program.key} program={program} />
           ))}
+        </div>
+        <div data-reveal className="mt-10 flex justify-center">
+          <button
+            onClick={() => goToLearnerDestination(navigate, { isAuthenticated, user }, '/learner/courses')}
+            className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-sm font-semibold border border-mwasalatInk-200 text-mwasalatInk-500 hover:border-mwasalatRed-500 hover:text-mwasalatRed-600 transition-colors"
+          >
+            {t('programs.exploreAll')}
+            <ArrowRight className="w-4 h-4 rtl:rotate-180" />
+          </button>
         </div>
       </div>
     </section>

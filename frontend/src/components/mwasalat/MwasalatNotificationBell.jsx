@@ -1,12 +1,39 @@
 import { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
-import { Bell, CheckCheck, Megaphone, BellPlus } from 'lucide-react';
+import { Bell, CheckCheck, Megaphone, MessageCircle, BellPlus } from 'lucide-react';
 import { mwasalatNotificationService } from '../../services/mwasalatNotification.service.js';
 import { useMwasalatNotificationStore } from '../../store/mwasalatNotificationStore.js';
+import { useMwasalatAuthStore } from '../../store/mwasalatAuthStore.js';
 import useMwasalatSocket from '../../hooks/useMwasalatSocket.js';
 import { localizeNumber } from '../../utils/mwasalatLocalize.js';
 import { isPushSupported, getPushSubscription, subscribeToPush } from '../../utils/mwasalatPushNotifications.js';
+
+// Escalation-chat roles that only ever talk to Platform Admin (see
+// counterpartRolesFor in mwasalatAdminChat.service.js) — their admin-chat
+// page has no `?with=` selector, so the path alone is enough to land there.
+const ADMIN_CHAT_PATH_BY_ROLE = {
+  super_admin: '/admin/chat', platform_admin: '/admin/chat', department_admin: '/admin/chat',
+  it_support: '/it-support/chat', supervisor: '/supervisor/chat', instructor: '/instructor/chat',
+};
+
+// Where a click-through notification should navigate to, based on the
+// viewing user's own role — course chat and admin chat use different routes
+// for learner vs. instructor vs. admin-side roles.
+function resolveNotificationLink(n, role) {
+  if (n.type === 'chat_message' && n.data?.programId) {
+    return role === 'instructor'
+      ? `/instructor/programs/${n.data.programId}/chat/${n.data.learnerId}`
+      : `/learner/programs/${n.data.programId}/chat`;
+  }
+  if (n.type === 'admin_chat_message') {
+    const path = ADMIN_CHAT_PATH_BY_ROLE[role];
+    if (!path) return null;
+    return path === '/admin/chat' && n.data?.counterpartId ? `${path}?with=${n.data.counterpartId}` : path;
+  }
+  return null;
+}
 
 // See MwasalatLanguageToggle for the same dark/light header split.
 const TRIGGER_THEME_CLASSES = {
@@ -16,6 +43,8 @@ const TRIGGER_THEME_CLASSES = {
 
 export default function MwasalatNotificationBell({ theme = 'dark' }) {
   const { t, i18n } = useTranslation('mwasalatApp');
+  const navigate = useNavigate();
+  const { user } = useMwasalatAuthStore();
   const [open, setOpen] = useState(false);
   const [showEnablePush, setShowEnablePush] = useState(false);
   const [enablingPush, setEnablingPush] = useState(false);
@@ -68,6 +97,14 @@ export default function MwasalatNotificationBell({ theme = 'dark' }) {
   const handleMarkRead = (id) => {
     markAsRead(id);
     mwasalatNotificationService.markRead(id).catch(() => {});
+  };
+
+  const handleNotificationClick = (n) => {
+    if (!n.isRead) handleMarkRead(n._id);
+    const link = resolveNotificationLink(n, user?.role);
+    if (!link) return;
+    setOpen(false);
+    navigate(link);
   };
 
   const handleMarkAllRead = () => {
@@ -128,16 +165,19 @@ export default function MwasalatNotificationBell({ theme = 'dark' }) {
                 <p className="text-xs text-[#94A3B8]">{t('common.noNotificationsYet')}</p>
               </div>
             ) : (
-              notifications.map((n) => (
+              notifications.map((n) => {
+                const isChat = n.type === 'chat_message' || n.type === 'admin_chat_message';
+                const Icon = isChat ? MessageCircle : Megaphone;
+                return (
                 <button
                   key={n._id}
-                  onClick={() => !n.isRead && handleMarkRead(n._id)}
+                  onClick={() => handleNotificationClick(n)}
                   className={`w-full text-start flex items-start gap-2.5 px-4 py-3 border-b border-[#F1F5F9] last:border-0 hover:bg-[#F8F9FB] transition-colors ${
                     !n.isRead ? 'bg-mwasalatInk-100/40' : ''
                   }`}
                 >
                   <div className="w-7 h-7 rounded-lg bg-mwasalatInk-100 flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <Megaphone className="w-3.5 h-3.5 text-mwasalatInk-500" />
+                    <Icon className="w-3.5 h-3.5 text-mwasalatInk-500" />
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-1.5">
@@ -148,7 +188,8 @@ export default function MwasalatNotificationBell({ theme = 'dark' }) {
                     <p className="text-[10px] text-[#94A3B8] mt-1">{timeAgo(n.createdAt)}</p>
                   </div>
                 </button>
-              ))
+                );
+              })
             )}
           </div>
         </div>

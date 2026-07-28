@@ -22,9 +22,15 @@ const mwasalatNotificationSchema = new mongoose.Schema(
     // admin Reminders page uses and simply won't show up there, which is correct.
     type: {
       type: String,
-      enum: ['broadcast', 'instructor', 'certificate_expiry', 'inactivity_nudge', 'assignment_graded'],
+      enum: [
+        'broadcast', 'instructor', 'certificate_expiry', 'inactivity_nudge', 'assignment_graded',
+        'chat_message', 'admin_chat_message',
+      ],
       default: 'broadcast',
     },
+    // Deep-link payload for click-through types (chat_message / admin_chat_message)
+    // — shape depends on type, resolved into a route client-side.
+    data: { type: mongoose.Schema.Types.Mixed },
   },
   { timestamps: true }
 );

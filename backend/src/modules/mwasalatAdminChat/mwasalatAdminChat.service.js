@@ -4,6 +4,7 @@ import MwasalatUser from '../mwasalatUser/mwasalatUser.model.js';
 import { MWASALAT_ROLES } from '../mwasalatUser/mwasalatUser.constants.js';
 import { AppError } from '../../utils/AppError.js';
 import { emitToMwasalatUser } from '../../sockets/socket.js';
+import { mwasalatNotificationService } from '../mwasalatNotification/mwasalatNotification.service.js';
 
 // Platform Admin is the hub: Super Admin escalates things Platform Admin
 // can't see (revenue, etc.), Department Admin escalates things outside their
@@ -105,9 +106,17 @@ const getThread = async (actor, counterpartId) => {
   };
 };
 
+// Mirrors ADMIN_CHAT_PATH_BY_ROLE in MwasalatNotificationBell.jsx — resolved
+// here too since the push notification's deep link has to be pre-computed
+// server-side (no client role context inside sw.js's notificationclick).
+const ADMIN_CHAT_PATH_BY_ROLE = {
+  super_admin: '/admin/chat', platform_admin: '/admin/chat', department_admin: '/admin/chat',
+  it_support: '/it-support/chat', supervisor: '/supervisor/chat', instructor: '/instructor/chat',
+};
+
 const sendMessage = async (actor, recipientId, text) => {
   if (!text?.trim()) throw new AppError('Message cannot be empty', 400);
-  await assertValidCounterpart(actor, recipientId);
+  const counterpart = await assertValidCounterpart(actor, recipientId);
 
   const message = await MwasalatAdminMessage.create({
     sender: actor._id, recipient: recipientId, text: text.trim(),
@@ -116,6 +125,22 @@ const sendMessage = async (actor, recipientId, text) => {
   emitToMwasalatUser(recipientId, 'mwasalat:adminChat:message', {
     message, senderId: actor._id, senderName: actor.name,
   });
+
+  // Admin chat has no persistent header bell of its own (unlike course chat) —
+  // route it through the shared notification bell so it's visible outside the
+  // admin chat page too, and survives being offline.
+  const chatPath = ADMIN_CHAT_PATH_BY_ROLE[counterpart.role] ?? '/admin/chat';
+  const chatUrl = chatPath === '/admin/chat' ? `${chatPath}?with=${actor._id}` : chatPath;
+
+  mwasalatNotificationService
+    .notifyUsers(actor._id, [recipientId], {
+      title: `New message from ${actor.name}`,
+      message: message.text,
+      type: 'admin_chat_message',
+      data: { counterpartId: actor._id },
+      url: chatUrl,
+    })
+    .catch(() => {});
 
   return message;
 };

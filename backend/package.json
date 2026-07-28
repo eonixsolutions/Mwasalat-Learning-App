@@ -23,7 +23,8 @@
     "seed:mwasalat-external-programs-2": "node src/scripts/seedMwasalatExternalProgramsBatch2.js",
     "seed:mwasalat-enrollments": "node src/scripts/seedMwasalatEnrollments.js",
     "seed:mwasalat-purchases": "node src/scripts/seedMwasalatPurchases.js",
-    "seed:mwasalat-engagement": "node src/scripts/seedMwasalatLearnerEngagement.js"
+    "seed:mwasalat-engagement": "node src/scripts/seedMwasalatLearnerEngagement.js",
+    "seed:mwasalat-deadline-nudge-demo": "node src/scripts/seedMwasalatDeadlineAndNudgeDemo.js"
   },
   "dependencies": {
     "@google/genai": "^2.13.0",

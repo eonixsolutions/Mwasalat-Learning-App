@@ -13,7 +13,12 @@ export default function useMwasalatSocket() {
 
     const handleNotification = (notification) => {
       addNotification({ ...notification, isRead: false });
-      toast(notification.title, { icon: '🔔' });
+      // Course-chat messages already get a dedicated toast from
+      // useMwasalatChatSocket — skip this one to avoid showing it twice.
+      // Still add to the store above so the bell badge/history stay in sync.
+      if (notification.type === 'chat_message') return;
+      const icon = notification.type === 'admin_chat_message' ? '💬' : '🔔';
+      toast(notification.title, { icon });
     };
 
     const handleConnect = () => {

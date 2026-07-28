@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
-import { useNavigate, Navigate, Link } from 'react-router-dom';
+import { useNavigate, useLocation, Navigate, Link } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
@@ -18,6 +18,11 @@ const QUOTE_IDS = ['safeTrip', 'skilledPeople', 'learnToday'];
 export default function MwasalatLogin() {
   const { t } = useTranslation('mwasalatApp');
   const navigate = useNavigate();
+  const location = useLocation();
+  // Set by the landing page ("Enroll Now" / "Explore All Courses") so login
+  // lands the learner back on the course/catalog they came for instead of
+  // dropping them on the generic dashboard.
+  const redirectTo = location.state?.redirectTo;
   const { isAuthenticated, user } = useMwasalatAuthStore();
   const [showPassword, setShowPassword] = useState(false);
   const [quoteIdx, setQuoteIdx] = useState(0);
@@ -33,7 +38,7 @@ export default function MwasalatLogin() {
 
   const goToDashboard = () => {
     const loggedInUser = useMwasalatAuthStore.getState().user;
-    navigate(MWASALAT_ROLE_DASHBOARD[loggedInUser?.role] || '/');
+    navigate(redirectTo || MWASALAT_ROLE_DASHBOARD[loggedInUser?.role] || '/');
   };
 
   const { mutate, isPending } = useMutation({
@@ -56,7 +61,7 @@ export default function MwasalatLogin() {
   });
 
   if (isAuthenticated && ['learner', 'external_learner'].includes(user?.role)) {
-    return <Navigate to={MWASALAT_ROLE_DASHBOARD[user.role]} replace />;
+    return <Navigate to={redirectTo || MWASALAT_ROLE_DASHBOARD[user.role]} replace />;
   }
 
   const quoteId = QUOTE_IDS[quoteIdx];

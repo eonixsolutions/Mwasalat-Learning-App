@@ -6,6 +6,7 @@ import MwasalatEnrollment from '../mwasalatProgram/mwasalatEnrollment.model.js';
 import { PROGRAM_STATUS } from '../mwasalatProgram/mwasalatProgram.constants.js';
 import { AppError } from '../../utils/AppError.js';
 import { emitToMwasalatUser } from '../../sockets/socket.js';
+import { mwasalatNotificationService } from '../mwasalatNotification/mwasalatNotification.service.js';
 
 const assertEnrolled = async (learnerId, programId) => {
   const enrollment = await MwasalatEnrollment.findOne({ learner: learnerId, program: programId });
@@ -124,6 +125,31 @@ const sendMessage = async (conversationId, sender, text) => {
     senderName: sender.name,
     programTitle: conversation.program?.title,
   });
+
+  // Persisted so the recipient still sees it in the notification bell/history
+  // if they're offline or navigate away before reading it in Chat. `url`
+  // mirrors the in-app resolveNotificationLink routes, but resolved here
+  // since it also has to reach the push notification, which has no client
+  // role context to resolve it from (see sw.js's notificationclick).
+  const recipientRole = senderRole === 'learner' ? 'instructor' : 'learner';
+  const chatUrl = recipientRole === 'instructor'
+    ? `/instructor/programs/${conversation.program?._id}/chat/${conversation.learner}`
+    : `/learner/programs/${conversation.program?._id}/chat`;
+
+  mwasalatNotificationService
+    .notifyUsers(userId, [recipientId], {
+      title: `New message from ${sender.name}`,
+      message: message.text,
+      type: 'chat_message',
+      data: {
+        conversationId: conversation._id,
+        programId: conversation.program?._id,
+        learnerId: conversation.learner,
+        instructorId: conversation.instructor,
+      },
+      url: chatUrl,
+    })
+    .catch(() => {});
 
   return message;
 };
