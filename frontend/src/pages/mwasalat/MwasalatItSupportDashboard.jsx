@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Activity, Users, UserX, MailQuestion, Lock, History, Loader2, ChevronRight, Database } from 'lucide-react';
@@ -36,14 +36,12 @@ function formatUptime(seconds) {
 export default function MwasalatItSupportDashboard() {
   const { t, i18n } = useTranslation('mwasalatApp');
   const dateLocale = i18n.language.startsWith('ar') ? 'ar-OM' : 'en-GB';
-  const [overview, setOverview] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    mwasalatUserService.getItSupportOverview()
-      .then(setOverview)
-      .finally(() => setIsLoading(false));
-  }, []);
+  // Cached for staleTime (5 min, see lib/queryClient.js) so revisiting this
+  // page doesn't refetch every time.
+  const { data: overview, isLoading } = useQuery({
+    queryKey: ['mwasalat-it-support-overview'],
+    queryFn: mwasalatUserService.getItSupportOverview,
+  });
 
   const isUp = overview?.health?.status === 'ok';
 

@@ -18,6 +18,7 @@ const mwasalatCertificateSchema = new mongoose.Schema(
 
 mwasalatCertificateSchema.index({ learner: 1, program: 1 }, { unique: true });
 mwasalatCertificateSchema.index({ expiresAt: 1, expiryReminderSentAt: 1 });
+mwasalatCertificateSchema.index({ issuedAt: 1 });
 
 const MwasalatCertificate = mongoose.model('MwasalatCertificate', mwasalatCertificateSchema);
 export default MwasalatCertificate;

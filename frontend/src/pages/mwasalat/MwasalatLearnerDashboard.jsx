@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useSearchParams, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
@@ -237,38 +238,40 @@ function RecommendedCard({ program, onEnroll, busy, t, i18n, isExternalLearner }
 export default function MwasalatLearnerDashboard() {
   const { t, i18n } = useTranslation('mwasalatApp');
   const [searchParams, setSearchParams] = useSearchParams();
-  const [enrollments, setEnrollments] = useState([]);
-  const [completion, setCompletion] = useState({});
-  const [achievements, setAchievements] = useState(null);
-  const [recommended, setRecommended] = useState([]);
-  const [notifications, setNotifications] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [enrollingId, setEnrollingId] = useState(null);
   const [flight, setFlight] = useState(null);
   const { user } = useMwasalatAuthStore();
   const processedPurchaseRef = useRef(null);
+  const queryClient = useQueryClient();
+  const dashboardQueryKey = ['mwasalat-learner-dashboard'];
 
-  const load = () => {
-    setIsLoading(true);
-    Promise.all([
-      mwasalatProgramService.listMyEnrollments(),
-      mwasalatProgramService.getMyAchievements().catch(() => null),
-      mwasalatProgramService.listPublic().catch(() => []),
-      mwasalatNotificationService.list().catch(() => []),
-    ]).then(async ([e, ach, pub, notifs]) => {
-      setEnrollments(e);
-      setAchievements(ach);
-      setNotifications(notifs);
+  // Cached for staleTime (5 min, see lib/queryClient.js) — revisiting this
+  // page no longer re-fires all 4 requests plus the bulk completion-status
+  // call every time.
+  const { data, isLoading } = useQuery({
+    queryKey: dashboardQueryKey,
+    queryFn: async () => {
+      const [e, ach, pub, notifs] = await Promise.all([
+        mwasalatProgramService.listMyEnrollments(),
+        mwasalatProgramService.getMyAchievements().catch(() => null),
+        // Buffered above RECOMMENDED_SIZE so there's still enough left after
+        // filtering out already-enrolled programs below.
+        mwasalatProgramService.listPublic({ limit: 12 }).catch(() => []),
+        mwasalatNotificationService.list().catch(() => []),
+      ]);
       const enrolledIds = new Set(e.map((enr) => enr.program?._id));
-      setRecommended(pub.filter((p) => !enrolledIds.has(p._id)).slice(0, RECOMMENDED_SIZE));
-      const entries = await Promise.all(
-        e.map(async (enr) => [enr.program?._id, await mwasalatProgramService.getCompletionStatus(enr.program?._id)])
-      );
-      setCompletion(Object.fromEntries(entries));
-    }).finally(() => setIsLoading(false));
-  };
-
-  useEffect(() => { load(); }, []);
+      const recommended = pub.filter((p) => !enrolledIds.has(p._id)).slice(0, RECOMMENDED_SIZE);
+      // One bulk request instead of one getCompletionStatus call per enrolled
+      // program in a sequential waterfall.
+      const programIds = e.map((enr) => enr.program?._id).filter(Boolean);
+      const completion = await mwasalatProgramService.getBulkCompletionStatus(programIds);
+      return { enrollments: e, achievements: ach, recommended, notifications: notifs, completion };
+    },
+  });
+  const {
+    enrollments = [], achievements = null, recommended = [], notifications = [], completion = {},
+  } = data ?? {};
+  const reload = () => queryClient.invalidateQueries({ queryKey: dashboardQueryKey });
 
   useEffect(() => {
     const purchase = searchParams.get('purchase');
@@ -293,24 +296,24 @@ export default function MwasalatLearnerDashboard() {
       mwasalatPaymentService.confirmSession(sessionId)
         .then(() => {
           toast.success(t('learner.dashboard.paymentSuccess'));
-          load();
+          reload();
         })
         .catch((err) => toast.error(err.response?.data?.message || t('learner.dashboard.paymentConfirmFailed')));
     } else if (purchase === 'success') {
       toast.success(t('learner.dashboard.paymentSuccess'));
-      load();
+      reload();
     } else if (purchase === 'cancelled') {
       toast(t('learner.dashboard.checkoutCancelled'), { icon: 'ℹ️' });
     } else if (reactivate === 'success' && sessionId) {
       mwasalatPaymentService.confirmSession(sessionId)
         .then(() => {
           toast.success(t('learner.dashboard.reactivationSuccess'));
-          load();
+          reload();
         })
         .catch((err) => toast.error(err.response?.data?.message || t('learner.dashboard.paymentConfirmFailed')));
     } else if (reactivate === 'success') {
       toast.success(t('learner.dashboard.reactivationSuccess'));
-      load();
+      reload();
     } else if (reactivate === 'cancelled') {
       toast(t('learner.dashboard.checkoutCancelled'), { icon: 'ℹ️' });
     }
@@ -356,13 +359,17 @@ export default function MwasalatLearnerDashboard() {
     }
   };
 
+  const setEnrollmentsCache = (updater) => queryClient.setQueryData(dashboardQueryKey, (prev) => (
+    prev ? { ...prev, enrollments: updater(prev.enrollments) } : prev
+  ));
+
   const handleToggleStar = async (enrollment) => {
     const nextStarred = !enrollment.isStarred;
-    setEnrollments((prev) => prev.map((en) => (en._id === enrollment._id ? { ...en, isStarred: nextStarred } : en)));
+    setEnrollmentsCache((prev) => prev.map((en) => (en._id === enrollment._id ? { ...en, isStarred: nextStarred } : en)));
     try {
       await mwasalatProgramService.toggleStar(enrollment.program?._id);
     } catch (err) {
-      setEnrollments((prev) => prev.map((en) => (en._id === enrollment._id ? { ...en, isStarred: !nextStarred } : en)));
+      setEnrollmentsCache((prev) => prev.map((en) => (en._id === enrollment._id ? { ...en, isStarred: !nextStarred } : en)));
       toast.error(err.response?.data?.message || t('learner.dashboard.starToggleFailed'));
     }
   };
@@ -379,7 +386,7 @@ export default function MwasalatLearnerDashboard() {
       } else {
         toast.success(t('learner.courses.enrolledToast', { title }));
       }
-      load();
+      reload();
     } catch (err) {
       toast.error(err.response?.data?.message || t('learner.courses.enrollFailed'));
     } finally {

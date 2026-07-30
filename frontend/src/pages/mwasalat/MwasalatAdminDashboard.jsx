@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
@@ -432,49 +433,45 @@ export default function MwasalatAdminDashboard() {
   // to the actor's own department (see mwasalatDepartmentScope.js) rather than
   // a separate frontend surface. No revenue/manage rights of its own.
   const isDepartmentAdmin = user?.role === 'department_admin';
-  const [departmentName, setDepartmentName] = useState(null);
-  const [overview, setOverview] = useState(null);
-  const [revenue, setRevenue] = useState(null);
-  const [quizResults, setQuizResults] = useState(null);
-  const [activityFeed, setActivityFeed] = useState([]);
-  const [transactions, setTransactions] = useState([]);
-  const [topCourses, setTopCourses] = useState([]);
-  const [upcomingClasses, setUpcomingClasses] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [topProgramsTab, setTopProgramsTab] = useState(canSeeRevenue ? 'revenue' : 'passRate');
 
-  useEffect(() => {
-    Promise.all([
-      mwasalatProgramService.getAdminOverview(),
-      canSeeRevenue ? mwasalatPaymentService.getRevenueSummary() : Promise.resolve(null),
-      mwasalatQuizService.getAdminResults(),
-      mwasalatProgramService.getRecentActivityFeed(8),
-      canSeeRevenue ? mwasalatPaymentService.listTransactions({ page: 1, limit: 6 }) : Promise.resolve({ transactions: [] }),
-      mwasalatProgramService.getTopCoursesByCompletionRate(),
-      mwasalatProgramService.getUpcomingClasses(),
-    ])
-      .then(([overviewData, revenueData, quizData, feedData, transactionsData, topCoursesData, upcomingData]) => {
-        setOverview(overviewData);
-        setRevenue(revenueData);
-        setQuizResults(quizData);
-        setActivityFeed(feedData);
-        setTransactions(transactionsData.transactions);
-        setTopCourses(topCoursesData);
-        setUpcomingClasses(upcomingData);
-      })
-      .finally(() => setIsLoading(false));
-  }, [canSeeRevenue]);
-
-  useEffect(() => {
-    if (!isDepartmentAdmin || !user?.department) return;
-    mwasalatDepartmentService.listActive()
-      .then((departments) => {
+  // Cached for staleTime (5 min, see lib/queryClient.js) so navigating away
+  // and back doesn't re-fire all 8 requests every time — was a plain
+  // useEffect+useState fetch before, with no caching at all.
+  const { data, isLoading } = useQuery({
+    queryKey: ['mwasalat-admin-dashboard', canSeeRevenue, isDepartmentAdmin, user?.department],
+    queryFn: async () => {
+      const [overviewData, revenueData, quizData, feedData, transactionsData, topCoursesData, upcomingData, departments] = await Promise.all([
+        mwasalatProgramService.getAdminOverview(),
+        canSeeRevenue ? mwasalatPaymentService.getRevenueSummary() : Promise.resolve(null),
+        mwasalatQuizService.getAdminResults(),
+        mwasalatProgramService.getRecentActivityFeed(8),
+        canSeeRevenue ? mwasalatPaymentService.listTransactions({ page: 1, limit: 6 }) : Promise.resolve({ transactions: [] }),
+        mwasalatProgramService.getTopCoursesByCompletionRate(),
+        mwasalatProgramService.getUpcomingClasses(),
+        isDepartmentAdmin && user?.department ? mwasalatDepartmentService.listActive().catch(() => []) : Promise.resolve(null),
+      ]);
+      let departmentName = null;
+      if (departments) {
         const mine = departments.find((d) => d._id === user.department);
-        if (mine) setDepartmentName(i18n.language.startsWith('ar') && mine.nameAr ? mine.nameAr : mine.name);
-      })
-      .catch(() => {});
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isDepartmentAdmin, user?.department]);
+        if (mine) departmentName = i18n.language.startsWith('ar') && mine.nameAr ? mine.nameAr : mine.name;
+      }
+      return {
+        overview: overviewData,
+        revenue: revenueData,
+        quizResults: quizData,
+        activityFeed: feedData,
+        transactions: transactionsData.transactions,
+        topCourses: topCoursesData,
+        upcomingClasses: upcomingData,
+        departmentName,
+      };
+    },
+  });
+  const {
+    overview, revenue, quizResults, activityFeed = [], transactions = [], topCourses = [], upcomingClasses = [],
+    departmentName,
+  } = data ?? {};
 
   const monthStart = new Date();
   monthStart.setDate(1);

@@ -37,8 +37,8 @@ const listMine = async () => {
   return res.data.data;
 };
 
-const listPublic = async () => {
-  const res = await programsApi.get('/public');
+const listPublic = async ({ limit } = {}) => {
+  const res = await programsApi.get('/public', { params: limit ? { limit } : undefined });
   return res.data.data;
 };
 
@@ -114,6 +114,15 @@ const submitFeedback = async (id, data) => {
 
 const getCompletionStatus = async (id) => {
   const res = await programsApi.get(`/${id}/completion`);
+  return res.data.data;
+};
+
+// Bulk variant for the learner dashboard — one request for every enrolled
+// program's completion status instead of one getCompletionStatus call per
+// program in a sequential waterfall. Returns a map keyed by programId.
+const getBulkCompletionStatus = async (programIds) => {
+  if (!programIds?.length) return {};
+  const res = await programsApi.get('/me/completion', { params: { programIds: programIds.join(',') } });
   return res.data.data;
 };
 
@@ -294,7 +303,7 @@ export const mwasalatProgramService = {
   aiAutofill, createLiveMeeting, create, update, remove, cancelScheduledDeletion, listMine, listPublic, enroll, listMyEnrollments, toggleStar,
   approveEnrollment, rejectEnrollment,
   getById, getLearners, getFeedback, getStats, checkIn, markAttendance, getAttendance, completeClass,
-  submitFeedback, getCompletionStatus, markContentOpened, getMyCertificate, verifyCertificate,
+  submitFeedback, getCompletionStatus, getBulkCompletionStatus, markContentOpened, getMyCertificate, verifyCertificate,
   getVideoUrl, updateVideoProgress, sendEncouragement,
   getMyAchievements, getLearnerAchievements, getAdminOverview, listAllCertificates, listAllForAdmin,
   getInstructorDetail, listInstructorSummaries, getMySummary, getMyRoster, getMyTodaySchedule,

@@ -64,6 +64,7 @@ const mwasalatUserSchema = new mongoose.Schema(
 
 mwasalatUserSchema.index({ isActive: 1 });
 mwasalatUserSchema.index({ role: 1 });
+mwasalatUserSchema.index({ department: 1 });
 
 mwasalatUserSchema.pre('save', async function (next) {
   if (!this.isModified('password')) return next();

@@ -300,21 +300,13 @@ const listTransactions = async ({ page = 1, limit = 20 } = {}) => {
 };
 
 // Revenue overview for the admin Payments page — total, this month, and a
-// 6-month trend, computed the same "parallel queries + JS reduction" way the
-// rest of the admin overview endpoints do.
+// 6-month trend. Previously pulled every "paid" transaction ever and reduced
+// in JS, which got slower with every transaction added; now computed entirely
+// via one $facet aggregation so it scales with paid-transaction *count*, not
+// with how far back the platform's history goes.
 const getRevenueSummary = async () => {
-  const [allTransactions, totalTransactions] = await Promise.all([
-    MwasalatTransaction.find({ status: 'paid' }, { amount: 1, paidAt: 1, program: 1 }),
-    MwasalatTransaction.countDocuments({ status: 'paid' }),
-  ]);
-
-  const totalRevenue = allTransactions.reduce((sum, t) => sum + t.amount, 0);
-
   const now = new Date();
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-  const thisMonthRevenue = allTransactions
-    .filter((t) => t.paidAt >= monthStart)
-    .reduce((sum, t) => sum + t.amount, 0);
 
   const months = [];
   for (let i = 5; i >= 0; i -= 1) {
@@ -322,29 +314,62 @@ const getRevenueSummary = async () => {
     const end = new Date(now.getFullYear(), now.getMonth() - i + 1, 1);
     months.push({ label: start.toLocaleDateString('en-GB', { month: 'short' }), start, end });
   }
-  const monthlyRevenue = months.map(({ label, start, end }) => {
-    const monthTx = allTransactions.filter((t) => t.paidAt >= start && t.paidAt < end);
-    return { label, value: monthTx.reduce((sum, t) => sum + t.amount, 0), count: monthTx.length };
+  const rangeStart = months[0].start;
+
+  const [facetResult] = await MwasalatTransaction.aggregate([
+    { $match: { status: 'paid' } },
+    {
+      $facet: {
+        totals: [
+          { $group: { _id: null, totalRevenue: { $sum: '$amount' }, totalTransactions: { $sum: 1 } } },
+        ],
+        thisMonth: [
+          { $match: { paidAt: { $gte: monthStart } } },
+          { $group: { _id: null, thisMonthRevenue: { $sum: '$amount' } } },
+        ],
+        monthly: [
+          { $match: { paidAt: { $gte: rangeStart } } },
+          {
+            $group: {
+              _id: { y: { $year: '$paidAt' }, m: { $month: '$paidAt' } },
+              value: { $sum: '$amount' },
+              count: { $sum: 1 },
+            },
+          },
+        ],
+        // Top 5 programs by revenue, grouped/sorted in the DB instead of in JS.
+        topPrograms: [
+          { $match: { program: { $ne: null } } },
+          { $group: { _id: '$program', revenue: { $sum: '$amount' } } },
+          { $sort: { revenue: -1 } },
+          { $limit: 5 },
+        ],
+      },
+    },
+  ]);
+
+  const totalRevenue = facetResult.totals[0]?.totalRevenue ?? 0;
+  const totalTransactions = facetResult.totals[0]?.totalTransactions ?? 0;
+  const thisMonthRevenue = facetResult.thisMonth[0]?.thisMonthRevenue ?? 0;
+
+  const monthlyByKey = new Map(
+    facetResult.monthly.map((m) => [`${m._id.y}-${m._id.m}`, { value: m.value, count: m.count }])
+  );
+  const monthlyRevenue = months.map(({ label, start }) => {
+    const bucket = monthlyByKey.get(`${start.getFullYear()}-${start.getMonth() + 1}`);
+    return { label, value: bucket?.value ?? 0, count: bucket?.count ?? 0 };
   });
 
-  // Top 5 programs by revenue — grouped from the same transaction fetch above,
-  // then a single batch lookup for titles (no N+1).
-  const revenueByProgram = {};
-  allTransactions.forEach((t) => {
-    const key = t.program?.toString();
-    if (!key) return;
-    revenueByProgram[key] = (revenueByProgram[key] ?? 0) + t.amount;
-  });
-  const topProgramIds = Object.entries(revenueByProgram)
-    .sort(([, a], [, b]) => b - a)
-    .slice(0, 5)
-    .map(([id]) => id);
-  const topPrograms = await MwasalatProgram.find({ _id: { $in: topProgramIds } }, { title: 1, titleAr: 1 });
+  const topProgramIds = facetResult.topPrograms.map((p) => p._id.toString());
+  const topPrograms = await MwasalatProgram.find({ _id: { $in: topProgramIds } }, { title: 1, titleAr: 1 }).lean();
   const titleById = Object.fromEntries(topPrograms.map((p) => [p._id.toString(), { title: p.title, titleAr: p.titleAr }]));
-  const topProgramsByRevenue = topProgramIds.map((id) => ({
-    program: { _id: id, title: titleById[id]?.title ?? 'Untitled program', titleAr: titleById[id]?.titleAr },
-    revenue: revenueByProgram[id],
-  }));
+  const topProgramsByRevenue = facetResult.topPrograms.map((p) => {
+    const id = p._id.toString();
+    return {
+      program: { _id: id, title: titleById[id]?.title ?? 'Untitled program', titleAr: titleById[id]?.titleAr },
+      revenue: p.revenue,
+    };
+  });
 
   return { totalRevenue, thisMonthRevenue, totalTransactions, monthlyRevenue, topProgramsByRevenue };
 };

@@ -16,6 +16,7 @@ const mwasalatQuizAttemptSchema = new mongoose.Schema(
 
 mwasalatQuizAttemptSchema.index({ learner: 1, program: 1 });
 mwasalatQuizAttemptSchema.index({ learner: 1, program: 1, moduleId: 1 });
+mwasalatQuizAttemptSchema.index({ program: 1, passed: 1 });
 
 const MwasalatQuizAttempt = mongoose.model('MwasalatQuizAttempt', mwasalatQuizAttemptSchema);
 export default MwasalatQuizAttempt;

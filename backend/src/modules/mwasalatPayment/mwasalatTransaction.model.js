@@ -19,6 +19,7 @@ const mwasalatTransactionSchema = new mongoose.Schema(
 
 mwasalatTransactionSchema.index({ paidAt: -1 });
 mwasalatTransactionSchema.index({ program: 1 });
+mwasalatTransactionSchema.index({ status: 1, paidAt: -1 });
 
 const MwasalatTransaction = mongoose.model('MwasalatTransaction', mwasalatTransactionSchema);
 export default MwasalatTransaction;

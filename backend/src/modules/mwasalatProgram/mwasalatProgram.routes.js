@@ -44,6 +44,9 @@ router.patch('/:id/star', mwasalatAuthMiddleware.authorize(...MWASALAT_LEARNER_R
 router.post('/:id/enroll', mwasalatAuthMiddleware.authorize(...MWASALAT_LEARNER_ROLES), mwasalatProgramController.enroll);
 router.post('/:id/check-in', mwasalatAuthMiddleware.authorize(...MWASALAT_LEARNER_ROLES), mwasalatProgramController.checkIn);
 router.post('/:id/feedback', mwasalatAuthMiddleware.authorize(...MWASALAT_LEARNER_ROLES), mwasalatProgramController.submitFeedback);
+// Must be registered before /:id/completion — otherwise Express would match
+// "me" as the :id param and this route would never be reached.
+router.get('/me/completion', mwasalatAuthMiddleware.authorize(...MWASALAT_LEARNER_ROLES), mwasalatProgramController.getBulkCompletionStatus);
 router.get('/:id/completion', mwasalatAuthMiddleware.authorize(...MWASALAT_LEARNER_ROLES), mwasalatProgramController.getCompletionStatus);
 router.post('/:id/mark-opened', mwasalatAuthMiddleware.authorize(...MWASALAT_LEARNER_ROLES), mwasalatProgramController.markContentOpened);
 router.get('/:id/video-url', mwasalatProgramController.getVideoUrl);

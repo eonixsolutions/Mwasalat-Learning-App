@@ -425,9 +425,14 @@ const googleLogin = async ({ idToken, expectedRole }, ip) => {
 };
 
 const getMe = async (userId) => {
-  const user = await MwasalatUser.findById(userId);
+  // Runs on every authenticated request (see mwasalatAuth.middleware.js) —
+  // lean() skips Mongoose document hydration since callers only ever read
+  // plain fields off req.mwasalatUser, never .save()/instance methods.
+  const user = await MwasalatUser.findById(userId)
+    .select('-password -twoFactorSecret -twoFactorBackupCodes')
+    .lean();
   if (!user) throw new AppError('User not found', 404);
-  return user.toJSON();
+  return user;
 };
 
 const updateProfile = async (userId, { name, phone }, avatarFile) => {

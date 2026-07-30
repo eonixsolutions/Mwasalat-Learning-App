@@ -13,7 +13,7 @@ const isDepartmentScoped = (actor) => actor?.role === MWASALAT_ROLES.DEPARTMENT_
 // this department" is the one fact every other scoped query is filtered by.
 const getDepartmentUserIds = async (departmentId) => {
   if (!departmentId) return [];
-  const users = await MwasalatUser.find({ department: departmentId }, '_id');
+  const users = await MwasalatUser.find({ department: departmentId }, '_id').lean();
   return users.map((u) => u._id);
 };
 

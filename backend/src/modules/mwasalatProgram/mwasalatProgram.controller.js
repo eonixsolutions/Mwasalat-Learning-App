@@ -40,7 +40,8 @@ const listMine = asyncHandler(async (req, res) => {
 });
 
 const listPublic = asyncHandler(async (req, res) => {
-  const programs = await mwasalatProgramService.listPublic(req.mwasalatUser);
+  const limit = req.query.limit ? Number(req.query.limit) : undefined;
+  const programs = await mwasalatProgramService.listPublic(req.mwasalatUser, { limit });
   successResponse(res, 'Programs fetched', programs);
 });
 
@@ -132,6 +133,14 @@ const submitFeedback = asyncHandler(async (req, res) => {
 const getCompletionStatus = asyncHandler(async (req, res) => {
   const status = await mwasalatProgramService.getCompletionStatus(req.mwasalatUser._id, req.params.id);
   successResponse(res, 'Completion status fetched', status);
+});
+
+// Bulk variant for the learner dashboard, which otherwise called
+// getCompletionStatus once per enrolled program in a sequential waterfall.
+const getBulkCompletionStatus = asyncHandler(async (req, res) => {
+  const programIds = String(req.query.programIds || '').split(',').map((id) => id.trim()).filter(Boolean);
+  const statusByProgram = await mwasalatProgramService.getBulkCompletionStatus(req.mwasalatUser._id, programIds);
+  successResponse(res, 'Completion statuses fetched', statusByProgram);
 });
 
 const markContentOpened = asyncHandler(async (req, res) => {
@@ -315,7 +324,7 @@ export const mwasalatProgramController = {
   approveEnrollment, rejectEnrollment,
   getById, getLearners, getMyRoster, getFeedback, getStats, checkIn, markAttendance, getAttendance,
   completeClass,
-  submitFeedback, getCompletionStatus, markContentOpened, getMyCertificate, verifyCertificate,
+  submitFeedback, getCompletionStatus, getBulkCompletionStatus, markContentOpened, getMyCertificate, verifyCertificate,
   getVideoUrl, updateVideoProgress, sendEncouragement,
   getMyAchievements, getLearnerAchievements, getAdminOverview, listAllCertificates, listAllForAdmin,
   getInstructorDetail, listInstructorSummaries, getMySummary, getMyTodaySchedule,

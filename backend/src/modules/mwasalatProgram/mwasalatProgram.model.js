@@ -192,6 +192,8 @@ mwasalatProgramSchema.index({ status: 1 });
 mwasalatProgramSchema.index({ departments: 1 });
 mwasalatProgramSchema.index({ targetGroups: 1 });
 mwasalatProgramSchema.index({ deletionScheduledAt: 1 });
+mwasalatProgramSchema.index({ contentTypes: 1, liveScheduledAt: 1 });
+mwasalatProgramSchema.index({ contentTypes: 1, iltScheduledAt: 1 });
 
 const MwasalatProgram = mongoose.model('MwasalatProgram', mwasalatProgramSchema);
 export default MwasalatProgram;

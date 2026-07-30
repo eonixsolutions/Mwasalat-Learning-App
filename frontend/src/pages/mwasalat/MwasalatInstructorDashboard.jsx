@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
@@ -264,31 +265,32 @@ function LearnerProgressCard({ allStudents }) {
 export default function MwasalatInstructorDashboard() {
   const { t, i18n } = useTranslation('mwasalatApp');
   const { user } = useMwasalatAuthStore();
-  const [programs, setPrograms] = useState([]);
-  const [totalLearners, setTotalLearners] = useState(0);
-  const [needsAttention, setNeedsAttention] = useState([]);
-  const [allStudents, setAllStudents] = useState([]);
-  const [todaySchedule, setTodaySchedule] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [encouragingId, setEncouragingId] = useState(null);
   const [showNotifyModal, setShowNotifyModal] = useState(false);
 
-  useEffect(() => {
-    Promise.all([
-      mwasalatProgramService.listMine(),
-      mwasalatProgramService.getMySummary(),
-      mwasalatProgramService.getMyRoster(),
-      mwasalatProgramService.getMyTodaySchedule(),
-    ])
-      .then(([myPrograms, summary, roster, schedule]) => {
-        setPrograms(myPrograms);
-        setTotalLearners(summary.totalLearners);
-        setNeedsAttention(roster.needsAttention);
-        setAllStudents(roster.allStudents);
-        setTodaySchedule(schedule);
-      })
-      .finally(() => setIsLoading(false));
-  }, []);
+  // Cached for staleTime (5 min, see lib/queryClient.js) so revisiting this
+  // page doesn't re-fire all 4 requests every time.
+  const { data, isLoading } = useQuery({
+    queryKey: ['mwasalat-instructor-dashboard'],
+    queryFn: async () => {
+      const [myPrograms, summary, roster, schedule] = await Promise.all([
+        mwasalatProgramService.listMine(),
+        mwasalatProgramService.getMySummary(),
+        mwasalatProgramService.getMyRoster(),
+        mwasalatProgramService.getMyTodaySchedule(),
+      ]);
+      return {
+        programs: myPrograms,
+        totalLearners: summary.totalLearners,
+        needsAttention: roster.needsAttention,
+        allStudents: roster.allStudents,
+        todaySchedule: schedule,
+      };
+    },
+  });
+  const {
+    programs = [], totalLearners = 0, needsAttention = [], allStudents = [], todaySchedule = [],
+  } = data ?? {};
 
   const handleEncourage = async (programId, learnerId, templateKey) => {
     setEncouragingId(learnerId);

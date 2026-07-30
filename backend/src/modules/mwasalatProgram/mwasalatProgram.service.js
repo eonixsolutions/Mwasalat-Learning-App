@@ -426,7 +426,7 @@ const listMine = async (instructorId) => {
 // paying public audience); a learner additionally gets department-filtered;
 // any staff role is unrestricted, matching this endpoint's behavior before
 // audience/department targeting existed.
-const listPublic = async (requester) => {
+const listPublic = async (requester, { limit } = {}) => {
   const now = new Date();
   const andClauses = [
     { status: PROGRAM_STATUS.ACTIVE },
@@ -452,10 +452,15 @@ const listPublic = async (requester) => {
     andClauses.push(targetingVisibilityClause(requester.department, groupIds));
   }
 
-  const programs = await MwasalatProgram.find({ $and: andClauses })
+  let query = MwasalatProgram.find({ $and: andClauses })
     .populate('instructor', 'name')
     .populate('prerequisiteProgram', 'title titleAr')
     .sort({ createdAt: -1 });
+  // Optional cap for callers that only need a handful of cards (e.g. the
+  // learner dashboard's "Recommended" rail) — omitted, every other caller
+  // (catalog page, landing page) keeps getting the full unbounded list.
+  if (limit) query = query.limit(limit);
+  const programs = await query.lean();
 
   const capacitated = programs.filter((p) => p.capacity);
   if (!capacitated.length) return programs;
@@ -468,9 +473,7 @@ const listPublic = async (requester) => {
 
   return programs.map((p) => {
     if (!p.capacity) return p;
-    const obj = p.toObject();
-    obj.seatsRemaining = Math.max(0, p.capacity - (seatsTakenByProgram[p._id.toString()] ?? 0));
-    return obj;
+    return { ...p, seatsRemaining: Math.max(0, p.capacity - (seatsTakenByProgram[p._id.toString()] ?? 0)) };
   });
 };
 
@@ -1134,18 +1137,23 @@ const getLearners = async (programId) => {
 // taking two of the instructor's courses shows up twice, each with its own
 // progress/risk — backs the "My Students" and "Needs Attention" sidebar pages.
 const getMyRoster = async (instructorId) => {
-  const programs = await MwasalatProgram.find({ instructor: instructorId });
+  // Full program docs (not projected) — computeLearnerProgressPercent below
+  // reads program.modules for the modular-progress branch.
+  const programs = await MwasalatProgram.find({ instructor: instructorId }).lean();
   if (!programs.length) return { allStudents: [], needsAttention: [] };
 
   const programIds = programs.map((p) => p._id);
   const programById = new Map(programs.map((p) => [p._id.toString(), p]));
 
   const [enrollments, quizzes, passingAttempts, feedbackDocs, passingAssignments] = await Promise.all([
-    MwasalatEnrollment.find({ program: { $in: programIds } }).populate('learner', 'name email').sort({ createdAt: -1 }),
-    MwasalatQuiz.find({ program: { $in: programIds } }, 'program'),
-    MwasalatQuizAttempt.find({ program: { $in: programIds }, passed: true }, 'learner program moduleId'),
-    MwasalatFeedback.find({ program: { $in: programIds } }, 'learner program'),
-    MwasalatAssignmentSubmission.find({ program: { $in: programIds }, passed: true }, 'learner program lessonId'),
+    // Defensive cap — this is read-only display data with no server-side
+    // pagination yet on the 3 frontend pages that consume it in full for
+    // client-side filter/sort; true pagination is a separate follow-up.
+    MwasalatEnrollment.find({ program: { $in: programIds } }).populate('learner', 'name email').sort({ createdAt: -1 }).limit(500).lean(),
+    MwasalatQuiz.find({ program: { $in: programIds } }, 'program').lean(),
+    MwasalatQuizAttempt.find({ program: { $in: programIds }, passed: true }, 'learner program moduleId').lean(),
+    MwasalatFeedback.find({ program: { $in: programIds } }, 'learner program').lean(),
+    MwasalatAssignmentSubmission.find({ program: { $in: programIds }, passed: true }, 'learner program lessonId').lean(),
   ]);
 
   const programsWithQuiz = new Set(quizzes.map((q) => q.program.toString()));
@@ -1724,31 +1732,13 @@ const submitFeedback = async (learnerId, programId, data) => {
   return feedback;
 };
 
-const getCompletionStatus = async (learnerId, programId) => {
-  const [
-    enrollment, program, hasQuiz, passingAttempt, feedback, certificate, hasAssignment, latestSubmission,
-    passedModuleQuizAttempts, passedModuleAssignments,
-  ] = await Promise.all([
-    MwasalatEnrollment.findOne({ learner: learnerId, program: programId }),
-    MwasalatProgram.findById(programId, 'pdfDurationDays contentTypes recordingVideoDurationSeconds modules liveClassCompletedAt iltClassCompletedAt'),
-    MwasalatQuiz.exists({ program: programId, moduleId: null }),
-    MwasalatQuizAttempt.findOne({ learner: learnerId, program: programId, moduleId: null, passed: true }),
-    MwasalatFeedback.findOne({ learner: learnerId, program: programId }),
-    MwasalatCertificate.findOne({ learner: learnerId, program: programId }),
-    MwasalatAssignment.exists({ program: programId, moduleId: null }),
-    MwasalatAssignmentSubmission.findOne({ learner: learnerId, program: programId, moduleId: null }).sort({ submittedAt: -1 }),
-    // Modular-only: per-module quiz passes / per-lesson assignment passes for
-    // this learner, feeding computeModularProgressFraction's granular %.
-    MwasalatQuizAttempt.find({ learner: learnerId, program: programId, moduleId: { $ne: null }, passed: true }, 'moduleId'),
-    MwasalatAssignmentSubmission.find({ learner: learnerId, program: programId, moduleId: { $ne: null }, passed: true }, 'lessonId'),
-  ]);
-
-  const quizAttemptNumber = passingAttempt
-    ? await MwasalatQuizAttempt.countDocuments({
-      learner: learnerId, program: programId, moduleId: null, attemptedAt: { $lte: passingAttempt.attemptedAt },
-    })
-    : null;
-
+// Shared assembly for a single program's completion-status response — used by
+// both getCompletionStatus (one program) and getBulkCompletionStatus (many
+// programs at once) so the two can never silently drift out of sync.
+const buildCompletionStatus = ({
+  enrollment, program, hasQuiz, passingAttempt, feedbackSubmitted, certificateIssued, hasAssignment,
+  latestSubmission, quizAttemptNumber, waitlistPosition, passedModuleQuizModuleIds, passedModuleAssignmentLessonIds,
+}) => {
   // Modular ("super course") summary. completedModules/totalModules stay an
   // exact whole-module count (used for the "X of Y modules done" badge and
   // the "continue vs start" check), while progressFraction is the granular
@@ -1759,20 +1749,10 @@ const getCompletionStatus = async (learnerId, programId) => {
       totalModules: program.modules?.length ?? 0,
       completedModules: enrollment?.moduleProgress?.filter((mp) => mp.completedAt).length ?? 0,
       progressFraction: computeModularProgressFraction(
-        program,
-        enrollment,
-        new Set(passedModuleQuizAttempts.map((a) => String(a.moduleId))),
-        new Set(passedModuleAssignments.map((s) => String(s.lessonId)))
+        program, enrollment, passedModuleQuizModuleIds, passedModuleAssignmentLessonIds
       ),
     }
     : null;
-
-  let waitlistPosition = null;
-  if (enrollment?.status === ENROLLMENT_STATUS.WAITLISTED) {
-    waitlistPosition = 1 + await MwasalatEnrollment.countDocuments({
-      program: programId, status: ENROLLMENT_STATUS.WAITLISTED, purchasedAt: { $lt: enrollment.purchasedAt },
-    });
-  }
 
   return {
     status: enrollment?.status ?? null,
@@ -1818,10 +1798,159 @@ const getCompletionStatus = async (learnerId, programId) => {
         submittedAt: latestSubmission.submittedAt,
       }
       : null,
-    feedbackSubmitted: Boolean(feedback),
-    certificateIssued: Boolean(certificate),
+    feedbackSubmitted: Boolean(feedbackSubmitted),
+    certificateIssued: Boolean(certificateIssued),
     modular,
   };
+};
+
+const getCompletionStatus = async (learnerId, programId) => {
+  const [
+    enrollment, program, hasQuiz, passingAttempt, feedback, certificate, hasAssignment, latestSubmission,
+    passedModuleQuizAttempts, passedModuleAssignments,
+  ] = await Promise.all([
+    MwasalatEnrollment.findOne({ learner: learnerId, program: programId }),
+    MwasalatProgram.findById(programId, 'pdfDurationDays contentTypes recordingVideoDurationSeconds modules liveClassCompletedAt iltClassCompletedAt'),
+    MwasalatQuiz.exists({ program: programId, moduleId: null }),
+    MwasalatQuizAttempt.findOne({ learner: learnerId, program: programId, moduleId: null, passed: true }),
+    MwasalatFeedback.findOne({ learner: learnerId, program: programId }),
+    MwasalatCertificate.findOne({ learner: learnerId, program: programId }),
+    MwasalatAssignment.exists({ program: programId, moduleId: null }),
+    MwasalatAssignmentSubmission.findOne({ learner: learnerId, program: programId, moduleId: null }).sort({ submittedAt: -1 }),
+    // Modular-only: per-module quiz passes / per-lesson assignment passes for
+    // this learner, feeding computeModularProgressFraction's granular %.
+    MwasalatQuizAttempt.find({ learner: learnerId, program: programId, moduleId: { $ne: null }, passed: true }, 'moduleId'),
+    MwasalatAssignmentSubmission.find({ learner: learnerId, program: programId, moduleId: { $ne: null }, passed: true }, 'lessonId'),
+  ]);
+
+  const quizAttemptNumber = passingAttempt
+    ? await MwasalatQuizAttempt.countDocuments({
+      learner: learnerId, program: programId, moduleId: null, attemptedAt: { $lte: passingAttempt.attemptedAt },
+    })
+    : null;
+
+  let waitlistPosition = null;
+  if (enrollment?.status === ENROLLMENT_STATUS.WAITLISTED) {
+    waitlistPosition = 1 + await MwasalatEnrollment.countDocuments({
+      program: programId, status: ENROLLMENT_STATUS.WAITLISTED, purchasedAt: { $lt: enrollment.purchasedAt },
+    });
+  }
+
+  return buildCompletionStatus({
+    enrollment, program, hasQuiz, passingAttempt, feedbackSubmitted: feedback, certificateIssued: certificate,
+    hasAssignment, latestSubmission, quizAttemptNumber, waitlistPosition,
+    passedModuleQuizModuleIds: new Set(passedModuleQuizAttempts.map((a) => String(a.moduleId))),
+    passedModuleAssignmentLessonIds: new Set(passedModuleAssignments.map((s) => String(s.lessonId))),
+  });
+};
+
+// Bulk version of getCompletionStatus for the learner dashboard, which used to
+// call the single-program endpoint once per enrolled program in a sequential
+// waterfall. Re-runs the same 9 base lookups scoped to `program: {$in:...}`
+// instead of one program at a time, then only pays for the two small
+// per-program follow-up counts (quizAttemptNumber, waitlistPosition) on the
+// subset of programs that actually have a passing attempt / waitlisted
+// enrollment — not for every program. Returns a plain object keyed by
+// programId string, one entry per requested program.
+const getBulkCompletionStatus = async (learnerId, programIds) => {
+  if (!programIds?.length) return {};
+
+  const [
+    enrollments, programs, quizzesWithBase, passingAttempts, feedbacks, certificates,
+    assignmentsWithBase, latestSubmissions, passedModuleQuizAttempts, passedModuleAssignments,
+  ] = await Promise.all([
+    MwasalatEnrollment.find({ learner: learnerId, program: { $in: programIds } }).lean(),
+    MwasalatProgram.find(
+      { _id: { $in: programIds } },
+      'pdfDurationDays contentTypes recordingVideoDurationSeconds modules liveClassCompletedAt iltClassCompletedAt'
+    ).lean(),
+    MwasalatQuiz.find({ program: { $in: programIds }, moduleId: null }, 'program').lean(),
+    MwasalatQuizAttempt.find({ learner: learnerId, program: { $in: programIds }, moduleId: null, passed: true }).lean(),
+    MwasalatFeedback.find({ learner: learnerId, program: { $in: programIds } }, 'program').lean(),
+    MwasalatCertificate.find({ learner: learnerId, program: { $in: programIds } }, 'program').lean(),
+    MwasalatAssignment.find({ program: { $in: programIds }, moduleId: null }, 'program').lean(),
+    MwasalatAssignmentSubmission.find({ learner: learnerId, program: { $in: programIds }, moduleId: null })
+      .sort({ submittedAt: -1 }).lean(),
+    MwasalatQuizAttempt.find({ learner: learnerId, program: { $in: programIds }, moduleId: { $ne: null }, passed: true }, 'program moduleId').lean(),
+    MwasalatAssignmentSubmission.find({ learner: learnerId, program: { $in: programIds }, moduleId: { $ne: null }, passed: true }, 'program lessonId').lean(),
+  ]);
+
+  const enrollmentByProgram = new Map(enrollments.map((e) => [e.program.toString(), e]));
+  const programById = new Map(programs.map((p) => [p._id.toString(), p]));
+  const quizProgramIds = new Set(quizzesWithBase.map((q) => q.program.toString()));
+  const passingAttemptByProgram = new Map(passingAttempts.map((a) => [a.program.toString(), a]));
+  const feedbackProgramIds = new Set(feedbacks.map((f) => f.program.toString()));
+  const certificateProgramIds = new Set(certificates.map((c) => c.program.toString()));
+  const assignmentProgramIds = new Set(assignmentsWithBase.map((a) => a.program.toString()));
+
+  const latestSubmissionByProgram = new Map();
+  latestSubmissions.forEach((s) => {
+    const key = s.program.toString();
+    if (!latestSubmissionByProgram.has(key)) latestSubmissionByProgram.set(key, s);
+  });
+
+  const passedModuleQuizModuleIdsByProgram = new Map();
+  passedModuleQuizAttempts.forEach((a) => {
+    const key = a.program.toString();
+    if (!passedModuleQuizModuleIdsByProgram.has(key)) passedModuleQuizModuleIdsByProgram.set(key, new Set());
+    passedModuleQuizModuleIdsByProgram.get(key).add(String(a.moduleId));
+  });
+  const passedModuleAssignmentLessonIdsByProgram = new Map();
+  passedModuleAssignments.forEach((s) => {
+    const key = s.program.toString();
+    if (!passedModuleAssignmentLessonIdsByProgram.has(key)) passedModuleAssignmentLessonIdsByProgram.set(key, new Set());
+    passedModuleAssignmentLessonIdsByProgram.get(key).add(String(s.lessonId));
+  });
+
+  const idStrings = programIds.map((id) => id.toString());
+
+  const quizAttemptNumberEntries = await Promise.all(
+    idStrings
+      .filter((id) => passingAttemptByProgram.has(id))
+      .map(async (id) => {
+        const passingAttempt = passingAttemptByProgram.get(id);
+        const count = await MwasalatQuizAttempt.countDocuments({
+          learner: learnerId, program: id, moduleId: null, attemptedAt: { $lte: passingAttempt.attemptedAt },
+        });
+        return [id, count];
+      })
+  );
+  const quizAttemptNumberByProgram = new Map(quizAttemptNumberEntries);
+
+  const waitlistPositionEntries = await Promise.all(
+    idStrings
+      .filter((id) => enrollmentByProgram.get(id)?.status === ENROLLMENT_STATUS.WAITLISTED)
+      .map(async (id) => {
+        const enrollment = enrollmentByProgram.get(id);
+        const position = 1 + await MwasalatEnrollment.countDocuments({
+          program: id, status: ENROLLMENT_STATUS.WAITLISTED, purchasedAt: { $lt: enrollment.purchasedAt },
+        });
+        return [id, position];
+      })
+  );
+  const waitlistPositionByProgram = new Map(waitlistPositionEntries);
+
+  const result = {};
+  idStrings.forEach((id) => {
+    const enrollment = enrollmentByProgram.get(id);
+    const passingAttempt = passingAttemptByProgram.get(id);
+    result[id] = buildCompletionStatus({
+      enrollment,
+      program: programById.get(id),
+      hasQuiz: quizProgramIds.has(id),
+      passingAttempt,
+      feedbackSubmitted: feedbackProgramIds.has(id),
+      certificateIssued: certificateProgramIds.has(id),
+      hasAssignment: assignmentProgramIds.has(id),
+      latestSubmission: latestSubmissionByProgram.get(id),
+      quizAttemptNumber: quizAttemptNumberByProgram.get(id) ?? null,
+      waitlistPosition: waitlistPositionByProgram.get(id) ?? null,
+      passedModuleQuizModuleIds: passedModuleQuizModuleIdsByProgram.get(id) ?? new Set(),
+      passedModuleAssignmentLessonIds: passedModuleAssignmentLessonIdsByProgram.get(id) ?? new Set(),
+    });
+  });
+
+  return result;
 };
 
 const getMyCertificate = async (learnerId, programId) => {
@@ -1968,7 +2097,7 @@ const getAdminOverview = async (actor) => {
     MwasalatCertificate.countDocuments({ issuedAt: { $gte: monthStart }, ...deptLearnerMatch }),
     MwasalatUser.countDocuments({ role: MWASALAT_ROLES.LEARNER, createdAt: { $gte: monthStart }, ...deptMatch }),
     MwasalatUser.countDocuments({ role: MWASALAT_ROLES.EXTERNAL_LEARNER, createdAt: { $gte: monthStart }, ...deptMatch }),
-    MwasalatProgram.find({ status: { $ne: PROGRAM_STATUS.ARCHIVED }, ...deptProgramMatch }, { contentTypes: 1 }),
+    MwasalatProgram.find({ status: { $ne: PROGRAM_STATUS.ARCHIVED }, ...deptProgramMatch }, { contentTypes: 1 }).lean(),
   ]);
 
   const typeCounts = {};
@@ -1992,30 +2121,29 @@ const getAdminOverview = async (actor) => {
     end.setDate(end.getDate() + 7);
     weeks.push({ start, end });
   }
-  const weeklySignups = await Promise.all(
-    weeks.map(({ start, end }) => MwasalatUser.countDocuments({
+  // Weekly signups/certificates (24 counts) + the completion funnel (3 counts)
+  // used to run as 4 separate sequential Promise.all round-trips — flattened
+  // into one batch so they all fire together instead of waiting on each other.
+  const weeklyAndFunnelResults = await Promise.all([
+    ...weeks.map(({ start, end }) => MwasalatUser.countDocuments({
       role: MWASALAT_ROLES.LEARNER, createdAt: { $gte: start, $lt: end }, ...deptMatch,
-    }))
-  );
-  const weeklyExternalSignups = await Promise.all(
-    weeks.map(({ start, end }) => MwasalatUser.countDocuments({
+    })),
+    ...weeks.map(({ start, end }) => MwasalatUser.countDocuments({
       role: MWASALAT_ROLES.EXTERNAL_LEARNER, createdAt: { $gte: start, $lt: end }, ...deptMatch,
-    }))
-  );
-
-  // Same 8-week windows, for the Certificates stat card's sparkline.
-  const weeklyCertificates = await Promise.all(
-    weeks.map(({ start, end }) => MwasalatCertificate.countDocuments({ issuedAt: { $gte: start, $lt: end }, ...deptLearnerMatch }))
-  );
-
-  // Completion funnel — where learners drop off between enrolling and
-  // finishing a course. Same three-stage shape regardless of whether a
-  // program has a quiz, since "completed" already accounts for that per-enrollment.
-  const [totalEnrolled, openedContent, completedEnrollments] = await Promise.all([
+    })),
+    ...weeks.map(({ start, end }) => MwasalatCertificate.countDocuments({ issuedAt: { $gte: start, $lt: end }, ...deptLearnerMatch })),
     MwasalatEnrollment.countDocuments({ status: { $ne: ENROLLMENT_STATUS.REJECTED }, ...deptLearnerMatch }),
     MwasalatEnrollment.countDocuments({ contentOpenedAt: { $ne: null }, ...deptLearnerMatch }),
     MwasalatEnrollment.countDocuments({ status: ENROLLMENT_STATUS.COMPLETED, ...deptLearnerMatch }),
   ]);
+  const weeklySignups = weeklyAndFunnelResults.slice(0, weeks.length);
+  const weeklyExternalSignups = weeklyAndFunnelResults.slice(weeks.length, weeks.length * 2);
+  const weeklyCertificates = weeklyAndFunnelResults.slice(weeks.length * 2, weeks.length * 3);
+  const [totalEnrolled, openedContent, completedEnrollments] = weeklyAndFunnelResults.slice(weeks.length * 3);
+
+  // Completion funnel — where learners drop off between enrolling and
+  // finishing a course. Same three-stage shape regardless of whether a
+  // program has a quiz, since "completed" already accounts for that per-enrollment.
   const funnel = [
     { label: 'Enrolled', value: totalEnrolled },
     { label: 'Opened Content', value: openedContent },
@@ -2042,36 +2170,36 @@ const getTopCoursesByCompletionRate = async (actor) => {
   // tagged courses, not just enrollments from that department's learners.
   const enrollmentMatch = { status: { $ne: ENROLLMENT_STATUS.REJECTED } };
   if (scoped) {
-    const scopedPrograms = await MwasalatProgram.find({ departments: actor.department }, '_id');
+    const scopedPrograms = await MwasalatProgram.find({ departments: actor.department }, '_id').lean();
     enrollmentMatch.program = { $in: scopedPrograms.map((p) => p._id) };
   }
 
-  const enrollments = await MwasalatEnrollment.find(enrollmentMatch, 'program status');
+  // Grouped/ranked in the DB via aggregation instead of pulling every
+  // enrollment platform-wide and reducing in JS — scales with program count
+  // (a handful of `$group` buckets), not with total enrollment volume.
+  const ranked = await MwasalatEnrollment.aggregate([
+    { $match: enrollmentMatch },
+    {
+      $group: {
+        _id: '$program',
+        total: { $sum: 1 },
+        completed: { $sum: { $cond: [{ $eq: ['$status', ENROLLMENT_STATUS.COMPLETED] }, 1, 0] } },
+      },
+    },
+    { $addFields: { completionRate: { $round: [{ $multiply: [{ $divide: ['$completed', '$total'] }, 100] }, 0] } } },
+    { $sort: { completionRate: -1, total: -1 } },
+    { $limit: 5 },
+  ]);
 
-  const statsByProgram = {};
-  enrollments.forEach((e) => {
-    const key = e.program.toString();
-    if (!statsByProgram[key]) statsByProgram[key] = { total: 0, completed: 0 };
-    statsByProgram[key].total += 1;
-    if (e.status === ENROLLMENT_STATUS.COMPLETED) statsByProgram[key].completed += 1;
-  });
-
-  const ranked = Object.entries(statsByProgram)
-    .map(([programId, { total, completed }]) => ({
-      programId, totalEnrolled: total, completionRate: Math.round((completed / total) * 100),
-    }))
-    .sort((a, b) => b.completionRate - a.completionRate || b.totalEnrolled - a.totalEnrolled)
-    .slice(0, 5);
-
-  const programs = await MwasalatProgram.find({ _id: { $in: ranked.map((r) => r.programId) } }, 'title titleAr');
+  const programs = await MwasalatProgram.find({ _id: { $in: ranked.map((r) => r._id) } }, 'title titleAr').lean();
   const titleById = Object.fromEntries(programs.map((p) => [p._id.toString(), { title: p.title, titleAr: p.titleAr }]));
 
   return ranked.map((r) => ({
-    programId: r.programId,
-    title: titleById[r.programId]?.title ?? 'Untitled program',
-    titleAr: titleById[r.programId]?.titleAr,
+    programId: r._id.toString(),
+    title: titleById[r._id.toString()]?.title ?? 'Untitled program',
+    titleAr: titleById[r._id.toString()]?.titleAr,
     completionRate: r.completionRate,
-    totalEnrolled: r.totalEnrolled,
+    totalEnrolled: r.total,
   }));
 };
 
@@ -2091,7 +2219,7 @@ const getUpcomingClasses = async (actor) => {
       { contentTypes: CONTENT_TYPES.ILT, iltScheduledAt: { $gte: now } },
     ],
     ...deptProgramMatch,
-  }).populate('instructor', 'name').limit(30);
+  }).populate('instructor', 'name').limit(30).lean();
 
   const sessions = programs
     .map((p) => {
@@ -2132,7 +2260,7 @@ const getMyTodaySchedule = async (instructorId) => {
       { contentTypes: CONTENT_TYPES.LIVE, liveScheduledAt: { $gte: startOfDay, $lt: endOfDay } },
       { contentTypes: CONTENT_TYPES.ILT, iltScheduledAt: { $gte: startOfDay, $lt: endOfDay } },
     ],
-  });
+  }).lean();
 
   const sessions = programs
     .map((p) => {
@@ -2174,8 +2302,8 @@ const getRecentActivityFeed = async (limit = 8, actor) => {
   const deptLearnerMatch = scoped ? { learner: { $in: deptUserIds } } : {};
 
   const [enrollments, certificates, adminLogResult] = await Promise.all([
-    MwasalatEnrollment.find({ ...deptLearnerMatch }).populate('learner', 'name').populate('program', 'title titleAr').sort({ purchasedAt: -1 }).limit(limit),
-    MwasalatCertificate.find({ ...deptLearnerMatch }).populate('learner', 'name').populate('program', 'title titleAr').sort({ issuedAt: -1 }).limit(limit),
+    MwasalatEnrollment.find({ ...deptLearnerMatch }).populate('learner', 'name').populate('program', 'title titleAr').sort({ purchasedAt: -1 }).limit(limit).lean(),
+    MwasalatCertificate.find({ ...deptLearnerMatch }).populate('learner', 'name').populate('program', 'title titleAr').sort({ issuedAt: -1 }).limit(limit).lean(),
     scoped ? Promise.resolve({ logs: [] }) : mwasalatActivityLogService.list({ limit }),
   ]);
 
@@ -2233,11 +2361,16 @@ const listAllForAdmin = async (actor) => {
   const deptProgramMatch = scoped ? { departments: actor.department } : {};
 
   const [programs, feedback] = await Promise.all([
+    // `-modules` excludes the embedded lessons array (rich text/video/file
+    // URLs) — this mapped response never reads it, so there's no reason to
+    // pull or transfer it over the wire for every program on this page.
     MwasalatProgram.find({ ...deptProgramMatch })
+      .select('-modules')
       .populate('instructor', 'name email')
       .populate('departments', 'name nameAr')
-      .sort({ createdAt: -1 }),
-    MwasalatFeedback.find({}, { program: 1, courseRating: 1 }),
+      .sort({ createdAt: -1 })
+      .lean(),
+    MwasalatFeedback.find({}, { program: 1, courseRating: 1 }).lean(),
   ]);
 
   const ratingsByProgram = {};
@@ -2282,15 +2415,16 @@ const listAllForAdmin = async (actor) => {
 // stats, plus platform-wide totals across all of them.
 const getInstructorDetail = async (instructorId) => {
   const [instructor, programs] = await Promise.all([
-    MwasalatUser.findById(instructorId).select('name email createdAt isActive lastLogin'),
-    MwasalatProgram.find({ instructor: instructorId }).sort({ createdAt: -1 }),
+    MwasalatUser.findById(instructorId).select('name email createdAt isActive lastLogin').lean(),
+    // `-modules` excludes the embedded lessons array — this response never reads it.
+    MwasalatProgram.find({ instructor: instructorId }).select('-modules').sort({ createdAt: -1 }).lean(),
   ]);
   if (!instructor) throw new AppError('Instructor not found', 404);
 
   const programIds = programs.map((p) => p._id);
   const [enrollments, feedback, certificatesIssued] = await Promise.all([
-    MwasalatEnrollment.find({ program: { $in: programIds } }, { program: 1, learner: 1 }),
-    MwasalatFeedback.find({ program: { $in: programIds } }, { program: 1, courseRating: 1 }),
+    MwasalatEnrollment.find({ program: { $in: programIds } }, { program: 1, learner: 1 }).lean(),
+    MwasalatFeedback.find({ program: { $in: programIds } }, { program: 1, courseRating: 1 }).lean(),
     MwasalatCertificate.countDocuments({ program: { $in: programIds } }),
   ]);
 
@@ -2357,8 +2491,8 @@ const getInstructorDetail = async (instructorId) => {
 // count + avg rating for every instructor in one batch, not one query per row.
 const listInstructorSummaries = async () => {
   const [programs, feedback] = await Promise.all([
-    MwasalatProgram.find({}, { instructor: 1 }),
-    MwasalatFeedback.find({}, { program: 1, courseRating: 1 }),
+    MwasalatProgram.find({}, { instructor: 1 }).lean(),
+    MwasalatFeedback.find({}, { program: 1, courseRating: 1 }).lean(),
   ]);
 
   const instructorByProgram = {};
@@ -3162,7 +3296,7 @@ export const mwasalatProgramService = {
   approveEnrollment, rejectEnrollment,
   getById, getLearners, getMyRoster, getFeedback, getStats, checkIn, markAttendance, getAttendance,
   completeClass, isClassSessionCompleted,
-  submitFeedback, getCompletionStatus, maybeCompleteEnrollment, markContentOpened, getMyCertificate, verifyCertificate, getAchievements,
+  submitFeedback, getCompletionStatus, getBulkCompletionStatus, maybeCompleteEnrollment, markContentOpened, getMyCertificate, verifyCertificate, getAchievements,
   getVideoUrl, updateVideoProgress, sendCertificateExpiryReminders, autoRenewExpiringCertificates, reissueCertificateFromRetest,
   registerActivity, computeEngagementAndNudge, sendEncouragement, sendWeeklyInstructorDigests,
   getAdminOverview, listAllCertificates, listAllForAdmin, getInstructorDetail, listInstructorSummaries,

@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import toast from 'react-hot-toast';
 import { Users, Loader2, BookOpen, Award, CircleSlash, AlertTriangle, Send, CheckCircle2 } from 'lucide-react';
@@ -9,16 +10,15 @@ import { localizeNumber, getLocalizedProgramField } from '../../utils/mwasalatLo
 export default function MwasalatSupervisorDashboard() {
   const { t, i18n } = useTranslation('mwasalatApp');
   const dateLocale = i18n.language.startsWith('ar') ? 'ar-OM' : 'en-GB';
-  const [team, setTeam] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [escalatingKey, setEscalatingKey] = useState(null);
   const [escalatedKeys, setEscalatedKeys] = useState(new Set());
 
-  useEffect(() => {
-    mwasalatUserService.getMyTeamOverview()
-      .then(setTeam)
-      .finally(() => setIsLoading(false));
-  }, []);
+  // Cached for staleTime (5 min, see lib/queryClient.js) so revisiting this
+  // page doesn't refetch every time.
+  const { data: team = [], isLoading } = useQuery({
+    queryKey: ['mwasalat-supervisor-team-overview'],
+    queryFn: mwasalatUserService.getMyTeamOverview,
+  });
 
   const totalEnrolled = team.reduce((sum, m) => sum + m.enrolledCount, 0);
   const totalCompleted = team.reduce((sum, m) => sum + m.completedCount, 0);
